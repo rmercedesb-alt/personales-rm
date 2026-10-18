@@ -14,8 +14,10 @@ en `C:\Personales RM\Claude\MovilBusinessDashBoard\RutaVisitasSmart`; ambas cuen
    qué se hizo, decisiones clave, pendientes (incl. acciones de TI), dónde se retoma,
    y la fecha de última actualización.
 3. Este `CLAUDE.md` y `PROGRESS.md` están en esa carpeta local (ya no en OneDrive) → ambas cuentas los leen/escriben.
-   La memoria interna de Claude (`~/.claude`) NO se sincroniza entre cuentas/máquinas;
-   por eso el canal compartido son estos archivos del proyecto.
+   Las 2 cuentas entran con el MISMO usuario de Windows (`Rudy`) y comparten la memoria
+   interna de Claude (`~/.claude`); aun así, el canal oficial son estos archivos del proyecto.
+   Carpetas: personales → `C:\Personales RM\Claude`; institucionales (AM Comercial) →
+   `C:\Personales RM\Claude\AM COMERCIAL RM`.
 
 ## Contexto rápido
 Node + Express + TypeScript (API, solo lectura) + React + TypeScript + Vite + Leaflet.

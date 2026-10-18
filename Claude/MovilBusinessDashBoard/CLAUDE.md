@@ -13,7 +13,7 @@ El usuario trabaja con **2 cuentas distintas** de Claude sobre este mismo proyec
 3. **Etiqueta** cada actualización con fecha/hora. No puedes saber por identidad qué cuenta está activa; si el usuario lo dice, anótalo.
 4. Este mecanismo se **actualiza al cerrar/pausar cada sesión** (no hay temporizador automático entre mensajes).
 
-`PROGRESS.md` y este `CLAUDE.md` están en esa carpeta local → ambas cuentas los leen/escriben (ya no se sincronizan por OneDrive). La memoria interna de Claude (`~/.claude`) NO se sincroniza entre cuentas/máquinas; por eso el canal compartido son estos archivos del proyecto.
+`PROGRESS.md` y este `CLAUDE.md` están en esa carpeta local → ambas cuentas los leen/escriben (ya no se sincronizan por OneDrive). Las 2 cuentas de Claude entran con el MISMO usuario de Windows (`Rudy`), así que también comparten la memoria interna de Claude (`~/.claude`, clave `C--Personales-RM`); aun así, el canal oficial del estado del proyecto son estos archivos. **Carpetas (2026-10-18):** proyectos PERSONALES → `C:\Personales RM\Claude`; proyectos INSTITUCIONALES (AM Comercial) → `C:\Personales RM\Claude\AM COMERCIAL RM`.
 
 **Respaldos de `C:\Personales RM`:** (a) repositorio privado de GitHub `rmercedesb-alt/personales-rm` (solo código y documentos livianos; `.gitignore` excluye credenciales, `.lic`, `PROGRESS.md` —trae la cadena de conexión—, instaladores y datos pesados; los commits/push los corre el usuario en su terminal); (b) un zip por proyecto en `G:\Mi unidad\Respaldos\AAAA-MM-DD\` (Google Drive, tarea diaria «Respaldo Personales RM a Drive», incluye credenciales). Scripts en `C:\Personales RM\_Respaldo\`.
 

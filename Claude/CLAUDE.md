@@ -2,6 +2,11 @@
 
 Carpeta de trabajo: `C:\Personales RM\Claude` (desde el 2026-10-18; ya NO se trabaja en el OneDrive de la empresa). Aquí viven todos los proyectos, incluidos los de la compañía.
 
+## Carpetas y cuentas (2026-10-18)
+- **Proyectos PERSONALES** → `C:\Personales RM\Claude` (carpeta actual).
+- **Proyectos INSTITUCIONALES / de la empresa (AM Comercial)** → `C:\Personales RM\Claude\AM COMERCIAL RM`. Lo nuevo de la empresa se crea ahí.
+- Las **2 cuentas de Claude** entran con el mismo usuario de Windows (`Rudy`): comparten archivos, `PROGRESS.md` y memoria de Claude. Verificado por el usuario en ambas cuentas el 2026-10-18. No trabajar con las dos a la vez sobre los mismos archivos.
+
 ## Reglas generales
 - **Responde siempre en español.**
 - **Dashboard (MovilBusiness):** el proyecto vive en `MovilBusinessDashBoard/` y tiene su propio `CLAUDE.md` y `PROGRESS.md`. Antes de trabajar en él, lee `MovilBusinessDashBoard/CLAUDE.md` y `MovilBusinessDashBoard/PROGRESS.md` (sección «📌 PENDIENTES DEL USUARIO») y sigue sus reglas: no versionar/empaquetar hasta que el usuario lo pida (acumular en el CHANGELOG «Sin liberar»); BD `MovilBusiness5STD` con usuario `Ventas` = solo lectura (TI crea las tablas `_RM`).
