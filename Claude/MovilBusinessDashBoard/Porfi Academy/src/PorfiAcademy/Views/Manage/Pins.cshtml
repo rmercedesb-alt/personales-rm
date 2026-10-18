@@ -1,0 +1,70 @@
+@model List<PorfiAcademy.Controllers.PinRow>
+@using PorfiAcademy.Data
+@using PorfiAcademy.Services
+@{
+    ViewData["Title"] = "PINs";
+    var plans = (List<Plan>)ViewBag.Plans;
+    var newCodes = TempData["NewCodes"] as string;
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>PINs de acceso</h1>
+    <p class="hint">Genera un PIN cuando recibas el pago y entrégalo al cliente. Cada PIN sirve una sola vez y suma los días del plan al canjearlo.</p>
+
+    @if (!string.IsNullOrEmpty(newCodes))
+    {
+        <h2>Códigos nuevos (cópialos ahora)</h2>
+        <div class="codes-box">@newCodes</div>
+    }
+
+    <form asp-action="GeneratePins" method="post" class="row-form">
+        <div>
+            <label for="pplan">Plan</label>
+            <select id="pplan" name="planId">
+                @foreach (var p in plans) { <option value="@p.Id">@p.Name (@p.DurationDays d)</option> }
+            </select>
+        </div>
+        <div><label for="pcount">Cantidad</label><input id="pcount" name="count" type="number" min="1" max="50" value="1" /></div>
+        <div><label for="pdays">Días (opcional)</label><input id="pdays" name="days" type="number" min="1" max="3650" placeholder="los del plan" /></div>
+        <div><label for="pvalid">Válido por (días, opcional)</label><input id="pvalid" name="validDays" type="number" min="1" max="3650" placeholder="sin vencimiento" /></div>
+        <div><label for="pnote">Para quién / nota</label><input id="pnote" name="note" maxlength="200" /></div>
+        <div style="flex:none"><button class="btn mini" type="submit">Generar</button></div>
+    </form>
+
+    <h2>Últimos códigos</h2>
+    @if (Model.Count == 0)
+    {
+        <p class="hint">Aún no has generado PINs.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Código</th><th>Plan</th><th>Estado</th><th>Nota</th><th>Usado por</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td><code>@AccessService.Format(r.Code.Code)</code></td>
+                    <td>@r.Code.Plan?.Name@(r.Code.DurationDays is int dd ? $" ({dd} d)" : "")</td>
+                    <td><span class="pill-status s-@r.Status">@r.Status</span></td>
+                    <td>@r.Code.Note</td>
+                    <td>@(r.RedeemedBy ?? "—")@(r.Code.RedeemedAt is DateTime at ? " · " + at.ToLocalTime().ToString("dd/MM/yyyy") : "")</td>
+                    <td class="actions">
+                        @if (r.Status == "Disponible")
+                        {
+                            <form asp-action="CancelPin" method="post" class="inline" onsubmit="return confirm('¿Cancelar este PIN?');">
+                                <input type="hidden" name="id" value="@r.Code.Id" />
+                                <button type="submit" class="linkbtn">Cancelar</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</section>

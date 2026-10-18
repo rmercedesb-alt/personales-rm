@@ -1,0 +1,48 @@
+@model PorfiAcademy.Controllers.MembersViewModel
+@{
+    ViewData["Title"] = "Mis cursos";
+    var a = Model.Access;
+}
+
+<section class="card">
+    <h1>Mis cursos</h1>
+
+    @if (a.IsAdmin)
+    {
+        <p class="status ok">Administrador: acceso total a todos los videos.</p>
+    }
+    else if (a.HasPaid)
+    {
+        <p class="status ok">✔ Suscripción@(a.PlanName is null ? "" : " " + a.PlanName) activa hasta el <strong>@a.PaidUntil!.Value.ToLocalTime().ToString("dd/MM/yyyy")</strong> (@a.DaysLeft días).</p>
+        @if (a.DaysLeft <= 7)
+        {
+            <p class="status warn">Tu acceso vence pronto. <a href="/Subscribe">Renueva tu suscripción</a> y los días se suman.</p>
+        }
+    }
+    else
+    {
+        <p class="status">Plan gratuito. Los videos con 🔒 son para suscriptores. <a href="/Subscribe">Ver planes y suscribirme</a></p>
+    }
+
+    @if (Model.Videos.Count == 0)
+    {
+        <p class="hint">Todavía no hay videos publicados.</p>
+    }
+    else
+    {
+        <ul class="videolist">
+        @foreach (var v in Model.Videos)
+        {
+            <li>
+                <a asp-action="Watch" asp-route-id="@v.Asset.Id">
+                    <span class="play">@(v.Locked ? "🔒" : "▶")</span>
+                    <span>@(string.IsNullOrWhiteSpace(v.Asset.Title) ? "Video" : v.Asset.Title)</span>
+                    <span class="tag @(v.IsFree ? "free" : "paid")">@(v.IsFree ? "Gratis" : "Suscriptores")</span>
+                    <small>@(v.Asset.Duration is double d ? TimeSpan.FromSeconds(d).ToString(@"m\:ss") : "")</small>
+                </a>
+            </li>
+        }
+        </ul>
+    }
+    <p class="hint">Próximamente: niveles, progreso y evaluación.</p>
+</section>

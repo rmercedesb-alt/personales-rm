@@ -1,0 +1,37 @@
+@model List<PorfiAcademy.Data.Plan>
+@{
+    ViewData["Title"] = "Planes";
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Planes</h1>
+    <p class="hint">Define cuántos días de acceso da cada plan y su precio (en pesos). Los planes inactivos dejan de mostrarse a los clientes, pero las suscripciones ya vendidas siguen vigentes.</p>
+
+    @foreach (var p in Model)
+    {
+        <form asp-action="SavePlan" method="post" class="req row-form">
+            <input type="hidden" name="Id" value="@p.Id" />
+            <div><label>Nombre</label><input name="Name" value="@p.Name" maxlength="80" required /></div>
+            <div><label>Días</label><input name="DurationDays" type="number" min="1" max="3650" value="@p.DurationDays" /></div>
+            <div><label>Precio RD$</label><input name="Price" type="number" min="0" step="0.01" value="@p.Price" placeholder="por definir" /></div>
+            <div><label>Orden</label><input name="SortOrder" type="number" value="@p.SortOrder" /></div>
+            <div style="flex:2 1 260px"><label>Descripción</label><input name="Description" value="@p.Description" maxlength="300" /></div>
+            <div style="flex:none"><label class="check"><input type="checkbox" name="IsActive" value="true" @(p.IsActive ? "checked" : "") /> Activo</label></div>
+            <div style="flex:none"><button class="btn mini" type="submit">Guardar</button></div>
+        </form>
+    }
+
+    <h2>Nuevo plan</h2>
+    <form asp-action="SavePlan" method="post" class="req row-form">
+        <input type="hidden" name="Id" value="0" />
+        <div><label>Nombre</label><input name="Name" maxlength="80" required /></div>
+        <div><label>Días</label><input name="DurationDays" type="number" min="1" max="3650" value="30" /></div>
+        <div><label>Precio RD$</label><input name="Price" type="number" min="0" step="0.01" placeholder="por definir" /></div>
+        <div><label>Orden</label><input name="SortOrder" type="number" value="10" /></div>
+        <div style="flex:2 1 260px"><label>Descripción</label><input name="Description" maxlength="300" /></div>
+        <div style="flex:none"><label class="check"><input type="checkbox" name="IsActive" value="true" checked /> Activo</label></div>
+        <div style="flex:none"><button class="btn mini" type="submit">Crear plan</button></div>
+    </form>
+</section>

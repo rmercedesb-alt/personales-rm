@@ -1,0 +1,197 @@
+@page
+@model ADEnterprise.Pages.Finanzas.CajaModel
+@{ ViewData["Title"] = "Apertura / Cierre de Caja"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-safe2"></i> Apertura / Cierre de Caja</div>
+        <div class="page-subtitle">Control diario de caja — todos los módulos requieren caja abierta</div>
+    </div>
+    <div class="text-end">
+        <span class="fs-6 text-muted">Balance actual:</span><br>
+        <span class="fs-4 fw-bold" style="color:var(--verde)">RD$ @Model.BalanceActual.ToString("N2")</span>
+    </div>
+</div>
+
+@* ── Alerta: caja de día anterior ──────────────────────────────────────────── *@
+@if (Model.CajaDeOtrosDias && Model.CajaAbierta != null)
+{
+    <div class="alert alert-danger border-danger d-flex align-items-center gap-3 mb-4">
+        <i class="bi bi-exclamation-triangle-fill fs-3"></i>
+        <div>
+            <strong>¡Atención! Caja del @Model.CajaAbierta.FechaApertura.ToString("dd/MM/yyyy") sin cerrar.</strong><br>
+            Debe cerrar esta caja antes de poder operar el día de hoy.
+            Haga clic en <strong>"Cerrar Caja"</strong> abajo para proceder.
+        </div>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+
+    @* ── Estado actual ─────────────────────────────────────────────────────── *@
+    <div class="col-md-5">
+        <div class="card shadow-sm h-100" style="border-left:4px solid @(Model.CajaAbierta != null ? "#198754" : "#dc3545")">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-safe2"></i> Estado de Caja
+            </div>
+            <div class="card-body text-center py-4">
+                @if (Model.CajaAbierta != null)
+                {
+                    <i class="bi bi-unlock-fill fs-1 text-success"></i>
+                    <h4 class="mt-2 text-success fw-bold">ABIERTA</h4>
+                    <p class="mb-1"><strong>Seq:</strong> @Model.CajaAbierta.SeqCuadre</p>
+                    <p class="mb-1"><strong>Apertura:</strong> @Model.CajaAbierta.FechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1"><strong>Balance inicial:</strong> RD$ @Model.CajaAbierta.BalanceInicial.ToString("N2")</p>
+                    <p class="mb-0"><strong>Usuario:</strong> @Model.CajaAbierta.UsuarioApertura</p>
+                    <hr>
+                    <div class="row text-center g-2 mt-1">
+                        <div class="col-6">
+                            <div class="bg-light rounded p-2">
+                                <div class="fs-5 fw-bold text-primary">@Model.CajaAbierta.CantFacturas</div>
+                                <small>Facturas</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="bg-light rounded p-2">
+                                <div class="fs-5 fw-bold text-success">@Model.CajaAbierta.CantCobros</div>
+                                <small>Cobros</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Botón cerrar *@
+                    <form method="post" asp-page-handler="Cerrar" class="mt-3">
+                        <input type="hidden" name="seqCuadre" value="@Model.CajaAbierta.SeqCuadre"/>
+                        <button type="submit" class="btn btn-danger w-100"
+                                onclick="return confirm('¿Cerrar la caja @Model.CajaAbierta.SeqCuadre?\n\nSe calcularán todos los totales del día.')">
+                            <i class="bi bi-lock-fill"></i> Cerrar Caja del Día
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <i class="bi bi-lock-fill fs-1 text-danger"></i>
+                    <h4 class="mt-2 text-danger fw-bold">CERRADA</h4>
+                    <p class="text-muted small">No hay caja abierta. Abra la caja para comenzar a operar.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ── Abrir nueva caja ──────────────────────────────────────────────────── *@
+    <div class="col-md-7">
+        <div class="card shadow-sm h-100" style="border-left:4px solid #198754">
+            <div class="card-header fw-bold" style="background:var(--verde);color:white">
+                <i class="bi bi-unlock-fill"></i> Abrir Caja del Día — @DateTime.Today.ToString("dd/MM/yyyy")
+            </div>
+            <div class="card-body">
+                @if (Model.CajaAbierta == null || Model.CajaDeOtrosDias)
+                {
+                    if (!Model.CajaDeOtrosDias)
+                    {
+                        <p class="text-muted small mb-3">
+                            El <strong>balance inicial</strong> es el saldo con el que empieza la caja del día.
+                            Normalmente es el balance final del día anterior.
+                        </p>
+                        <form method="post" asp-page-handler="Abrir">
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Balance Inicial (RD$)</label>
+                                <input type="number" step="0.01" min="0" name="BalanceInicial"
+                                       value="@Model.BalanceInicial.ToString("F2")"
+                                       class="form-control form-control-lg"
+                                       placeholder="0.00" required/>
+                                <div class="form-text">Balance sugerido = balance actual del sistema: RD$ @Model.BalanceActual.ToString("N2")</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Usuario</label>
+                                <input type="text" class="form-control" value="@ViewData["UsuarioNombre"]" disabled/>
+                                <div class="form-text">Tomado automáticamente de la sesión.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Fecha de apertura</label>
+                                <input type="text" class="form-control" value="@DateTime.Now.ToString("dd/MM/yyyy HH:mm")" disabled/>
+                                <div class="form-text">Asignada automáticamente.</div>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-lg w-100">
+                                <i class="bi bi-unlock-fill"></i> Abrir Caja Ahora
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            Debe <strong>cerrar la caja del @Model.CajaAbierta!.FechaApertura.ToString("dd/MM/yyyy")</strong>
+                            antes de abrir la de hoy.
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        La caja de hoy ya está abierta: <strong>@Model.CajaAbierta.SeqCuadre</strong>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Historial de cuadres ──────────────────────────────────────────────────── *@
+<div class="card shadow-sm">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-clock-history"></i> Historial de Cuadres de Caja
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.HistorialCuadres.Any())
+        {
+            <p class="text-center text-muted py-4">No hay cuadres registrados.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-app table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Seq Cuadre</th>
+                            <th>Estado</th>
+                            <th>Apertura</th>
+                            <th>Cierre</th>
+                            <th class="text-end">Bal. Inicial</th>
+                            <th class="text-end">Bal. Final</th>
+                            <th class="text-center">Facturas</th>
+                            <th class="text-center">Cobros</th>
+                            <th>Usuario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var c in Model.HistorialCuadres)
+                    {
+                        <tr>
+                            <td><code>@c.SeqCuadre</code></td>
+                            <td>
+                                @if (c.Estado == "ABIERTA")
+                                {
+                                    <span class="badge bg-success">ABIERTA</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">CERRADA</span>
+                                }
+                            </td>
+                            <td>@c.FechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(c.FechaCierre.HasValue ? c.FechaCierre.Value.ToString("dd/MM/yyyy HH:mm") : "—")</td>
+                            <td class="text-end">RD$ @c.BalanceInicial.ToString("N2")</td>
+                            <td class="text-end fw-bold">RD$ @c.BalanceFinal.ToString("N2")</td>
+                            <td class="text-center">@c.CantFacturas</td>
+                            <td class="text-center">@c.CantCobros</td>
+                            <td>@c.UsuarioApertura</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

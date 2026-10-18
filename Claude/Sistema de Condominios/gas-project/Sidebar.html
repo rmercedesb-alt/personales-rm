@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <base target="_top">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: Arial, sans-serif; font-size: 13px; color: #333; background: #f5f5f5; }
+    .header { background: #1B4F8C; color: white; padding: 12px 16px; font-weight: bold; font-size: 14px; }
+    .content { padding: 16px; }
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-weight: bold; margin-bottom: 4px; color: #555; font-size: 12px; }
+    input, select, textarea { width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px; }
+    input:focus, select:focus { outline: none; border-color: #1B4F8C; }
+    .btn { display: block; width: 100%; padding: 10px; border: none; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 8px; }
+    .btn-primary { background: #1B4F8C; color: white; }
+    .btn-success { background: #2E7D32; color: white; }
+    .btn-secondary { background: #607D8B; color: white; }
+    .btn:hover { opacity: 0.9; }
+    .alert { padding: 10px; border-radius: 4px; margin-bottom: 12px; font-size: 12px; }
+    .alert-success { background: #E8F5E9; color: #2E7D32; border: 1px solid #A5D6A7; }
+    .alert-error   { background: #FFEBEE; color: #B71C1C; border: 1px solid #FFCDD2; }
+    .alert-info    { background: #E3F2FD; color: #1565C0; border: 1px solid #90CAF9; }
+    .section-title { font-size: 15px; font-weight: bold; color: #1B4F8C; margin-bottom: 12px; border-bottom: 2px solid #1B4F8C; padding-bottom: 6px; }
+    .loading { text-align: center; color: #888; padding: 20px; }
+    .cxc-item { background: white; border: 1px solid #ddd; border-radius: 4px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
+    .cxc-item:hover { border-color: #1B4F8C; }
+    .cxc-item .estado-PENDIENTE { color: #555; }
+    .cxc-item .estado-PARCIAL   { color: #E65100; }
+    .cxc-item .estado-EN_MORA   { color: #B71C1C; font-weight: bold; }
+    .monto { font-size: 16px; font-weight: bold; color: #1B4F8C; }
+    .small { font-size: 11px; color: #888; }
+    .nav-btn { display: inline-block; padding: 6px 12px; background: #ECEFF1; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; margin-bottom: 12px; font-size: 12px; }
+    .nav-btn:hover { background: #CFD8DC; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 12px 0; }
+  </style>
+</head>
+<body>
+
+<div class="header">⚙ Admin Inmuebles</div>
+<div class="content" id="main-content">
+  <div class="loading">Cargando...</div>
+</div>
+
+<script>
+  var vistaActual = '<?= vista ?>';
+
+  window.onload = function() {
+    cargarVista(vistaActual);
+  };
+
+  function cargarVista(vista) {
+    vistaActual = vista;
+    var c = document.getElementById('main-content');
+    switch(vista) {
+      case 'propietario':   c.innerHTML = renderPropietario(); break;
+      case 'inmueble':      c.innerHTML = renderInmueble(); break;
+      case 'inquilino':     c.innerHTML = renderInquilino(); break;
+      case 'contrato':      c.innerHTML = renderContrato(); break;
+      case 'pago':          c.innerHTML = renderPago(); break;
+      case 'sesion_caja':   cargarSesionCaja(); break;
+      case 'estado_cuenta': c.innerHTML = renderEstadoCuenta(); break;
+      default:              c.innerHTML = renderMenu(); break;
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  // Menú principal del sidebar
+  // ──────────────────────────────────────────────
+  function renderMenu() {
+    return '<div class="section-title">Acciones rápidas</div>' +
+      '<button class="btn btn-primary" onclick="cargarVista(\'pago\')">💳 Registrar Pago</button>' +
+      '<button class="btn btn-secondary" style="margin-top:8px" onclick="cargarVista(\'estado_cuenta\')">📊 Estado de Cuenta</button>' +
+      '<button class="btn btn-secondary" style="margin-top:8px" onclick="cargarVista(\'sesion_caja\')">🏧 Ver Sesión de Caja</button>' +
+      '<hr>' +
+      '<div class="section-title">Datos Maestros</div>' +
+      '<button class="btn btn-secondary" onclick="cargarVista(\'propietario\')">👤 Nuevo Propietario</button>' +
+      '<button class="btn btn-secondary" style="margin-top:8px" onclick="cargarVista(\'inmueble\')">🏢 Nuevo Inmueble</button>' +
+      '<button class="btn btn-secondary" style="margin-top:8px" onclick="cargarVista(\'inquilino\')">👥 Nuevo Inquilino</button>' +
+      '<button class="btn btn-secondary" style="margin-top:8px" onclick="cargarVista(\'contrato\')">📋 Nuevo Contrato</button>';
+  }
+
+  // ──────────────────────────────────────────────
+  // Formulario: Nuevo Propietario
+  // ──────────────────────────────────────────────
+  function renderPropietario() {
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Nuevo Propietario</div>' +
+      '<div id="msg-prop"></div>' +
+      '<div class="form-group"><label>Nombre Completo *</label><input id="p-nombre" type="text"></div>' +
+      '<div class="form-group"><label>Cédula / RNC *</label><input id="p-cedula" type="text"></div>' +
+      '<div class="form-group"><label>Teléfono</label><input id="p-telefono" type="text"></div>' +
+      '<div class="form-group"><label>Email</label><input id="p-email" type="email"></div>' +
+      '<div class="form-group"><label>Banco</label>' +
+        '<select id="p-banco"><option value="">— Seleccionar —</option>' +
+        '<option>BHD León</option><option>Banreservas</option><option>Popular</option>' +
+        '<option>Scotiabank</option><option>Santa Cruz</option><option>Otro</option>' +
+        '</select></div>' +
+      '<div class="form-group"><label>Tipo de Cuenta</label>' +
+        '<select id="p-tipo-cuenta"><option value="AHORROS">AHORROS</option><option value="CORRIENTE">CORRIENTE</option></select></div>' +
+      '<div class="form-group"><label>Número de Cuenta</label><input id="p-num-cuenta" type="text"></div>' +
+      '<div class="form-group"><label>Esquema Comisión</label>' +
+        '<select id="p-esquema" onchange="toggleComision()">' +
+        '<option value="PORCENTAJE">PORCENTAJE</option><option value="FIJO">FIJO</option><option value="MIXTO">MIXTO</option>' +
+        '</select></div>' +
+      '<div class="form-group" id="campo-pct"><label>% Comisión (ej: 0.10 = 10%)</label><input id="p-pct" type="number" step="0.01" value="0.10"></div>' +
+      '<div class="form-group" id="campo-fijo" style="display:none"><label>Monto Fijo Comisión</label><input id="p-fijo" type="number" step="0.01"></div>' +
+      '<button class="btn btn-success" onclick="guardarPropietario()">✅ Guardar Propietario</button>';
+  }
+
+  function toggleComision() {
+    var esquema = document.getElementById('p-esquema').value;
+    document.getElementById('campo-pct').style.display  = (esquema === 'PORCENTAJE' || esquema === 'MIXTO') ? '' : 'none';
+    document.getElementById('campo-fijo').style.display = (esquema === 'FIJO' || esquema === 'MIXTO') ? '' : 'none';
+  }
+
+  function guardarPropietario() {
+    var datos = {
+      nombre: v('p-nombre'), cedula: v('p-cedula'), telefono: v('p-telefono'),
+      email: v('p-email'), banco: v('p-banco'), tipo_cuenta: v('p-tipo-cuenta'),
+      numero_cuenta: v('p-num-cuenta'), esquema_comision: v('p-esquema'),
+      pct_comision: v('p-pct'), monto_fijo_comision: v('p-fijo'), activo: 'SI'
+    };
+    showLoading('msg-prop');
+    google.script.run.withSuccessHandler(function(r) {
+      showResult('msg-prop', r);
+    }).crearPropietario(datos);
+  }
+
+  // ──────────────────────────────────────────────
+  // Formulario: Nuevo Inquilino
+  // ──────────────────────────────────────────────
+  function renderInquilino() {
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Nuevo Inquilino</div>' +
+      '<div id="msg-inq"></div>' +
+      '<div class="form-group"><label>Nombre Completo *</label><input id="i-nombre" type="text"></div>' +
+      '<div class="form-group"><label>Cédula *</label><input id="i-cedula" type="text"></div>' +
+      '<div class="form-group"><label>Teléfono WhatsApp (ej: +18491234567)</label><input id="i-tel" type="text"></div>' +
+      '<div class="form-group"><label>Email</label><input id="i-email" type="email"></div>' +
+      '<div class="form-group"><label>Empleador</label><input id="i-empleador" type="text"></div>' +
+      '<div class="form-group"><label>Tel. Empleador</label><input id="i-tel-emp" type="text"></div>' +
+      '<div class="form-group"><label>Nombre Referencia</label><input id="i-ref-nom" type="text"></div>' +
+      '<div class="form-group"><label>Tel. Referencia</label><input id="i-ref-tel" type="text"></div>' +
+      '<button class="btn btn-success" onclick="guardarInquilino()">✅ Guardar Inquilino</button>';
+  }
+
+  function guardarInquilino() {
+    var datos = {
+      nombre: v('i-nombre'), cedula: v('i-cedula'), telefono_whatsapp: v('i-tel'),
+      email: v('i-email'), empleador: v('i-empleador'), telefono_empleador: v('i-tel-emp'),
+      referencia_nombre: v('i-ref-nom'), referencia_telefono: v('i-ref-tel'), activo: 'SI'
+    };
+    showLoading('msg-inq');
+    google.script.run.withSuccessHandler(function(r) {
+      showResult('msg-inq', r);
+    }).crearInquilino(datos);
+  }
+
+  // ──────────────────────────────────────────────
+  // Formulario: Nuevo Inmueble (simplificado)
+  // ──────────────────────────────────────────────
+  function renderInmueble() {
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Nuevo Inmueble</div>' +
+      '<div id="msg-inm"></div>' +
+      '<div class="form-group"><label>Propietario (ID) *</label><input id="m-prop" placeholder="PROP-001"></div>' +
+      '<div class="form-group"><label>Tipo *</label>' +
+        '<select id="m-tipo"><option value="APARTAMENTO">APARTAMENTO</option><option value="CASA">CASA</option>' +
+        '<option value="LOCAL">LOCAL</option><option value="OFICINA">OFICINA</option><option value="PENSION">PENSION</option>' +
+        '</select></div>' +
+      '<div class="form-group"><label>Nombre Referencia *</label><input id="m-ref" type="text" placeholder="Apto 3B Torre Azul"></div>' +
+      '<div class="form-group"><label>Calle y Número</label><input id="m-calle" type="text"></div>' +
+      '<div class="form-group"><label>Apto / Local / Hab.</label><input id="m-apt" type="text"></div>' +
+      '<div class="form-group"><label>Nombre Edificio</label><input id="m-edif" type="text"></div>' +
+      '<div class="form-group"><label>Sector / Urbanización</label><input id="m-sector" type="text"></div>' +
+      '<div class="form-group"><label>Municipio</label>' +
+        '<select id="m-mun"><option>Santo Domingo</option><option>Santiago</option><option>San Pedro de Macorís</option>' +
+        '<option>La Romana</option><option>Puerto Plata</option><option>Otro</option></select></div>' +
+      '<div class="form-group"><label>Canon Base (DOP)</label><input id="m-canon" type="number" step="0.01"></div>' +
+      '<div class="form-group"><label>Depósito Requerido (DOP)</label><input id="m-dep" type="number" step="0.01"></div>' +
+      '<div class="form-group"><label>Latitud GPS</label><input id="m-lat" type="number" step="0.00001"></div>' +
+      '<div class="form-group"><label>Longitud GPS</label><input id="m-lng" type="number" step="0.00001"></div>' +
+      '<button class="btn btn-success" onclick="guardarInmueble()">✅ Guardar Inmueble</button>';
+  }
+
+  function guardarInmueble() {
+    var datos = {
+      id_propietario: v('m-prop'), tipo: v('m-tipo'), nombre_referencia: v('m-ref'),
+      calle_numero: v('m-calle'), apt_local_hab: v('m-apt'), nombre_edificio: v('m-edif'),
+      urbanizacion_sector: v('m-sector'), municipio: v('m-mun'),
+      canon_base: v('m-canon'), deposito_requerido: v('m-dep'),
+      latitud: v('m-lat'), longitud: v('m-lng'), estado: 'DISPONIBLE'
+    };
+    showLoading('msg-inm');
+    google.script.run.withSuccessHandler(function(r) {
+      showResult('msg-inm', r);
+    }).crearInmueble(datos);
+  }
+
+  // ──────────────────────────────────────────────
+  // Formulario: Nuevo Contrato
+  // ──────────────────────────────────────────────
+  function renderContrato() {
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Nuevo Contrato</div>' +
+      '<div id="msg-con"></div>' +
+      '<div class="form-group"><label>ID Inquilino *</label><input id="c-inq" placeholder="INQ-001"></div>' +
+      '<div class="form-group"><label>ID Inmueble *</label><input id="c-inm" placeholder="INM-001"></div>' +
+      '<div class="form-group"><label>Fecha Inicio *</label><input id="c-fi" type="date"></div>' +
+      '<div class="form-group"><label>Fecha Vencimiento *</label><input id="c-fv" type="date"></div>' +
+      '<div class="form-group"><label>Periodicidad *</label>' +
+        '<select id="c-per" onchange="toggleDia2()">' +
+        '<option value="MENSUAL">MENSUAL</option><option value="QUINCENAL">QUINCENAL</option></select></div>' +
+      '<div class="form-group"><label>Día de Cobro 1 *</label><input id="c-d1" type="number" min="1" max="31" value="1"></div>' +
+      '<div class="form-group" id="c-d2-div" style="display:none"><label>Día de Cobro 2</label><input id="c-d2" type="number" min="1" max="31" value="15"></div>' +
+      '<div class="form-group"><label>Días de Gracia</label><input id="c-dg" type="number" value="5"></div>' +
+      '<div class="form-group"><label>Canon Mensual (DOP) *</label><input id="c-canon" type="number" step="0.01"></div>' +
+      '<div class="form-group"><label>Depósito Recibido (DOP)</label><input id="c-dep" type="number" step="0.01" value="0"></div>' +
+      '<div class="form-group"><label>Tipo de Mora</label>' +
+        '<select id="c-tmora" onchange="toggleMora()">' +
+        '<option value="PORCENTAJE">PORCENTAJE</option><option value="MONTO_FIJO">MONTO FIJO</option></select></div>' +
+      '<div class="form-group" id="c-pct-mora-div"><label>% Mora Mensual (ej: 0.03 = 3%)</label><input id="c-pct-mora" type="number" step="0.001" value="0.03"></div>' +
+      '<div class="form-group" id="c-fijo-mora-div" style="display:none"><label>Monto Fijo Mora (DOP)</label><input id="c-monto-mora" type="number" step="0.01"></div>' +
+      '<button class="btn btn-success" onclick="guardarContrato()">✅ Guardar Contrato</button>';
+  }
+
+  function toggleDia2() {
+    document.getElementById('c-d2-div').style.display = v('c-per') === 'QUINCENAL' ? '' : 'none';
+  }
+  function toggleMora() {
+    document.getElementById('c-pct-mora-div').style.display = v('c-tmora') === 'PORCENTAJE' ? '' : 'none';
+    document.getElementById('c-fijo-mora-div').style.display = v('c-tmora') === 'MONTO_FIJO' ? '' : 'none';
+  }
+
+  function guardarContrato() {
+    var datos = {
+      id_inquilino: v('c-inq'), id_inmueble: v('c-inm'),
+      fecha_inicio: v('c-fi'), fecha_vencimiento: v('c-fv'),
+      periodicidad: v('c-per'), dia_cobro_1: v('c-d1'), dia_cobro_2: v('c-d2'),
+      dias_gracia: v('c-dg'), canon_mensual: v('c-canon'), deposito_recibido: v('c-dep'),
+      tipo_mora: v('c-tmora'), pct_mora: v('c-pct-mora'), monto_mora_fijo: v('c-monto-mora'),
+      esquema_comision: 'HEREDA', estado: 'VIGENTE'
+    };
+    showLoading('msg-con');
+    google.script.run.withSuccessHandler(function(r) {
+      showResult('msg-con', r);
+    }).crearContrato(datos);
+  }
+
+  // ──────────────────────────────────────────────
+  // Formulario: Registrar Pago
+  // ──────────────────────────────────────────────
+  function renderPago() {
+    var hoy = new Date().toISOString().split('T')[0];
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Registrar Pago</div>' +
+      '<div id="msg-pago"></div>' +
+      '<div class="form-group"><label>ID Inquilino</label>' +
+        '<input id="pg-inq" type="text" placeholder="INQ-001" oninput="buscarCxCInquilino()">' +
+      '</div>' +
+      '<div id="lista-cxc" style="margin-bottom:12px"></div>' +
+      '<div class="form-group"><label>ID CxC a Pagar *</label><input id="pg-cxc" type="text" placeholder="CXC-001"></div>' +
+      '<div class="form-group"><label>Monto a Pagar (DOP) *</label><input id="pg-monto" type="number" step="0.01"></div>' +
+      '<div class="form-group"><label>Fecha de Pago *</label><input id="pg-fecha" type="date" value="' + hoy + '"></div>' +
+      '<div class="form-group"><label>Forma de Pago *</label>' +
+        '<select id="pg-forma">' +
+        '<option value="EFECTIVO">EFECTIVO</option><option value="TRANSFERENCIA">TRANSFERENCIA</option>' +
+        '<option value="TARJETA">TARJETA</option><option value="CHEQUE">CHEQUE</option>' +
+        '</select></div>' +
+      '<div class="form-group"><label>Referencia (N° transferencia)</label><input id="pg-ref" type="text"></div>' +
+      '<div class="form-group"><label>Banco Origen</label><input id="pg-banco" type="text"></div>' +
+      '<div class="form-group"><label>Observaciones</label><textarea id="pg-obs" rows="2"></textarea></div>' +
+      '<button class="btn btn-success" onclick="ejecutarPago()">✅ Registrar Pago</button>';
+  }
+
+  function buscarCxCInquilino() {
+    var id = v('pg-inq');
+    if (!id || id.length < 5) return;
+    document.getElementById('lista-cxc').innerHTML = '<div class="small">Buscando...</div>';
+    google.script.run.withSuccessHandler(function(lista) {
+      var html = '';
+      if (!lista || lista.length === 0) {
+        html = '<div class="alert alert-info">No hay CxC pendientes para este inquilino.</div>';
+      } else {
+        lista.forEach(function(c) {
+          html += '<div class="cxc-item" onclick="seleccionarCxC(\'' + c.id + '\',' + (c.saldo_pendiente||0) + ')">' +
+            '<div><b>' + c.id + '</b> — <span class="estado-' + c.estado + '">' + c.estado + '</span></div>' +
+            '<div class="small">' + c.tipo + ' | ' + (c.periodo_inicio||'') + ' al ' + (c.periodo_fin||'') + '</div>' +
+            '<div class="monto">RD$ ' + formatNum(c.saldo_pendiente) + '</div>' +
+            (c.dias_mora > 0 ? '<div class="small" style="color:#B71C1C">' + c.dias_mora + ' días mora | Mora: RD$ ' + formatNum(c.mora_acumulada) + '</div>' : '') +
+            '</div>';
+        });
+      }
+      document.getElementById('lista-cxc').innerHTML = html;
+    }).obtenerCxCInquilino(id);
+  }
+
+  function seleccionarCxC(id, saldo) {
+    document.getElementById('pg-cxc').value = id;
+    document.getElementById('pg-monto').value = saldo.toFixed(2);
+  }
+
+  function ejecutarPago() {
+    var datos = {
+      id_cxc: v('pg-cxc'), monto: v('pg-monto'), fecha_pago: v('pg-fecha'),
+      forma_pago: v('pg-forma'), referencia_pago: v('pg-ref'),
+      banco_origen: v('pg-banco'), observaciones: v('pg-obs')
+    };
+    showLoading('msg-pago');
+    google.script.run.withSuccessHandler(function(r) {
+      showResult('msg-pago', r);
+      if (r.exito) {
+        document.getElementById('lista-cxc').innerHTML = '';
+        buscarCxCInquilino();
+      }
+    }).registrarPago(datos);
+  }
+
+  // ──────────────────────────────────────────────
+  // Estado de cuenta del inquilino
+  // ──────────────────────────────────────────────
+  function renderEstadoCuenta() {
+    return '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Estado de Cuenta</div>' +
+      '<div class="form-group"><label>ID Inquilino</label>' +
+        '<input id="ec-inq" type="text" placeholder="INQ-001">' +
+        '<button class="btn btn-primary" style="margin-top:8px" onclick="verEstadoCuenta()">Buscar</button>' +
+      '</div>' +
+      '<div id="ec-resultado"></div>';
+  }
+
+  function verEstadoCuenta() {
+    var id = v('ec-inq');
+    if (!id) return;
+    document.getElementById('ec-resultado').innerHTML = '<div class="loading">Consultando...</div>';
+    google.script.run.withSuccessHandler(function(ec) {
+      var html = '<hr>';
+      html += '<p><b>Total adeudado:</b> <span class="monto">RD$ ' + formatNum(ec.total_deuda) + '</span></p>';
+      html += '<p><b>Total mora:</b> RD$ ' + formatNum(ec.total_mora) + '</p>';
+      html += '<p><b>Cargos pendientes:</b> ' + ec.cantidad_cargos + '</p><hr>';
+      ec.cxcs.forEach(function(c) {
+        html += '<div class="cxc-item"><b>' + c.id + '</b> — <span class="estado-' + c.estado + '">' + c.estado + '</span>' +
+          '<br><span class="small">' + c.tipo + ' | ' + c.inmueble + '</span>' +
+          '<br>Saldo: <b>RD$ ' + formatNum(c.saldo_pendiente) + '</b>' +
+          (c.dias_mora > 0 ? ' | <span style="color:#B71C1C">' + c.dias_mora + ' días mora</span>' : '') +
+          '</div>';
+      });
+      document.getElementById('ec-resultado').innerHTML = html;
+    }).estadoCuentaInquilino(id);
+  }
+
+  // ──────────────────────────────────────────────
+  // Sesión de caja
+  // ──────────────────────────────────────────────
+  function cargarSesionCaja() {
+    document.getElementById('main-content').innerHTML =
+      '<span class="nav-btn" onclick="cargarVista(\'menu\')">← Volver</span>' +
+      '<div class="section-title">Sesión de Caja Hoy</div>' +
+      '<div id="sesion-info"><div class="loading">Consultando...</div></div>';
+
+    google.script.run.withSuccessHandler(function(sesion) {
+      var html = '';
+      if (!sesion) {
+        html = '<div class="alert alert-info">No hay sesión de caja activa hoy.</div>';
+      } else {
+        html = '<p><b>ID:</b> ' + sesion.id + '</p>' +
+          '<p><b>Estado:</b> ' + sesion.estado + '</p>' +
+          '<p><b>Cajero:</b> ' + sesion.cajero + '</p><hr>' +
+          '<p><b>Efectivo:</b> RD$ ' + formatNum(sesion.total_efectivo) + '</p>' +
+          '<p><b>Transferencia:</b> RD$ ' + formatNum(sesion.total_transferencia) + '</p>' +
+          '<p><b>Tarjeta:</b> RD$ ' + formatNum(sesion.total_tarjeta) + '</p>' +
+          '<p><b>Cheque:</b> RD$ ' + formatNum(sesion.total_cheque) + '</p><hr>' +
+          '<p><b style="font-size:15px">TOTAL: RD$ ' + formatNum(sesion.total) + '</b></p>' +
+          '<p><b>Transacciones:</b> ' + sesion.cantidad + '</p>';
+      }
+      document.getElementById('sesion-info').innerHTML = html;
+    }).obtenerSesionCajaActiva();
+  }
+
+  // ──────────────────────────────────────────────
+  // Utilidades
+  // ──────────────────────────────────────────────
+  function v(id) {
+    var el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function formatNum(n) {
+    return (parseFloat(n) || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function showLoading(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '<div class="loading">Procesando...</div>';
+  }
+
+  function showResult(id, r) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    if (r && r.exito) {
+      el.innerHTML = '<div class="alert alert-success">✅ ' + (r.mensaje || 'Guardado correctamente') + '</div>';
+    } else {
+      el.innerHTML = '<div class="alert alert-error">❌ ' + (r ? r.mensaje : 'Error desconocido') + '</div>';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+================================================================
+   "EN LÍNEA CON MIS CLIENTES"  -  Instalación independiente
+================================================================
+
+Este módulo se puede instalar SOLO (sin el sistema completo) en
+cualquier PC. Lee la base de datos del sistema y envía WhatsApp.
+
+----------------------------------------------------------------
+INSTALAR
+----------------------------------------------------------------
+1. Copia esta carpeta completa ("en-linea-con-mis-clientes") a la PC.
+2. Requisito: Node.js LTS instalado (https://nodejs.org/).
+3. Doble clic en  INSTALAR_EN_LINEA.bat
+   - Te preguntará si la base de datos está en esta misma PC:
+        • Misma PC  -> responde S
+        • Otra PC   -> responde N y escribe la IP del servidor
+   - Instala dependencias, limpia la sesión anterior y crea el ícono.
+4. Abre el ícono "En Linea con mis clientes" del Escritorio.
+5. Escanea el código QR con el teléfono del NÚMERO que usarás.
+   (Cada PC pide su propio QR; puedes usar un número distinto.)
+
+----------------------------------------------------------------
+SI LA BASE DE DATOS ESTÁ EN OTRA PC (servidor)
+----------------------------------------------------------------
+En el SERVIDOR (donde está PostgreSQL) hay que permitir conexiones
+de la red local (una sola vez):
+
+  1) En el archivo  postgresql.conf  poner:
+         listen_addresses = '*'
+  2) En el archivo  pg_hba.conf  agregar una línea (ajusta tu red):
+         host  all  all  192.168.1.0/24  scram-sha-256
+  3) Abrir el puerto 5432 en el Firewall de Windows.
+  4) Reiniciar el servicio de PostgreSQL.
+
+(Si el módulo corre en la MISMA PC del servidor, no hace falta nada
+ de esto: usa localhost.)
+
+----------------------------------------------------------------
+CAMBIAR DE NÚMERO DE WHATSAPP
+----------------------------------------------------------------
+Cierra el módulo, borra la carpeta  data\wa-session  y vuelve a
+abrirlo: pedirá escanear un QR nuevo (otro número).
+
+----------------------------------------------------------------
+NOTAS
+----------------------------------------------------------------
+ • Deja la ventana negra abierta y la PC encendida para que salgan
+   los recordatorios automáticos (lunes y viernes).
+ • Solo recibe mensajes los inquilinos con el cotejo
+   "Enviar mensajes vía WhatsApp" activado en el sistema.
+================================================================

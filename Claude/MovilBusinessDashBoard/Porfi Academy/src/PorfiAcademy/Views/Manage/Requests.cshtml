@@ -1,0 +1,89 @@
+@model List<PorfiAcademy.Controllers.RequestRow>
+@using PorfiAcademy.Data
+@{
+    ViewData["Title"] = "Solicitudes";
+    var plans = (List<Plan>)ViewBag.Plans;
+    var current = (RequestStatus?)ViewBag.Status;
+    string TypeName(RequestType t) => t switch
+    {
+        RequestType.FreeTraining => "Evaluación / entrenamiento gratis",
+        RequestType.Subscription => "Quiere suscribirse",
+        RequestType.Deposit => "Avisa de un depósito",
+        _ => "Información"
+    };
+    string StatusName(RequestStatus s) => s switch
+    {
+        RequestStatus.New => "Nueva", RequestStatus.Contacted => "Contactada", RequestStatus.Approved => "Aprobada", _ => "Rechazada"
+    };
+    string Wa(string? phone)
+    {
+        var d = new string((phone ?? "").Where(char.IsDigit).ToArray());
+        if (d.Length == 10) d = "1" + d;   // número local de RD → con prefijo del país
+        return d;
+    }
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Solicitudes</h1>
+    <p class="manage-nav">
+        <a class="@(current is null ? "on" : "")" asp-action="Requests">Todas</a>
+        <a class="@(current == RequestStatus.New ? "on" : "")" asp-action="Requests" asp-route-status="New">Nuevas</a>
+        <a class="@(current == RequestStatus.Contacted ? "on" : "")" asp-action="Requests" asp-route-status="Contacted">Contactadas</a>
+        <a class="@(current == RequestStatus.Approved ? "on" : "")" asp-action="Requests" asp-route-status="Approved">Aprobadas</a>
+        <a class="@(current == RequestStatus.Rejected ? "on" : "")" asp-action="Requests" asp-route-status="Rejected">Rechazadas</a>
+    </p>
+
+    @if (Model.Count == 0)
+    {
+        <p class="hint">No hay solicitudes en esta lista.</p>
+    }
+    @foreach (var row in Model)
+    {
+        var r = row.Request;
+        <div class="req">
+            <header>
+                <strong>@r.Name</strong>
+                <span><span class="pill-status s-@r.Status">@StatusName(r.Status)</span> <small class="hint">@r.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</small></span>
+            </header>
+            <p><b>@TypeName(r.Type)</b>@(r.Plan is null ? "" : " · Plan: " + r.Plan.Name)</p>
+            <p class="hint">
+                @if (!string.IsNullOrWhiteSpace(r.Phone)) { <span>📞 @r.Phone</span> }
+                @if (!string.IsNullOrWhiteSpace(r.Email)) { <span> · ✉ @r.Email</span> }
+                · @(row.HasAccount ? "Ya tiene cuenta" : "Aún sin cuenta")
+            </p>
+            @if (!string.IsNullOrWhiteSpace(r.DepositReference)) { <p>Referencia del depósito: <code>@r.DepositReference</code></p> }
+            @if (!string.IsNullOrWhiteSpace(r.Message)) { <p>“@r.Message”</p> }
+            @if (!string.IsNullOrWhiteSpace(r.AdminNote)) { <p class="hint">Nota: @r.AdminNote@(r.HandledBy is null ? "" : " — " + r.HandledBy)</p> }
+
+            <form asp-action="RequestAction" method="post" class="row-form">
+                <input type="hidden" name="id" value="@r.Id" />
+                <div>
+                    <label>Plan a activar</label>
+                    <select name="planId">
+                        <option value="">—</option>
+                        @foreach (var p in plans)
+                        {
+                            <option value="@p.Id" selected="@(r.PlanId == p.Id)">@p.Name (@p.DurationDays d)</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label>Nota</label>
+                    <input name="note" maxlength="500" />
+                </div>
+                <div style="flex:none">
+                    @if (Wa(r.Phone).Length >= 10)
+                    {
+                        <a class="btn ghost mini" target="_blank" rel="noopener" href="https://wa.me/@Wa(r.Phone)?text=@Uri.EscapeDataString("Hola " + r.Name + ", te escribimos de VeloX.")">WhatsApp</a>
+                    }
+                    <button class="btn mini" name="action" value="contacted" type="submit">Contactada</button>
+                    <button class="btn mini" name="action" value="approve" type="submit">Aprobar y activar</button>
+                    <button class="btn ghost mini" name="action" value="reject" type="submit">Rechazar</button>
+                    @if (r.Status != RequestStatus.New) { <button class="btn ghost mini" name="action" value="reopen" type="submit">Reabrir</button> }
+                </div>
+            </form>
+        </div>
+    }
+</section>

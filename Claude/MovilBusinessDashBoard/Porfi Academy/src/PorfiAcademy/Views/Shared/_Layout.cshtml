@@ -1,0 +1,65 @@
+@using Microsoft.EntityFrameworkCore
+@inject PorfiAcademy.Data.ApplicationDbContext Db
+@{
+    // Aviso para el administrador: solicitudes nuevas sin atender.
+    var newRequests = User.IsInRole("Admin")
+        ? await Db.SubscriptionRequests.CountAsync(r => r.Status == PorfiAcademy.Data.RequestStatus.New)
+        : 0;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#091020" />
+    <title>@ViewData["Title"] - VeloX</title>
+    <link rel="icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="topbar">
+        <a class="brand" asp-area="" asp-controller="Home" asp-action="Index" aria-label="VeloX - Inicio"><img src="~/img/logo.png" alt="VeloX" width="810" height="196" /></a>
+        <input type="checkbox" id="menu-toggle" class="menu-toggle" aria-label="Menú" />
+        <label for="menu-toggle" class="burger" aria-hidden="true"><i></i><i></i><i></i></label>
+        <nav class="menu">
+            <a asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+            <a href="/Subscribe">Planes</a>
+            <a asp-area="" asp-controller="Members" asp-action="Index">Mis cursos</a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-area="" asp-controller="Manage" asp-action="Index">Administración@(newRequests > 0 ? Html.Raw($" <span class=\"badge\">{newRequests}</span>") : null)</a>
+            }
+            <partial name="_LoginPartial" />
+        </nav>
+    </header>
+
+    @{
+        var route = ViewContext.RouteData.Values;
+        var isHome = string.Equals(route["controller"] as string, "Home", StringComparison.OrdinalIgnoreCase)
+                     && string.Equals(route["action"] as string, "Index", StringComparison.OrdinalIgnoreCase);
+        var isSetup = string.Equals(route["controller"] as string, "Setup", StringComparison.OrdinalIgnoreCase);
+    }
+    @if (!isHome && !isSetup)
+    {
+        <div class="subbar">
+            <button type="button" class="navbtn" onclick="if (history.length > 1) { history.back(); } else { location.href = '@Url.Action("Index", "Home", new { area = "" })'; }">← Atrás</button>
+            <a class="navbtn" asp-area="" asp-controller="Home" asp-action="Index">⌂ Inicio</a>
+        </div>
+    }
+
+    <main>
+        @if (TempData["Info"] is string info)
+        {
+            <div class="notice">@info</div>
+        }
+        @if (TempData["Error"] is string err)
+        {
+            <div class="notice bad">@err</div>
+        }
+        @RenderBody()
+    </main>
+
+    <footer class="footer">&copy; 2026 VeloX</footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

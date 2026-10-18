@@ -1,0 +1,60 @@
+==============================================================
+  EN LÍNEA CON MIS CLIENTES  —  Fanny Mercedes & Asoc.
+  Proceso independiente de mensajería WhatsApp para cobranza
+==============================================================
+
+QUÉ HACE
+--------
+- Se conecta a la misma base de datos del sistema (inmuebles_rd) y lee
+  la cartera vencida de los inquilinos (NO modifica nada del sistema).
+- Envía mensajes de WhatsApp GRATIS desde un número dedicado.
+- Permite enviar cartas masivas (con archivo adjunto opcional) a los
+  inquilinos de un propietario o a un grupo seleccionado uno a uno.
+- Envía recordatorios automáticos a clientes en mora los días y la hora
+  que configures (por defecto: lunes y viernes a las 9 AM).
+
+REQUISITOS (una sola vez)
+-------------------------
+1. Tener Node.js instalado (ya lo tienes).
+2. Un teléfono con un número de WhatsApp DEDICADO para la cobranza
+   (recomendado un chip aparte, NO tu WhatsApp personal).
+
+CÓMO INICIAR
+------------
+1. Haz doble clic en INICIAR_EN_LINEA.bat
+   - La primera vez instala todo (tarda varios minutos, descarga un
+     navegador interno para WhatsApp).
+2. Se abre el panel en http://localhost:5050
+3. Pestaña "Conexión": aparece un código QR.
+   En el teléfono dedicado abre WhatsApp → Dispositivos vinculados →
+   Vincular un dispositivo → escanea el QR.
+   Cuando diga "Conectado" ya puedes enviar.
+
+USO
+---
+* ENVÍO DE CARTAS (manual):
+  1. Elige un propietario (o "Todos") y pulsa "Cargar lista".
+  2. La lista viene ordenada por nivel de vencimiento.
+  3. Marca los destinatarios (uno a uno o "Seleccionar todos").
+  4. Escribe el mensaje, adjunta un archivo si quieres, y "Enviar".
+
+* RECORDATORIOS AUTOMÁTICOS:
+  - Edita el mensaje (variables: {nombre}, {meses}, {monto}).
+  - Marca los días (Lun y Vie por defecto) y la hora.
+  - "Guardar configuración". El proceso enviará solo en esos días/hora.
+  - "Vista previa" muestra cómo quedará el mensaje.
+  - "Enviar recordatorios ahora" lo dispara de inmediato (prueba).
+
+* HISTORIAL: registro de todo lo enviado (a quién, cuándo, estado).
+
+IMPORTANTE
+----------
+- Deja la ventana negra abierta y la PC encendida a la hora programada.
+- Mantén un volumen moderado de mensajes para no arriesgar el número.
+- El número dedicado debe permanecer vinculado (no cerrar sesión en el
+  teléfono).
+
+CONFIGURACIÓN AVANZADA
+----------------------
+- Conexión a BD y puerto: archivo .env
+- Plantilla, días y hora: se guardan en data/config.json (o desde el panel)

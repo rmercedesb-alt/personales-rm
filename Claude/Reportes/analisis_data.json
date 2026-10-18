@@ -1,0 +1,1234 @@
+{
+  "hoy": "2026-07-17",
+  "jueves_ant": [
+    "2026-07-09",
+    "2026-07-02"
+  ],
+  "viernes_disp": [
+    "2026-07-10",
+    "2026-07-03"
+  ],
+  "hoy_sup": [
+    {
+      "cod": "S111",
+      "nombre": "Rudy Mercedes",
+      "pedidos": 3,
+      "valor": 769900.66
+    },
+    {
+      "cod": "S13",
+      "nombre": "Cristiano Perez (Tradicio",
+      "pedidos": 19,
+      "valor": 621309.84
+    },
+    {
+      "cod": "S9",
+      "nombre": "Narciso Piña Bello (Sur L",
+      "pedidos": 376,
+      "valor": 540766.83
+    },
+    {
+      "cod": "S8",
+      "nombre": "Disponible Sur Corto (SC)",
+      "pedidos": 323,
+      "valor": 533626.3
+    },
+    {
+      "cod": "S1",
+      "nombre": "Ramon E. Pimentel (SDE)",
+      "pedidos": 233,
+      "valor": 441063.36
+    },
+    {
+      "cod": "S4",
+      "nombre": "Ramon E. Pimentel (SDN)",
+      "pedidos": 154,
+      "valor": 244229.42
+    },
+    {
+      "cod": "S5",
+      "nombre": "Eliezer Martinez  (DN)",
+      "pedidos": 128,
+      "valor": 234261.12
+    },
+    {
+      "cod": "S2",
+      "nombre": "Eliezer Martinez (SDO)",
+      "pedidos": 154,
+      "valor": 201633.94
+    }
+  ],
+  "hoy_suplidor": [
+    {
+      "cod": 915,
+      "nombre": "CONGRUPO",
+      "pedidos": 2,
+      "valor": 769578.0
+    },
+    {
+      "cod": 101,
+      "nombre": "Continental de Negocios",
+      "pedidos": 568,
+      "valor": 657761.6
+    },
+    {
+      "cod": 978,
+      "nombre": "MOLINOS MODERNOS, SA",
+      "pedidos": 359,
+      "valor": 600003.47
+    },
+    {
+      "cod": 106,
+      "nombre": "Cesar Iglesias (Unilever)",
+      "pedidos": 13,
+      "valor": 482008.36
+    },
+    {
+      "cod": 201,
+      "nombre": "Brinsa Dominicana",
+      "pedidos": 355,
+      "valor": 285625.85
+    },
+    {
+      "cod": 971,
+      "nombre": "Agua Crystal",
+      "pedidos": 127,
+      "valor": 242912.56
+    },
+    {
+      "cod": 954,
+      "nombre": "COLOMBINA",
+      "pedidos": 450,
+      "valor": 240408.49
+    },
+    {
+      "cod": 501,
+      "nombre": "Comercial Fila",
+      "pedidos": 78,
+      "valor": 124397.76
+    },
+    {
+      "cod": 609,
+      "nombre": "DIMAR DOMINICANA",
+      "pedidos": 130,
+      "valor": 107421.96
+    },
+    {
+      "cod": 702,
+      "nombre": "P.Q.P.",
+      "pedidos": 34,
+      "valor": 29655.12
+    },
+    {
+      "cod": 109,
+      "nombre": "Corporacion Poiroto SRL",
+      "pedidos": 51,
+      "valor": 14440.69
+    },
+    {
+      "cod": 974,
+      "nombre": "AMPOULE",
+      "pedidos": 28,
+      "valor": 14180.81
+    },
+    {
+      "cod": 977,
+      "nombre": "GALISA GROUP",
+      "pedidos": 4,
+      "valor": 6696.52
+    },
+    {
+      "cod": 993,
+      "nombre": "Pimentel & Co. SRL",
+      "pedidos": 2,
+      "valor": 6600.0
+    },
+    {
+      "cod": 973,
+      "nombre": "ETERNA",
+      "pedidos": 6,
+      "valor": 2881.04
+    },
+    {
+      "cod": 911,
+      "nombre": "Grupo Rodriguez Fernandez",
+      "pedidos": 3,
+      "valor": 1265.34
+    },
+    {
+      "cod": 926,
+      "nombre": "MAXIMO GOMEZ P",
+      "pedidos": 2,
+      "valor": 953.9
+    }
+  ],
+  "jue_sup": {
+    "2026-07-09": {
+      "S13": 616005.46,
+      "S8": 505521.65,
+      "S5": 218255.05,
+      "S2": 179653.04,
+      "S9": 1084992.72,
+      "S1": 365630.25,
+      "S4": 258495.99,
+      "S111": 728296.8
+    },
+    "2026-07-02": {
+      "S13": 501732.52,
+      "S8": 539638.05,
+      "S5": 166860.49,
+      "S2": 167619.45,
+      "S9": 800017.18,
+      "S1": 495668.09,
+      "S4": 380467.9,
+      "S111": 6484.29
+    }
+  },
+  "jue_suplidor": {
+    "2026-07-09": {
+      "971": 116312.47,
+      "974": 14304.2,
+      "201": 328862.84,
+      "106": 361922.24,
+      "954": 390976.34,
+      "501": 152109.26,
+      "915": 728296.8,
+      "101": 771361.38,
+      "109": 37697.91,
+      "609": 137822.09,
+      "975": 877.11,
+      "973": 4423.32,
+      "977": 1567.1,
+      "911": 28481.71,
+      "926": 8252.85,
+      "978": 847836.22,
+      "702": 16567.54,
+      "993": 9179.58
+    },
+    "2026-07-02": {
+      "971": 160278.09,
+      "974": 13836.27,
+      "201": 397866.15,
+      "106": 300698.74,
+      "954": 303772.1,
+      "501": 112655.05,
+      "101": 739294.78,
+      "109": 10983.06,
+      "609": 132416.07,
+      "973": 2205.54,
+      "977": 1836.1,
+      "911": 32249.76,
+      "926": 9436.7,
+      "978": 798046.74,
+      "702": 21748.82,
+      "993": 21164.0
+    }
+  },
+  "vie_sup": {
+    "2026-07-10": {
+      "S1": 431274.33,
+      "S111": 7516.05,
+      "S13": 910691.42,
+      "S2": 207757.63,
+      "S4": 238398.97,
+      "S5": 200581.02,
+      "S8": 549366.89,
+      "S9": 618545.95
+    },
+    "2026-07-03": {
+      "S1": 313294.58,
+      "S111": 13256.45,
+      "S13": 269181.62,
+      "S2": 187272.38,
+      "S4": 270100.69,
+      "S5": 220267.36,
+      "S8": 605870.24,
+      "S9": 557055.46
+    }
+  },
+  "mtd": [
+    {
+      "fecha": "2026-07-01",
+      "pedidos": 1310,
+      "valor": 2791370.68
+    },
+    {
+      "fecha": "2026-07-02",
+      "pedidos": 1532,
+      "valor": 3058487.97
+    },
+    {
+      "fecha": "2026-07-03",
+      "pedidos": 1338,
+      "valor": 2436298.78
+    },
+    {
+      "fecha": "2026-07-04",
+      "pedidos": 1252,
+      "valor": 2971623.94
+    },
+    {
+      "fecha": "2026-07-06",
+      "pedidos": 1587,
+      "valor": 3562939.44
+    },
+    {
+      "fecha": "2026-07-07",
+      "pedidos": 1597,
+      "valor": 3614833.95
+    },
+    {
+      "fecha": "2026-07-08",
+      "pedidos": 1478,
+      "valor": 3245596.74
+    },
+    {
+      "fecha": "2026-07-09",
+      "pedidos": 1535,
+      "valor": 3956850.96
+    },
+    {
+      "fecha": "2026-07-10",
+      "pedidos": 1438,
+      "valor": 3164132.26
+    },
+    {
+      "fecha": "2026-07-11",
+      "pedidos": 1331,
+      "valor": 2643075.1
+    },
+    {
+      "fecha": "2026-07-13",
+      "pedidos": 1551,
+      "valor": 3928634.49
+    },
+    {
+      "fecha": "2026-07-14",
+      "pedidos": 1537,
+      "valor": 4181872.36
+    },
+    {
+      "fecha": "2026-07-15",
+      "pedidos": 1560,
+      "valor": 3053304.86
+    },
+    {
+      "fecha": "2026-07-16",
+      "pedidos": 1717,
+      "valor": 3398585.73
+    },
+    {
+      "fecha": "2026-07-17",
+      "pedidos": 1390,
+      "valor": 3586791.47
+    }
+  ],
+  "hoy_cruce": [
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 134419.89
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 971,
+      "scat_nom": "Agua Crystal",
+      "valor": 102095.18
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 93531.89
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 44449.84
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 32392.96
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 20313.31
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 977,
+      "scat_nom": "GALISA GROUP",
+      "valor": 6696.52
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 2440.68
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 1845.15
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 973,
+      "scat_nom": "ETERNA",
+      "valor": 1416.4
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 702,
+      "scat_nom": "P.Q.P.",
+      "valor": 1253.76
+    },
+    {
+      "sup_cod": "S1",
+      "sup_nom": "Ramon E. Pimentel (SDE)",
+      "scat_cod": 911,
+      "scat_nom": "Grupo Rodriguez Fernandez",
+      "valor": 207.78
+    },
+    {
+      "sup_cod": "S111",
+      "sup_nom": "Rudy Mercedes",
+      "scat_cod": 915,
+      "scat_nom": "CONGRUPO",
+      "valor": 769578.0
+    },
+    {
+      "sup_cod": "S111",
+      "sup_nom": "Rudy Mercedes",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 322.66
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 106,
+      "scat_nom": "Cesar Iglesias (Unilever)",
+      "valor": 469562.72
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 65199.94
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 26635.98
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 23692.12
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 19672.92
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 971,
+      "scat_nom": "Agua Crystal",
+      "valor": 9100.0
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 978,
+      "scat_nom": "MOLINOS MODERNOS, SA",
+      "valor": 4363.36
+    },
+    {
+      "sup_cod": "S13",
+      "sup_nom": "Cristiano Perez (Tradicio",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 3082.8
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 88894.4
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 31333.29
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 29342.97
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 971,
+      "scat_nom": "Agua Crystal",
+      "valor": 25202.55
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 10913.0
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 4698.55
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 4036.62
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 702,
+      "scat_nom": "P.Q.P.",
+      "valor": 3958.32
+    },
+    {
+      "sup_cod": "S2",
+      "sup_nom": "Eliezer Martinez (SDO)",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 3254.24
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 84371.62
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 45201.06
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 38157.51
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 28567.6
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 971,
+      "scat_nom": "Agua Crystal",
+      "valor": 26156.43
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 11005.2
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 702,
+      "scat_nom": "P.Q.P.",
+      "valor": 3581.88
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 993,
+      "scat_nom": "Pimentel & Co. SRL",
+      "valor": 2640.0
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 2440.68
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 973,
+      "scat_nom": "ETERNA",
+      "valor": 1068.0
+    },
+    {
+      "sup_cod": "S4",
+      "sup_nom": "Ramon E. Pimentel (SDN)",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 1039.44
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 87915.1
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 971,
+      "scat_nom": "Agua Crystal",
+      "valor": 80358.4
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 28091.56
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 21967.56
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 9773.29
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 3488.24
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 1641.24
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 610.17
+    },
+    {
+      "sup_cod": "S5",
+      "sup_nom": "Eliezer Martinez  (DN)",
+      "scat_cod": 911,
+      "scat_nom": "Grupo Rodriguez Fernandez",
+      "valor": 415.56
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 978,
+      "scat_nom": "MOLINOS MODERNOS, SA",
+      "valor": 334317.51
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 104430.24
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 31033.28
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 30370.36
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 18392.32
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 10567.78
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 106,
+      "scat_nom": "Cesar Iglesias (Unilever)",
+      "valor": 2314.32
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 702,
+      "scat_nom": "P.Q.P.",
+      "valor": 971.52
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 610.17
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 398.2
+    },
+    {
+      "sup_cod": "S8",
+      "sup_nom": "Disponible Sur Corto (SC)",
+      "scat_cod": 973,
+      "scat_nom": "ETERNA",
+      "valor": 220.6
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 978,
+      "scat_nom": "MOLINOS MODERNOS, SA",
+      "valor": 261322.6
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 101,
+      "scat_nom": "Continental de Negocios",
+      "valor": 92530.41
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 954,
+      "scat_nom": "COLOMBINA",
+      "valor": 51765.21
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 201,
+      "scat_nom": "Brinsa Dominicana",
+      "valor": 30461.71
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 609,
+      "scat_nom": "DIMAR DOMINICANA",
+      "valor": 30166.57
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 501,
+      "scat_nom": "Comercial Fila",
+      "valor": 28462.52
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 702,
+      "scat_nom": "P.Q.P.",
+      "valor": 19889.64
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 106,
+      "scat_nom": "Cesar Iglesias (Unilever)",
+      "valor": 10131.32
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 974,
+      "scat_nom": "AMPOULE",
+      "valor": 5220.16
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 109,
+      "scat_nom": "Corporacion Poiroto SRL",
+      "valor": 5084.75
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 993,
+      "scat_nom": "Pimentel & Co. SRL",
+      "valor": 3960.0
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 926,
+      "scat_nom": "MAXIMO GOMEZ P",
+      "valor": 953.9
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 911,
+      "scat_nom": "Grupo Rodriguez Fernandez",
+      "valor": 642.0
+    },
+    {
+      "sup_cod": "S9",
+      "sup_nom": "Narciso Piña Bello (Sur L",
+      "scat_cod": 973,
+      "scat_nom": "ETERNA",
+      "valor": 176.04
+    }
+  ],
+  "jue_cruce_prom": {
+    "S1|101": {
+      "nom": "Continental de Negocios",
+      "prom": 170963.89500000002
+    },
+    "S1|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 2948.1400000000003
+    },
+    "S1|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 83909.965
+    },
+    "S1|501": {
+      "nom": "Comercial Fila",
+      "prom": 34546.634999999995
+    },
+    "S1|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 29226.25
+    },
+    "S1|702": {
+      "nom": "P.Q.P.",
+      "prom": 1992.51
+    },
+    "S1|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 6581.16
+    },
+    "S1|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 848.28
+    },
+    "S1|954": {
+      "nom": "COLOMBINA",
+      "prom": 50696.85
+    },
+    "S1|971": {
+      "nom": "Agua Crystal",
+      "prom": 41549.445
+    },
+    "S1|974": {
+      "nom": "AMPOULE",
+      "prom": 3851.845
+    },
+    "S1|975": {
+      "nom": "DOMICA",
+      "prom": 877.11
+    },
+    "S1|977": {
+      "nom": "GALISA GROUP",
+      "prom": 973.6
+    },
+    "S111|915": {
+      "nom": "CONGRUPO",
+      "prom": 728296.8
+    },
+    "S13|101": {
+      "nom": "Continental de Negocios",
+      "prom": 118459.06
+    },
+    "S13|106": {
+      "nom": "Cesar Iglesias (Unilever)",
+      "prom": 312145.705
+    },
+    "S13|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 71117.47
+    },
+    "S13|501": {
+      "nom": "Comercial Fila",
+      "prom": 27228.899999999998
+    },
+    "S13|954": {
+      "nom": "COLOMBINA",
+      "prom": 18179.175
+    },
+    "S2|101": {
+      "nom": "Continental de Negocios",
+      "prom": 63575.520000000004
+    },
+    "S2|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 2237.29
+    },
+    "S2|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 31127.445
+    },
+    "S2|501": {
+      "nom": "Comercial Fila",
+      "prom": 14797.115
+    },
+    "S2|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 9538.555
+    },
+    "S2|702": {
+      "nom": "P.Q.P.",
+      "prom": 799.2
+    },
+    "S2|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 338.76
+    },
+    "S2|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 1696.56
+    },
+    "S2|954": {
+      "nom": "COLOMBINA",
+      "prom": 21934.595
+    },
+    "S2|971": {
+      "nom": "Agua Crystal",
+      "prom": 25697.5
+    },
+    "S2|973": {
+      "nom": "ETERNA",
+      "prom": 612.225
+    },
+    "S2|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 1320.0
+    },
+    "S4|101": {
+      "nom": "Continental de Negocios",
+      "prom": 108943.17
+    },
+    "S4|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 1830.51
+    },
+    "S4|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 66940.465
+    },
+    "S4|501": {
+      "nom": "Comercial Fila",
+      "prom": 16352.775
+    },
+    "S4|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 33909.94
+    },
+    "S4|702": {
+      "nom": "P.Q.P.",
+      "prom": 4953.23
+    },
+    "S4|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 6317.61
+    },
+    "S4|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 1908.63
+    },
+    "S4|954": {
+      "nom": "COLOMBINA",
+      "prom": 35795.575
+    },
+    "S4|971": {
+      "nom": "Agua Crystal",
+      "prom": 39357.625
+    },
+    "S4|973": {
+      "nom": "ETERNA",
+      "prom": 312.945
+    },
+    "S4|974": {
+      "nom": "AMPOULE",
+      "prom": 748.77
+    },
+    "S4|977": {
+      "nom": "GALISA GROUP",
+      "prom": 789.4
+    },
+    "S4|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 1716.0
+    },
+    "S5|101": {
+      "nom": "Continental de Negocios",
+      "prom": 86238.77
+    },
+    "S5|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 1728.815
+    },
+    "S5|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 32765.445
+    },
+    "S5|501": {
+      "nom": "Comercial Fila",
+      "prom": 3615.84
+    },
+    "S5|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 11019.8
+    },
+    "S5|702": {
+      "nom": "P.Q.P.",
+      "prom": 1140.48
+    },
+    "S5|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 677.52
+    },
+    "S5|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 706.9
+    },
+    "S5|954": {
+      "nom": "COLOMBINA",
+      "prom": 23653.71
+    },
+    "S5|971": {
+      "nom": "Agua Crystal",
+      "prom": 31690.71
+    },
+    "S5|974": {
+      "nom": "AMPOULE",
+      "prom": 457.56
+    },
+    "S8|101": {
+      "nom": "Continental de Negocios",
+      "prom": 70476.435
+    },
+    "S8|106": {
+      "nom": "Cesar Iglesias (Unilever)",
+      "prom": 5241.03
+    },
+    "S8|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 1118.645
+    },
+    "S8|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 33751.295
+    },
+    "S8|501": {
+      "nom": "Comercial Fila",
+      "prom": 10589.74
+    },
+    "S8|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 13400.61
+    },
+    "S8|702": {
+      "nom": "P.Q.P.",
+      "prom": 3439.69
+    },
+    "S8|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 4488.57
+    },
+    "S8|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 476.95
+    },
+    "S8|954": {
+      "nom": "COLOMBINA",
+      "prom": 38752.86
+    },
+    "S8|973": {
+      "nom": "ETERNA",
+      "prom": 1205.7
+    },
+    "S8|974": {
+      "nom": "AMPOULE",
+      "prom": 2551.16
+    },
+    "S8|978": {
+      "nom": "MOLINOS MODERNOS, SA",
+      "prom": 336163.165
+    },
+    "S8|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 1848.0
+    },
+    "S9|101": {
+      "nom": "Continental de Negocios",
+      "prom": 136671.22999999998
+    },
+    "S9|106": {
+      "nom": "Cesar Iglesias (Unilever)",
+      "prom": 12657.515
+    },
+    "S9|109": {
+      "nom": "Corporacion Poiroto SRL",
+      "prom": 14477.085000000001
+    },
+    "S9|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 43231.270000000004
+    },
+    "S9|501": {
+      "nom": "Comercial Fila",
+      "prom": 25251.15
+    },
+    "S9|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 37889.16
+    },
+    "S9|702": {
+      "nom": "P.Q.P.",
+      "prom": 7403.31
+    },
+    "S9|911": {
+      "nom": "Grupo Rodriguez Fernandez",
+      "prom": 12470.255
+    },
+    "S9|926": {
+      "nom": "MAXIMO GOMEZ P",
+      "prom": 3207.455
+    },
+    "S9|954": {
+      "nom": "COLOMBINA",
+      "prom": 158361.45500000002
+    },
+    "S9|973": {
+      "nom": "ETERNA",
+      "prom": 983.04
+    },
+    "S9|974": {
+      "nom": "AMPOULE",
+      "prom": 6232.12
+    },
+    "S9|978": {
+      "nom": "MOLINOS MODERNOS, SA",
+      "prom": 475039.635
+    },
+    "S9|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 9121.79
+    },
+    "S1|973": {
+      "nom": "ETERNA",
+      "prom": 1384.08
+    },
+    "S1|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 2860.0
+    },
+    "S111|106": {
+      "nom": "Cesar Iglesias (Unilever)",
+      "prom": 2532.48
+    },
+    "S111|201": {
+      "nom": "Brinsa Dominicana",
+      "prom": 1042.28
+    },
+    "S111|609": {
+      "nom": "DIMAR DOMINICANA",
+      "prom": 269.53
+    },
+    "S111|993": {
+      "nom": "Pimentel & Co. SRL",
+      "prom": 2640.0
+    },
+    "S13|978": {
+      "nom": "MOLINOS MODERNOS, SA",
+      "prom": 23477.36
+    },
+    "S2|974": {
+      "nom": "AMPOULE",
+      "prom": 915.12
+    },
+    "S2|977": {
+      "nom": "GALISA GROUP",
+      "prom": 666.6
+    }
+  }
+}

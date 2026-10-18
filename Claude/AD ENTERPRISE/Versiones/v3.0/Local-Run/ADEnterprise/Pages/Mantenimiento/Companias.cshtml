@@ -1,0 +1,188 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.CompaniasModel
+@{ ViewData["Title"] = "Compañías"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-building"></i> Compañías</div>
+        <div class="page-subtitle">Catálogo de empresas del sistema</div>
+    </div>
+    <button class="btn btn-primary-app" data-bs-toggle="modal" data-bs-target="#modalNueva">
+        <i class="bi bi-plus-circle"></i> Nueva Compañía
+    </button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-app table-hover mb-0">
+            <thead>
+                <tr>
+                    <th style="width:110px">ID Compañía</th>
+                    <th>Nombre</th><th>RNC</th><th>Teléfono</th><th>Correo</th>
+                    <th class="text-center">Condición Pago</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Companias)
+                {
+                <tr>
+                    <td>
+                        @if (c.Id.StartsWith("ADCOM"))
+                        {
+                            <span class="badge bg-primary font-monospace">@c.Id</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary font-monospace" title="Sin ID estándar">—</span>
+                        }
+                    </td>
+                    <td><strong>@c.Nombre</strong></td>
+                    <td>@c.Rnc</td>
+                    <td>@c.Telefono</td>
+                    <td>@c.Correo</td>
+                    <td class="text-center"><span class="badge bg-primary">@c.CondicionPagoDias días</span></td>
+                    <td class="text-center">
+                        <span class="badge @(c.Activo ? "bg-success" : "bg-secondary")">
+                            @(c.Activo ? "Activo" : "Inactivo")
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary"
+                                onclick="editar('@c.Id','@c.Nombre','@c.Rnc','@c.Telefono','@c.Direccion','@c.Correo',@c.CondicionPagoDias,'@c.Activo')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="post" asp-page-handler="Toggle" class="d-inline">
+                            <input type="hidden" name="id" value="@c.Id"/>
+                            <button type="submit" class="btn btn-sm @(c.Activo ? "btn-outline-warning" : "btn-outline-success")"
+                                    onclick="return confirmarAccion('¿Cambiar estado de @c.Nombre?')">
+                                <i class="bi @(c.Activo ? "bi-slash-circle" : "bi-check-circle")"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                }
+                @if (!Model.Companias.Any())
+                {
+                <tr><td colspan="8" class="text-center text-muted py-4">No hay compañías registradas</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nueva -->
+<div class="modal fade" id="modalNueva" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-building-add"></i> Nueva Compañía</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Crear">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Nombre *</label>
+                            <input name="Nombre" class="form-control" required placeholder="Nombre de la empresa"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">RNC</label>
+                            <input name="Rnc" class="form-control" placeholder="000-00000-0"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input name="Telefono" class="form-control" placeholder="(809) 000-0000"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input name="Correo" type="email" class="form-control" placeholder="empresa@correo.com"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Dirección</label>
+                            <input name="Direccion" class="form-control" placeholder="Dirección física"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Condición de Pago (días)</label>
+                            <input name="CondicionPagoDias" type="number" class="form-control" value="30" min="1"/>
+                            <small class="text-muted">Días antes de marcar factura como vencida</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Compañía</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Editar">
+                <div class="modal-body">
+                    <input type="hidden" id="e-Id" name="Id"/>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">ID Compañía</label>
+                            <input id="e-IdShow" class="form-control form-control-sm bg-light font-monospace" readonly
+                                   placeholder="Se asigna automáticamente"/>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Nombre *</label>
+                            <input id="e-Nombre" name="Nombre" class="form-control" required/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">RNC</label>
+                            <input id="e-Rnc" name="Rnc" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input id="e-Tel" name="Telefono" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input id="e-Correo" name="Correo" type="email" class="form-control"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Dirección</label>
+                            <input id="e-Dir" name="Direccion" class="form-control"/>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold">Condición de Pago (días)</label>
+                            <input id="e-Dias" name="CondicionPagoDias" type="number" class="form-control" min="1"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function editar(id,nombre,rnc,tel,dir,correo,dias,activo) {
+    document.getElementById('e-Id').value = id;
+    document.getElementById('e-IdShow').value = id || '(Sin ID — usar Asignar IDs Masivos)';
+    document.getElementById('e-Nombre').value = nombre;
+    document.getElementById('e-Rnc').value = rnc;
+    document.getElementById('e-Tel').value = tel;
+    document.getElementById('e-Dir').value = dir;
+    document.getElementById('e-Correo').value = correo;
+    document.getElementById('e-Dias').value = dias;
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+}
+</script>
+}

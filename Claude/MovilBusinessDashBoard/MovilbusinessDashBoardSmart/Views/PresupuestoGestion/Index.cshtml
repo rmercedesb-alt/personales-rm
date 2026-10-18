@@ -1,0 +1,2059 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presupuestos &mdash; Gestión</title>
+<script src="@(Context.Request.PathBase)/lib/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#F7F9F7;--panel:#FFFFFF;--panel2:#F0F4F0;--border:#D9E2D9;--line:#E6ECE6;
+  --text:#1F2A22;--muted:#5C6B5F;
+  --verde:#388848;--verde-fuerte:#207830;--azul:#283078;
+  --good:#2E9E4A;--warn:#D29922;--bad:#C0392B;
+  --good-bg:#EAF7EE;--warn-bg:#FBF3DA;--bad-bg:#FBEAEA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;font-variant-numeric:tabular-nums;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 16px 60px}
+.title{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--verde-fuerte);margin-bottom:2px}
+.sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:13px;margin-bottom:16px}
+.panel h2{font-size:14px;font-weight:800;color:var(--verde-fuerte);padding:14px 16px 4px}
+.filtros{padding:8px 16px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.pd{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+.pd input,.pd select{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:7px 8px;font-size:12px;color:var(--text);height:34px;min-width:120px}
+.pd input.wide{min-width:220px}
+.btn-go{background:var(--verde);color:#fff;border:0;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;height:34px}
+.btn-go:hover{background:var(--verde-fuerte)}
+.btn-go:disabled{opacity:.5;cursor:default}
+.btn-pub{background:var(--azul);color:#fff;border:0;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;height:34px}
+.btn-desc{background:var(--panel);border:1px solid var(--bad);color:var(--bad);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;height:34px}
+.btn-out{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;height:34px}
+.btn-out:hover{border-color:var(--verde);color:var(--verde)}
+.btn-mini{background:var(--panel);border:1px solid var(--border);color:var(--bad);border-radius:5px;padding:3px 8px;font-size:11px;cursor:pointer}
+.msg{padding:10px 16px;font-size:12.5px}
+.msg.err{color:var(--bad)}
+.msg.ok{color:var(--good)}
+table.res{width:100%;border-collapse:collapse;font-size:12.5px}
+table.res th{background:var(--panel2);color:var(--muted);text-align:right;padding:8px 10px;font-weight:700;border-bottom:1px solid var(--border)}
+table.res th:first-child,table.res td:first-child,table.res th:nth-child(2),table.res td:nth-child(2){text-align:left}
+table.res td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:right}
+table.res tr.anom td{background:var(--warn-bg)}
+table.res tr.editado td{background:var(--good-bg)}
+table.res td.propuesto{cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+table.res td.propuesto:hover{color:var(--verde-fuerte)}
+table.res td.propuesto input{width:90px;text-align:right;border:1px solid var(--verde);border-radius:5px;padding:3px 5px;font:inherit}
+.badge{font-weight:700;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11px}
+.badge.warn{background:var(--warn-bg);color:var(--warn)}
+.badge.editado{background:var(--good-bg);color:var(--good)}
+.resumen{padding:10px 16px;font-size:12.5px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap}
+.resumen b{color:var(--text)}
+.acciones{padding:0 16px 16px;display:flex;gap:10px;flex-wrap:wrap}
+.agregar{padding:0 16px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;border-top:1px solid var(--line);padding-top:12px;margin:0 16px 16px}
+.agregar .pd input{min-width:90px}
+.hint{font-size:11px;color:var(--muted);padding:0 16px 10px}
+.btn-gear{background:var(--panel);border:1px solid var(--border);border-radius:8px;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0}
+.btn-gear:hover{border-color:var(--azul)}
+.top-row{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.tabs-principal{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tab-btn{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:9px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer}
+.tab-btn.on{background:var(--verde);border-color:var(--verde);color:#fff}
+.tab-btn:hover:not(.on){border-color:var(--verde);color:var(--verde-fuerte)}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--panel);border-radius:13px;max-width:1100px;width:100%;max-height:90vh;overflow:auto;padding:0}
+.modal h3{font-size:15px;font-weight:800;color:var(--verde-fuerte);padding:16px 18px 6px}
+.modal .sub2{font-size:11.5px;color:var(--muted);padding:0 18px 10px}
+.modal-close{float:right;margin:14px 16px 0 0;background:none;border:0;font-size:18px;cursor:pointer;color:var(--muted)}
+table.cfg{width:100%;border-collapse:collapse;font-size:12px}
+table.cfg th{background:var(--panel2);color:var(--muted);text-align:left;padding:6px 8px;font-weight:700;border-bottom:1px solid var(--border)}
+table.cfg td{padding:5px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.cfg input,table.cfg select{width:100%;border:1px solid var(--border);border-radius:5px;padding:4px 6px;font-size:12px;background:var(--panel);color:var(--text)}
+table.cfg tr.def-row{cursor:pointer}
+table.cfg tr.def-row.sel{background:var(--good-bg)}
+.btn-sm{background:var(--verde);color:#fff;border:0;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer}
+.btn-sm.del{background:var(--panel);border:1px solid var(--bad);color:var(--bad)}
+.valores-panel{padding:12px 18px 18px;border-top:2px solid var(--border)}
+.comp-filtros{padding:8px 16px 16px;display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.tarjetas{display:flex;flex-wrap:wrap;gap:12px;padding:0 16px 16px}
+.tarjeta{flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.tarjeta .lbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.tarjeta .val{font-size:20px;font-weight:800;color:var(--verde-fuerte);margin-top:2px}
+.tarjeta .sub3{font-size:11.5px;color:var(--muted);margin-top:4px}
+.tarjeta .sub3 b{color:var(--text)}
+.crumbs2{padding:0 16px 10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.crumb2{background:var(--panel2);border:1px solid var(--border);border-radius:7px;padding:5px 11px;font-size:12px;cursor:pointer;color:var(--muted)}
+.crumb2.on{background:var(--verde);border-color:var(--verde);color:#fff;font-weight:700}
+.crumb2:hover:not(.on){border-color:var(--verde)}
+table.res tr.clickable{cursor:pointer}
+table.res tr.clickable:hover{background:var(--panel2)}
+.pct2{font-weight:700;border-radius:6px;padding:2px 7px;display:inline-block;font-size:11.5px}
+.pct2.good{background:var(--good-bg);color:var(--good)}
+.pct2.bad{background:var(--bad-bg);color:var(--bad)}
+.pct2.na{color:var(--muted)}
+.crumb2.chico{padding:3px 8px;font-size:11px}
+.cadena-bloque{padding:0 16px 18px}
+.cadena-encabezado{font-size:13px;font-weight:800;color:var(--verde-fuerte);padding:6px 0}
+.cadena-nivel{margin-bottom:10px;border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.cadena-titulo{background:var(--panel2);padding:7px 10px;font-size:12px;font-weight:700;color:var(--text);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cadena-nivel table.res{font-size:12px}
+.canales-check{display:flex;flex-wrap:wrap;gap:6px 12px;max-width:520px}
+.canales-check label{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top-row">
+    <div>
+      <div class="title">Presupuestos &mdash; Gestión</div>
+      <div class="sub">Generar, revisar y publicar presupuestos (solo Unddprod en esta primera versión). Todo corre en producción; solo el Publicar final escribe en la base de prueba, mientras dure la etapa de prueba.</div>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span class="badge" id="rolchip" style="background:var(--panel2);color:var(--muted)">…</span>
+      <span class="who" id="who" style="font-size:12px;color:var(--muted)"></span>
+      <button class="btn-gear" id="btnConfig" title="Configurar variables/metodologías">⚙️</button>
+      <a class="btn-out" href="@(Context.Request.PathBase)/menu">&larr; Menú</a>
+      <a class="btn-out" href="@(Context.Request.PathBase)/account/logout">Salir</a>
+    </div>
+  </div>
+
+  <div class="tabs-principal" id="tabsPrincipal">
+    <button class="tab-btn on" data-tab="generar">Generar Presupuesto</button>
+    <button class="tab-btn" data-tab="rebalancear">Rebalancear por Categoría</button>
+    <button class="tab-btn" data-tab="editar">Editar Presupuesto</button>
+    <button class="tab-btn" data-tab="eliminar">Borrar Presupuesto</button>
+  </div>
+
+  <div id="tabGenerar">
+  <div class="panel">
+    <h2>1. Generar Nuevo Presupuesto</h2>
+    <div class="filtros">
+      <div class="pd"><label>Base &mdash; desde</label><input type="date" id="baseIni"></div>
+      <div class="pd"><label>Base &mdash; hasta</label><input type="date" id="baseFin"></div>
+      <div class="pd"><label>Destino &mdash; desde (Año-Mes)</label><input type="month" id="destinoDesde"></div>
+      <div class="pd"><label>Destino &mdash; hasta (Año-Mes, incluido)</label><input type="month" id="destinoHasta"></div>
+      <div class="pd"><label>Reps (RepCodigo, coma-separado; vacío = solo los que tuvieron venta o están en RutaVisitas)</label><input type="text" id="reps" class="wide" placeholder="102,11,118"></div>
+      <div class="pd"><label>Comparar contra (opcional, Año-Mes)</label><input type="month" id="compararAnioMes"></div>
+      <div class="pd">
+        <label>Objetivo TOTAL (opcional — reparte lo que quede entre los meses SIN objetivo propio, ver abajo)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="objetivoModo" style="height:34px;border:1px solid var(--border);border-radius:7px;font-size:12px">
+            <option value="valor" selected>RD$ (Valor)</option>
+            <option value="unidades">Unidades</option>
+          </select>
+          <input type="number" id="objetivoMonto" style="min-width:140px" placeholder="Ej. 82000000">
+        </div>
+      </div>
+      <div class="pd"><label>Descripción</label><input type="text" id="descripcion" class="wide" placeholder="Propuesta sep-oct 2026"></div>
+      <button class="btn-go" id="btnGenerar">Generar</button>
+    </div>
+    <div class="pd" style="padding:0 16px 10px">
+      <label>Objetivo POR MES (opcional — el mes que llenes se fija EXACTO a ese valor; el Objetivo TOTAL de arriba reparte el resto entre los meses que dejes vacíos aquí)</label>
+      <div id="objetivosPorMesHost" style="display:flex;flex-wrap:wrap;gap:8px"><span class="hint" style="padding:0">Elige un rango de Destino arriba para ver un campo por mes.</span></div>
+    </div>
+    <div class="pd" style="padding:0 16px 10px">
+      <label>Canales (vacío/todos marcados = todos MENOS Institucional)</label>
+      <div class="canales-check" id="canalesCheck"><span class="hint" style="padding:0">Cargando canales…</span></div>
+    </div>
+    <div class="hint">"Comparar contra" hace que en "2. Revisar" el "Actual" muestre el presupuesto de ESE mes específico (no siempre el mismo período). El "Objetivo TOTAL" y el "Objetivo POR MES" no cambian las proporciones que calculan base+variables — solo reescalan para que la suma de cada mes dé exactamente el número que corresponda (en RD$ o en unidades, a elección) — cada mes queda garantizado en su propia porción, no solo el total combinado.</div>
+    <div class="msg" id="msgGenerar"></div>
+  </div>
+
+  <div class="panel" id="panelLote" style="display:none">
+    <h2>2. Revisar, ajustar y publicar</h2>
+    <div class="resumen" id="resumenLote"></div>
+    <div class="hint">Clic en un valor "Propuesto" para editarlo a mano. También puedes exportar a Excel, ajustar ahí y volver a subirlo (se actualiza por el Id de fila, no borra ni duplica nada).</div>
+    <button class="btn-out" id="btnToggleDetalleLote" style="margin-bottom:8px">▸ Mostrar detalle (fila por fila)</button>
+    <div id="detalleLoteWrap" style="display:none">
+      <div style="overflow:auto;max-height:520px">
+        <table class="res">
+          <thead><tr><th>Id</th><th>Rep</th><th>Producto</th><th>Año-Mes</th><th>Propuesto</th><th>Actual</th><th>Diferencia</th><th>Anomalía</th><th></th></tr></thead>
+          <tbody id="tbodyLote"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="agregar">
+      <div class="pd"><label>Agregar fila manual &mdash; Rep</label><input type="text" id="addRep" placeholder="102"></div>
+      <div class="pd"><label>Producto (ProID)</label><input type="text" id="addRef" placeholder="220003"></div>
+      <div class="pd"><label>Año-Mes</label><input type="text" id="addAnioMes" placeholder="2026-09" style="min-width:80px"></div>
+      <div class="pd"><label>Valor</label><input type="number" id="addValor" placeholder="0" style="min-width:90px"></div>
+      <button class="btn-out" id="btnAgregar">+ Agregar fila</button>
+    </div>
+
+    <div class="acciones">
+      <button class="btn-out" id="btnExportar">📥 Exportar a Excel</button>
+      <label class="btn-out" style="display:inline-flex;align-items:center;cursor:pointer">📤 Importar Excel ajustado
+        <input type="file" id="inputImportar" accept=".xlsx" style="display:none">
+      </label>
+      <button class="btn-pub" id="btnPublicar">Publicar</button>
+      <button class="btn-desc" id="btnDescartar">Descartar</button>
+    </div>
+    <div class="msg" id="msgLote"></div>
+  </div>
+
+  <div class="panel" id="panelComparativo" style="display:none">
+    <h2>3. Análisis comparativo</h2>
+    <div class="comp-filtros">
+      <div class="pd">
+        <label><input type="radio" name="compModo" id="compModoActual" checked> Mismo período (ya publicado)</label><br>
+        <label><input type="radio" name="compModo" id="compModoMes"> Mes específico:</label>
+      </div>
+      <div class="pd"><label>Año-Mes a comparar</label><input type="month" id="compAnioMes" disabled></div>
+      <div class="pd"><label>Mes a ver/ajustar</label><select id="filtroMesComp"><option value="">Todos (promedio mensual)</option></select></div>
+      <button class="btn-go" id="btnCargarComparativo">Cargar análisis</button>
+      <button class="btn-out" id="btnDescargarRevision" title="Reporte de solo lectura — Resumen + Supervisor/Vendedor/Suplidor/Categoría">📥 Descargar Excel de revisión</button>
+    </div>
+    <div class="msg" id="msgComparativo"></div>
+    <div class="crumbs2" id="metricasComparativo">
+      <span class="crumb2" onclick="cambiarMetrica('unidades')" id="mUnidades">Unidades</span>
+      <span class="crumb2" onclick="cambiarMetrica('cajas')" id="mCajas">Cajas</span>
+      <span class="crumb2 on" onclick="cambiarMetrica('monto')" id="mMonto">RD$ (estimado)</span>
+    </div>
+    <div class="crumbs2" id="vistaComparativo">
+      <span class="crumb2 on" onclick="cambiarVista('ventas')" id="vVentas">📈 Ventas</span>
+      <span class="crumb2" onclick="cambiarVista('activaciones')" id="vActivaciones">📊 Activaciones</span>
+    </div>
+    <div class="hint">Cada tarjeta se apila debajo de la anterior — bajar de nivel NO hace que se pierdan de vista los de arriba. "‹ Ver todos" vuelve sin perder lo demás. "🎯 Sugerir para todo" reparte un valor o % nuevo entre TODAS las filas de esa tarjeta, proporcional al peso que ya tenían. Las columnas "Ajuste %"/"Ajuste Monto" son por FILA (ej. un Canal específico, un Vendedor específico): cambia el % o el monto (se sincronizan solos) y presiona "Recalcular" — se convierte a unidades con el precio promedio ponderado de ESE nodo y se aplica SOLO ahí, sin tocar el resto — por eso el total de la compañía sube o baja exactamente esa diferencia. En "📊 Activaciones": el incremento de clientes se traduce a 1 unidad por cliente, SOLO en el producto de mayor venta real de cada Suplidor×Categoría en alcance (lo más conservador) — también sube hacia arriba sin tocar el resto. <b>"Mes a ver/ajustar"</b> (2026-09-01): por defecto ves el promedio de TODOS los meses del rango Destino del lote; elige un mes específico para ver SOLO ese mes y para que "Sugerir para todo"/"Recalcular" apliquen SOLO a ese mes, dejando los demás intactos.</div>
+    <div class="tarjetas" id="tarjetaGeneral"></div>
+
+    <div class="cadena-bloque"><div class="cadena-encabezado">Por Centro</div><div id="cadenaCentro"></div></div>
+    <div class="cadena-bloque"><div class="cadena-encabezado">Por Canal</div><div id="cadenaCanal"></div></div>
+    <div class="cadena-bloque"><div class="cadena-encabezado">Por Suplidor</div><div id="cadenaSuplidor"></div></div>
+  </div>
+  </div>
+
+  <div id="tabRebalancear" style="display:none">
+  <div class="panel" id="panelRebalanceo">
+    <h2>4. Herramienta: Rebalancear presupuesto real por Categoría</h2>
+    <div class="hint">Reparte el presupuesto YA PUBLICADO de un Año-Mes entre los productos que cada
+      vendedor REALMENTE vende (referencia fija: mayo-julio 2026) dentro de cada Categoría —
+      preserva el total de la categoría, solo cambia cómo se reparte adentro. Excluye combos (no
+      reciben dinero) e Institucional (por defecto). <b>Escribe directo en producción</b> — pide
+      siempre la vista previa antes de aplicar.</div>
+    <div class="filtros">
+      <div class="pd"><label>Año-Mes a corregir</label><input type="month" id="rebalAnioMes" value="2026-08"></div>
+      <div class="pd"><label>Vendedor (RepCodigo, coma-separado; vacío = todos)</label><input type="text" id="rebalReps" class="wide" placeholder="102,11,118"></div>
+      <button class="btn-go" id="btnRebalPreview">Generar</button>
+    </div>
+    <div class="msg" id="msgRebalanceo"></div>
+    <div class="resumen" id="resumenRebalanceo"></div>
+    <div style="overflow:auto;max-height:420px">
+      <table class="res" id="tablaRebalanceo">
+        <thead><tr><th>Vendedor</th><th>Categoría</th><th>Monto Total</th><th>Estado</th><th></th></tr></thead>
+        <tbody id="tbodyRebalanceo"></tbody>
+      </table>
+    </div>
+    <div class="agregar" id="panelConfirmarRebal" style="display:none">
+      <div class="pd"><label>Escribe CONFIRMAR para aplicar a producción</label><input type="text" id="rebalConfirmTexto" placeholder="CONFIRMAR"></div>
+      <button class="btn-pub" id="btnRebalAplicar" disabled>Publicar a producción</button>
+    </div>
+  </div>
+  </div>
+
+  <div id="tabEditar" style="display:none">
+  <div class="panel" id="panelEditar">
+    <h2>5. Editar / Reajustar Presupuesto</h2>
+    <div class="hint">Recalcula desde cero (mismo motor de "1. Generar Nuevo Presupuesto" — base histórica,
+      factores, rapel, activación, efectividad, límites, umbral) pero ACOTADO a un bloque específico —
+      Canal/Supervisor/Vendedor/Suplidor/Categoría/Producto. Al Publicar, solo se sobrescriben las filas de
+      ESE bloque en <code>PresupuestosHistoricos</code>; el resto del presupuesto ya publicado queda intacto.</div>
+    <div class="filtros">
+      <div class="pd"><label>Base &mdash; desde</label><input type="date" id="edBaseIni"></div>
+      <div class="pd"><label>Base &mdash; hasta</label><input type="date" id="edBaseFin"></div>
+      <div class="pd"><label>Año-Mes a editar</label><input type="month" id="edAnioMes"></div>
+      <div class="pd"><label>Vendedor (RepCodigo, coma-separado; vacío = todos los que calcen los demás filtros)</label><input type="text" id="edReps" class="wide" placeholder="102,11,118"></div>
+      <div class="pd"><label>Producto (ProID, coma-separado; vacío = todos)</label><input type="text" id="edProductos" class="wide" placeholder="220003,220010"></div>
+      <div class="pd">
+        <label>Objetivo (opcional — redistribuye lo calculado de ese mes, proporcional)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select id="edObjetivoModo" style="height:34px;border:1px solid var(--border);border-radius:7px;font-size:12px">
+            <option value="valor" selected>RD$ (Valor)</option>
+            <option value="unidades">Unidades</option>
+          </select>
+          <input type="number" id="edObjetivoMonto" style="min-width:140px" placeholder="Ej. 1200000">
+        </div>
+      </div>
+      <div class="pd"><label>Descripción</label><input type="text" id="edDescripcion" class="wide" placeholder="Ajuste Colombina Mayorista sep-2026"></div>
+      <button class="btn-go" id="btnEditarGenerar">Generar propuesta de edición</button>
+    </div>
+    <div class="pd" style="padding:0 16px 10px"><label>Canal</label><div class="canales-check" id="edCanalesCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Supervisor</label><div class="canales-check" id="edSupervisoresCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Suplidor</label><div class="canales-check" id="edSuplidoresCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Categoría</label><div class="canales-check" id="edCategoriasCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="msg" id="msgEditar"></div>
+  </div>
+
+  <div class="panel" id="panelLoteEd" style="display:none">
+    <h2>5b. Revisar y publicar edición</h2>
+    <div class="resumen" id="resumenLoteEd"></div>
+    <div class="hint">Clic en un valor "Propuesto" para editarlo a mano. También puedes exportar a Excel, ajustar ahí y volver a subirlo (se actualiza por el Id de fila, no borra ni duplica nada).</div>
+    <button class="btn-out" id="btnToggleDetalleLoteEd" style="margin-bottom:8px">▸ Mostrar detalle (fila por fila)</button>
+    <div id="detalleLoteWrapEd" style="display:none">
+      <div style="overflow:auto;max-height:520px">
+        <table class="res">
+          <thead><tr><th>Id</th><th>Rep</th><th>Producto</th><th>Año-Mes</th><th>Propuesto</th><th>Actual</th><th>Diferencia</th><th>Anomalía</th><th></th></tr></thead>
+          <tbody id="tbodyLoteEd"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="agregar">
+      <div class="pd"><label>Agregar fila manual &mdash; Rep</label><input type="text" id="addRepEd" placeholder="102"></div>
+      <div class="pd"><label>Producto (ProID)</label><input type="text" id="addRefEd" placeholder="220003"></div>
+      <div class="pd"><label>Año-Mes</label><input type="text" id="addAnioMesEd" placeholder="2026-09" style="min-width:80px"></div>
+      <div class="pd"><label>Valor</label><input type="number" id="addValorEd" placeholder="0" style="min-width:90px"></div>
+      <button class="btn-out" id="btnAgregarEd">+ Agregar fila</button>
+    </div>
+
+    <div class="acciones">
+      <button class="btn-out" id="btnExportarEd">📥 Exportar a Excel</button>
+      <label class="btn-out" style="display:inline-flex;align-items:center;cursor:pointer">📤 Importar Excel ajustado
+        <input type="file" id="inputImportarEd" accept=".xlsx" style="display:none">
+      </label>
+      <button class="btn-pub" id="btnPublicarEd">Publicar</button>
+      <button class="btn-desc" id="btnDescartarEd">Descartar</button>
+    </div>
+    <div class="msg" id="msgLoteEd"></div>
+  </div>
+  </div>
+
+  <div id="tabEliminar" style="display:none">
+  <div class="panel" id="panelEliminar">
+    <h2>6. Eliminar Presupuestos</h2>
+    <div class="hint">Borra directo de <code>PresupuestosHistoricos</code> el bloque que calce con los
+      filtros — Canal/Supervisor/Vendedor/Suplidor/Categoría/Producto (vacío = todos). <b>No se puede
+      eliminar un mes CERRADO</b> (anterior al mes actual) — solo el mes actual o futuros. Pide vista
+      previa antes de habilitar la confirmación.</div>
+    <div class="filtros">
+      <div class="pd"><label>Año-Mes a eliminar</label><input type="month" id="elAnioMes"></div>
+      <div class="pd"><label>Vendedor (RepCodigo, coma-separado; vacío = todos)</label><input type="text" id="elReps" class="wide" placeholder="102,11,118"></div>
+      <div class="pd"><label>Producto (ProID, coma-separado; vacío = todos)</label><input type="text" id="elProductos" class="wide" placeholder="220003,220010"></div>
+      <button class="btn-go" id="btnEliminarPreview">Generar</button>
+    </div>
+    <div class="pd" style="padding:0 16px 10px"><label>Canal</label><div class="canales-check" id="elCanalesCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Supervisor</label><div class="canales-check" id="elSupervisoresCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Suplidor</label><div class="canales-check" id="elSuplidoresCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="pd" style="padding:0 16px 10px"><label>Categoría</label><div class="canales-check" id="elCategoriasCheck"><span class="hint" style="padding:0">Cargando…</span></div></div>
+    <div class="msg" id="msgEliminar"></div>
+    <div class="resumen" id="resumenEliminar"></div>
+    <div class="agregar" id="panelConfirmarEliminar" style="display:none">
+      <div class="pd"><label>Escribe CONFIRMAR para eliminar</label><input type="text" id="elConfirmTexto" placeholder="CONFIRMAR"></div>
+      <button class="btn-desc" id="btnEliminarAplicar" disabled>Eliminar de producción</button>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalConfig">
+  <div class="modal">
+    <button class="modal-close" id="btnCerrarConfig">✕</button>
+    <h3>⚙️ Configuración de variables / metodologías</h3>
+    <div class="sub2">Vive en <b>producción</b> (MovilBusiness5STD) — es la metodología permanente, no una prueba. Cambios aquí afectan la próxima vez que generes una propuesta. Puedes agregar variables nuevas (metodologías) además de las 5 que ya existen.</div>
+    <div style="overflow:auto;padding:0 18px">
+      <table class="cfg" id="tablaDefiniciones">
+        <thead><tr><th>Código</th><th>Nombre</th><th>Descripción</th><th>Tipo dato</th><th>Ámbito permitido</th><th>Activo</th><th>Valores</th><th></th></tr></thead>
+        <tbody id="tbodyDefiniciones"></tbody>
+        <tfoot>
+          <tr>
+            <td><input id="nuevoCodigo" placeholder="MI_VARIABLE_NUEVA" style="text-transform:uppercase"></td>
+            <td><input id="nuevoNombre" placeholder="Nombre corto"></td>
+            <td><input id="nuevoDesc" placeholder="Para qué sirve"></td>
+            <td><select id="nuevoTipo"><option value="decimal">decimal</option><option value="int">int</option><option value="texto">texto</option></select></td>
+            <td><input id="nuevoAmbito" placeholder="Suplidor,Categoria,Global"></td>
+            <td style="text-align:center"><input type="checkbox" id="nuevoActivo" checked></td>
+            <td></td>
+            <td><button class="btn-sm" id="btnNuevaDefinicion">+ Crear</button></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <div class="valores-panel" id="panelValores" style="display:none">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span id="tituloValores"></span>
+        <button class="btn-sm" type="button" onclick="descargarPlantilla(['AmbitoTipo','AmbitoValor','PeriodoTipo','PeriodoAnio','PeriodoTrimestre','PeriodoMes','Valor'],'plantilla_valores.xlsx')">⬇ Plantilla</button>
+        <label class="btn-sm" style="cursor:pointer">📤 Importar Excel<input type="file" accept=".xlsx" style="display:none" onchange="importarValoresExcel(this.files[0])"></label>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">AmbitoValor: código del Suplidor (Cat3ID), Categoría (Cat1ID), o "RepCodigo|Cat3ID" para RutaSuplidor. Vacío = Global.</div>
+      <div style="overflow:auto;max-height:320px">
+        <table class="cfg">
+          <thead><tr><th>Ámbito</th><th>Valor ámbito</th><th>Periodo</th><th>Año</th><th>Trim.</th><th>Mes</th><th>Valor</th><th></th></tr></thead>
+          <tbody id="tbodyValores"></tbody>
+          <tfoot>
+            <tr>
+              <td><select id="nvAmbitoTipo"><option>Global</option><option>Suplidor</option><option>Categoria</option><option>RutaSuplidor</option></select></td>
+              <td><input id="nvAmbitoValor" placeholder="(vacío si Global)"></td>
+              <td><select id="nvPeriodoTipo"><option>Anio</option><option>Trimestre</option><option>Mes</option></select></td>
+              <td><input id="nvAnio" type="number" placeholder="2026" style="width:70px"></td>
+              <td><input id="nvTrimestre" type="number" min="1" max="4" style="width:50px"></td>
+              <td><input id="nvMes" type="number" min="1" max="12" style="width:50px"></td>
+              <td><input id="nvValor" type="number" step="0.00001" style="width:80px"></td>
+              <td><button class="btn-sm" id="btnNuevoValor">+ Agregar</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="msg" id="msgValores"></div>
+    </div>
+
+    <div class="valores-panel">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span>Metas de activación mínima (Suplidor × Categoría)</span>
+        <button class="btn-sm" type="button" onclick="descargarPlantilla(['Cat3ID','Cat1ID','CanID','RepTipe','RepCodigo','MetaPct','Modo','BloqueaPublicar','Activo'],'plantilla_activacion.xlsx')">⬇ Plantilla</button>
+        <label class="btn-sm" style="cursor:pointer">📤 Importar Excel<input type="file" accept=".xlsx" style="display:none" onchange="importarActivacionExcel(this.files[0])"></label>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">Cat3ID = Suplidor, Cat1ID = Categoría (mismos códigos que usan las variables por Suplidor/Categoría de arriba). <b>Obligatorio</b>: el motor sube el presupuesto de esa categoría/suplidor lo necesario para no quedar por debajo de la meta, repartido entre sus SKU. <b>Bloquea Publicar</b> (solo aplica a Obligatorio): si ni forzando se alcanza la meta, Publicar pide confirmación explícita. <b>Ideal</b>: nunca cambia el número, queda solo como referencia. <b>Canal/División/Vendedor</b> (2026-09-01): opcionales, a lo sumo UNO de los tres por fila — sin ninguno, la meta aplica a TODOS los canales/divisiones/vendedores de ese Suplidor×Categoría (fila default); con Canal, sobrescribe solo para ese canal; con División, sobrescribe solo para esa división; con Vendedor, sobrescribe solo para ese representante específico — más específico gana (Vendedor &gt; División &gt; Canal &gt; default).</div>
+      <div style="overflow:auto;max-height:280px">
+        <table class="cfg">
+          <thead><tr><th>Suplidor</th><th>Categoría</th><th>Canal (opc.)</th><th>División/RepTipe (opc.)</th><th>Vendedor (opc.)</th><th>Meta %</th><th>Modo</th><th>Bloquea Publicar</th><th>Activo</th><th></th></tr></thead>
+          <tbody id="tbodyActivacionMetas"></tbody>
+          <tfoot>
+            <tr>
+              <td><input id="amCat3Id" type="number" placeholder="Cat3ID" style="width:70px"></td>
+              <td><input id="amCat1Id" type="number" placeholder="Cat1ID" style="width:70px"></td>
+              <td><input id="amCanId" type="number" placeholder="CanID (opc.)" style="width:90px"></td>
+              <td><input id="amRepTipe" placeholder="RepTipe (opc.)" style="width:90px"></td>
+              <td><input id="amRepCodigo" placeholder="RepCodigo (opc.)" style="width:100px"></td>
+              <td><input id="amMetaPct" type="number" step="0.01" placeholder="0.60" style="width:70px"></td>
+              <td><select id="amModo"><option>Ideal</option><option>Obligatorio</option></select></td>
+              <td style="text-align:center"><input type="checkbox" id="amBloquea"></td>
+              <td style="text-align:center"><input type="checkbox" id="amActivo" checked></td>
+              <td><button class="btn-sm" id="btnNuevaActivacionMeta">+ Agregar</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="msg" id="msgActivacionMetas"></div>
+    </div>
+
+    <div class="valores-panel">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span>Modelo Rappel — requerimientos por Suplidor/Categoría</span>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">Generaliza el Rappel: además de <code>META_RAPPEL</code> (Monto por Suplidor, catálogo de arriba, sigue funcionando igual), agrega Monto por Categoría + Activaciones (conteo de clientes activos) + Factura (conteo de facturas/pedidos) — cada uno por Suplidor O Categoría (exactamente uno), pudiendo coexistir varios tipos para el mismo Suplidor/Categoría. Cada requerimiento actúa como PISO: si lo natural ya cumple, no cambia nada; si no llega, empuja el presupuesto hacia arriba (nunca lo baja). Año/Mes: deja Mes vacío para que aplique a todo el año.</div>
+      <div style="overflow:auto;max-height:280px">
+        <table class="cfg">
+          <thead><tr><th>Tipo</th><th>Ámbito</th><th>Suplidor/Categoría</th><th>Año</th><th>Mes (opc.)</th><th>Meta</th><th>Activo</th><th></th></tr></thead>
+          <tbody id="tbodyRappelMetas"></tbody>
+          <tfoot>
+            <tr>
+              <td><select id="rmTipo"><option value="Monto">Monto (RD$)</option><option value="Activaciones">Activaciones</option><option value="Factura">Factura</option></select></td>
+              <td><select id="rmAmbitoTipo"><option value="Suplidor">Suplidor</option><option value="Categoria">Categoria</option></select></td>
+              <td><input id="rmAmbitoValor" placeholder="Cat3ID o Cat1ID" style="width:110px"></td>
+              <td><input id="rmAnio" type="number" placeholder="2026" style="width:70px"></td>
+              <td><input id="rmMes" type="number" min="1" max="12" style="width:50px"></td>
+              <td><input id="rmMetaValor" type="number" step="0.01" placeholder="0" style="width:100px"></td>
+              <td style="text-align:center"><input type="checkbox" id="rmActivo" checked></td>
+              <td><button class="btn-sm" id="btnNuevaRappelMeta">+ Agregar</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="msg" id="msgRappelMetas"></div>
+    </div>
+
+    <div class="valores-panel">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span>Metas de efectividad mínima (por División)</span>
+        <button class="btn-sm" type="button" onclick="descargarPlantilla(['RepTipe','MetaPct','Modo','BloqueaPublicar','Activo'],'plantilla_efectividad.xlsx')">⬇ Plantilla</button>
+        <label class="btn-sm" style="cursor:pointer">📤 Importar Excel<input type="file" accept=".xlsx" style="display:none" onchange="importarEfectividadExcel(this.files[0])"></label>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">Efectividad % = clientes con pedido ÷ clientes visitados (mismo cálculo que Torre de Control/Productividad), medida contra el Rango Base del lote. <b>División (RepTipe)</b>: código de división del vendedor — deja vacío para una fila "default" que aplica a cualquier división sin fila propia. <b>Obligatorio</b>: el motor sube el presupuesto de ESE vendedor lo necesario para no quedar por debajo de la meta. <b>Ideal</b>: nunca cambia el número, queda solo como referencia.</div>
+      <div style="overflow:auto;max-height:280px">
+        <table class="cfg">
+          <thead><tr><th>División (RepTipe)</th><th>Meta %</th><th>Modo</th><th>Bloquea Publicar</th><th>Activo</th><th></th></tr></thead>
+          <tbody id="tbodyEfectividadMetas"></tbody>
+          <tfoot>
+            <tr>
+              <td><input id="emRepTipe" placeholder="(vacío = default)" style="width:110px"></td>
+              <td><input id="emMetaPct" type="number" step="0.01" placeholder="0.70" style="width:70px"></td>
+              <td><select id="emModo"><option>Ideal</option><option>Obligatorio</option></select></td>
+              <td style="text-align:center"><input type="checkbox" id="emBloquea"></td>
+              <td style="text-align:center"><input type="checkbox" id="emActivo" checked></td>
+              <td><button class="btn-sm" id="btnNuevaEfectividadMeta">+ Agregar</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="msg" id="msgEfectividadMetas"></div>
+    </div>
+
+    <div class="valores-panel">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span>Límites (mínimo/máximo) por vendedor</span>
+        <button class="btn-sm" type="button" onclick="descargarPlantilla(['RepCodigo','PctMinimo','PctMaximo','Activo'],'plantilla_limites.xlsx')">⬇ Plantilla</button>
+        <label class="btn-sm" style="cursor:pointer">📤 Importar Excel<input type="file" accept=".xlsx" style="display:none" onchange="importarLimitesExcel(this.files[0])"></label>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">% sobre la PROPIA base histórica de cada vendedor (Rango Base del lote), no un monto fijo. Ej. PctMinimo=0.90 → nunca proponerle menos del 90% de lo que él mismo vendió; PctMaximo=1.30 → nunca más del 130%. Se aplica DESPUÉS de crecimiento/activación/efectividad obligatorias.</div>
+      <div style="overflow:auto;max-height:280px">
+        <table class="cfg">
+          <thead><tr><th>Vendedor (RepCodigo)</th><th>% Mínimo</th><th>% Máximo</th><th>Activo</th><th></th></tr></thead>
+          <tbody id="tbodyLimitesRep"></tbody>
+          <tfoot>
+            <tr>
+              <td><input id="lrRepCodigo" placeholder="RepCodigo" style="width:100px"></td>
+              <td><input id="lrPctMinimo" type="number" step="0.01" placeholder="0.90" style="width:70px"></td>
+              <td><input id="lrPctMaximo" type="number" step="0.01" placeholder="1.30" style="width:70px"></td>
+              <td style="text-align:center"><input type="checkbox" id="lrActivo" checked></td>
+              <td><button class="btn-sm" id="btnNuevoLimiteRep">+ Agregar</button></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="msg" id="msgLimitesRep"></div>
+    </div>
+
+    <div class="valores-panel">
+      <h3 style="padding:0 0 4px;display:flex;align-items:center;gap:10px">
+        <span>Crecimiento sugerido entre mes (Ene→Dic)</span>
+      </h3>
+      <div class="sub2" style="padding:0 0 8px">Alimenta la MISMA variable <code>FACTOR_CRECIMIENTO_MES</code> del catálogo de arriba — solo cambia cómo se captura el dato (matriz Ene-Dic en % en vez de filas sueltas). Ámbito: Global, o un Suplidor (Cat3ID) / Categoría (Cat1ID) específico. % = crecimiento sobre la base (ej. 2 = +2%, -5 = -5%).</div>
+      <div class="filtros" style="padding:8px 0">
+        <div class="pd"><label>Ámbito</label><select id="cmAmbitoTipo"><option value="Global">Global</option><option value="Suplidor">Suplidor</option><option value="Categoria">Categoria</option></select></div>
+        <div class="pd"><label>Valor ámbito (Cat3ID/Cat1ID, vacío si Global)</label><input id="cmAmbitoValor" style="width:140px"></div>
+        <div class="pd"><label>Año</label><input id="cmAnio" type="number" placeholder="2026" style="width:80px"></div>
+        <button class="btn-sm" id="btnCargarCrecimientoMes">Cargar</button>
+        <button class="btn-sm" id="btnGuardarCrecimientoMes">Guardar</button>
+      </div>
+      <div style="overflow:auto">
+        <table class="cfg" id="tablaCrecimientoMes">
+          <thead><tr><th>Ene</th><th>Feb</th><th>Mar</th><th>Abr</th><th>May</th><th>Jun</th><th>Jul</th><th>Ago</th><th>Sep</th><th>Oct</th><th>Nov</th><th>Dic</th></tr></thead>
+          <tbody><tr>
+            <td><input id="cmMes1" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes2" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes3" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes4" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes5" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes6" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes7" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes8" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes9" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes10" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes11" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+            <td><input id="cmMes12" type="number" step="0.01" style="width:64px" placeholder="0"></td>
+          </tr></tbody>
+        </table>
+      </div>
+      <div class="msg" id="msgCrecimientoMes"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BASE = '@(Context.Request.PathBase.Value)';
+// Entornos separados (pedido explícito del usuario 2026-09-08): "1. Generar" y
+// "5. Editar" ya NO comparten lote/estado — antes generar un lote en la sección 1
+// y luego usar "Editar" en la 5 sin publicar sobreescribía la misma variable
+// global y el primer lote quedaba huérfano en pantalla. Cada contexto trae su
+// propio `lote`/`filas` y un prefijo de ids de DOM (CTX_GEN usa los ids de
+// siempre, sin prefijo, para no romper nada de "1. Generar"/"2. Revisar"; CTX_ED
+// usa el sufijo 'Ed' del panel nuevo "5b. Revisar y publicar edición").
+function crearContexto(suf, nombre){ return { lote: null, filas: [], suf, nombre }; }
+const CTX_GEN = crearContexto('', 'CTX_GEN');
+const CTX_ED = crearContexto('Ed', 'CTX_ED');
+
+// Sub-menú de entornos (pedido explícito del usuario 2026-09-09: "no quiero ver
+// tantos datos de entrada cuando en algunos casos no voy a trabajar con ellos")
+// — solo un entorno visible a la vez; los paneles internos de cada uno (p.ej.
+// "2. Revisar" dentro de "generar", "5b. Revisar" dentro de "editar") conservan
+// su propio display:none/block controlado por cargarLote() — el sub-menú solo
+// muestra/oculta el CONTENEDOR del entorno completo, no interfiere con eso.
+const TAB_IDS_PRINCIPAL = { generar: 'tabGenerar', rebalancear: 'tabRebalancear', editar: 'tabEditar', eliminar: 'tabEliminar' };
+function cambiarTabPrincipal(tab){
+  Object.entries(TAB_IDS_PRINCIPAL).forEach(([k, id]) => { document.getElementById(id).style.display = (k === tab) ? 'block' : 'none'; });
+  document.querySelectorAll('#tabsPrincipal .tab-btn').forEach(el => el.classList.toggle('on', el.dataset.tab === tab));
+}
+document.querySelectorAll('#tabsPrincipal .tab-btn').forEach(el => el.addEventListener('click', () => cambiarTabPrincipal(el.dataset.tab)));
+
+// Catálogos de Suplidor/Categoría (2026-09-06, pedido explícito del usuario: mostrar el nombre
+// del Suplidor/Categoría en "Metas Rapel" y demás variables por Ámbito) — poblados por el mismo
+// fetch de /apipresupuestos/filtros que ya carga Canales/Suplidor/Categoría/Supervisor.
+let catalogoSuplidores = [];
+let catalogoCategorias = [];
+
+function fmt(n){ return n==null ? '—' : Number(n).toLocaleString('es-DO',{maximumFractionDigits:2}); }
+
+// Detalle fila-por-fila de "2. Revisar" oculto por defecto (pedido explícito
+// del usuario 2026-09-01: "no quiero ver detalles a menos que sea algo
+// específico") — 26,716 filas no se ven de un vistazo, el resumen de arriba
+// (Estado/Filas/Total propuesto/Total actual/Anomalías) ya cubre el caso
+// general; el detalle queda a 1 clic para cuando sí hace falta.
+function wireToggleDetalleLote(pref){
+  document.getElementById('btnToggleDetalleLote'+pref).addEventListener('click', () => {
+    const wrap = document.getElementById('detalleLoteWrap'+pref);
+    const btn = document.getElementById('btnToggleDetalleLote'+pref);
+    const abierto = wrap.style.display !== 'none';
+    wrap.style.display = abierto ? 'none' : 'block';
+    btn.textContent = abierto ? '▸ Mostrar detalle (fila por fila)' : '▾ Ocultar detalle';
+  });
+}
+wireToggleDetalleLote('');
+wireToggleDetalleLote('Ed');
+
+fetch(BASE+'/apipresupuestogestion/identidad').then(r=>r.json()).then(j=>{
+  if (!j.ok) return;
+  document.getElementById('rolchip').textContent = j.rol || '—';
+  document.getElementById('who').textContent = j.nombre || j.login || '';
+}).catch(()=>{});
+
+// Canales/Suplidor/Categoría/Supervisor para los filtros de "1. Generar", "5. Editar"
+// y "6. Eliminar" — reusa /apipresupuestos/filtros (misma sesión, cacheado 1h en el
+// servidor), no hace falta duplicar el catálogo. Default de Canales: todos marcados
+// MENOS Institucional (7000), mismo criterio ya usado en Presupuestos/Historicos.
+function renderCheckList(hostId, items, valorFn, textoFn, defaultCheckedFn) {
+  const host = document.getElementById(hostId);
+  if (!host) return;
+  if (!items || !items.length) { host.innerHTML = '<span class="hint" style="padding:0">(Sin catálogo disponible.)</span>'; return; }
+  host.innerHTML = items.map(it => `<label><input type="checkbox" value="${valorFn(it)}" ${defaultCheckedFn(it) ? 'checked' : ''}> ${textoFn(it)}</label>`).join('');
+}
+fetch(BASE+'/apipresupuestos/filtros').then(r=>r.json()).then(j=>{
+  if (!j.ok) throw new Error('respuesta no ok');
+  catalogoSuplidores = j.suplidores || [];
+  catalogoCategorias = j.categorias || [];
+  renderCheckList('canalesCheck', j.canales, c=>c.v, c=>c.t, c=>c.v!=='7000');
+  renderCheckList('edCanalesCheck', j.canales, c=>c.v, c=>c.t, ()=>false);
+  renderCheckList('elCanalesCheck', j.canales, c=>c.v, c=>c.t, ()=>false);
+  renderCheckList('edSuplidoresCheck', j.suplidores, s=>s.v, s=>s.t, ()=>false);
+  renderCheckList('elSuplidoresCheck', j.suplidores, s=>s.v, s=>s.t, ()=>false);
+  renderCheckList('edCategoriasCheck', j.categorias, c=>c.v, c=>c.t, ()=>false);
+  renderCheckList('elCategoriasCheck', j.categorias, c=>c.v, c=>c.t, ()=>false);
+  // Supervisores: derivados de 'representantes' (dedup por SupervisorCod) — no hay
+  // catálogo aparte, la lista de reps ya trae SupervisorCod/SupervisorNombre.
+  const supervisoresMap = new Map();
+  for (const r of (j.representantes || [])) {
+    if (r.supervisorCod ?? r.SupervisorCod) {
+      const cod = r.supervisorCod ?? r.SupervisorCod, nom = r.supervisorNombre ?? r.SupervisorNombre;
+      if (cod && !supervisoresMap.has(cod)) supervisoresMap.set(cod, nom || cod);
+    }
+  }
+  const supervisores = Array.from(supervisoresMap.entries()).map(([v,t]) => ({ v, t })).sort((a,b)=>a.t.localeCompare(b.t));
+  renderCheckList('edSupervisoresCheck', supervisores, s=>s.v, s=>s.t, ()=>false);
+  renderCheckList('elSupervisoresCheck', supervisores, s=>s.v, s=>s.t, ()=>false);
+}).catch(()=>{
+  for (const id of ['canalesCheck','edCanalesCheck','elCanalesCheck','edSuplidoresCheck','elSuplidoresCheck','edCategoriasCheck','elCategoriasCheck','edSupervisoresCheck','elSupervisoresCheck']) {
+    const h = document.getElementById(id); if (h) h.innerHTML = '<span class="hint" style="padding:0">(No se pudo cargar el catálogo.)</span>';
+  }
+});
+
+// Objetivo POR MES (2026-09-06, pedido explícito del usuario: "Objetivo por Mes
+// y General... es como una combinación entre" fijar cada mes a mano Y repartir
+// un Total entre el resto) — un input numérico por cada mes del rango Destino
+// elegido; el que se llene fija ESE mes exacto, el resto lo reparte el
+// Objetivo TOTAL de arriba (NOMBRES_MES_ES se declara más abajo en este mismo
+// script — ya está disponible quando esta función corre por un evento).
+function mesesDestinoElegidos() {
+  const [da, dm] = document.getElementById('destinoDesde').value.split('-').map(Number);
+  const [ha, hm] = document.getElementById('destinoHasta').value.split('-').map(Number);
+  const meses = [];
+  if (da && dm && ha && hm) {
+    let a = da, m = dm, guard = 0;
+    while ((a < ha || (a === ha && m <= hm)) && guard < 240) {
+      meses.push({ anio: a, mes: m });
+      m++; if (m > 12) { m = 1; a++; }
+      guard++;
+    }
+  }
+  return meses;
+}
+const MESES_ABREV_OBJ = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+function renderObjetivosPorMes() {
+  const host = document.getElementById('objetivosPorMesHost');
+  const meses = mesesDestinoElegidos();
+  if (!meses.length) { host.innerHTML = '<span class="hint" style="padding:0">Elige un rango de Destino arriba para ver un campo por mes.</span>'; return; }
+  host.innerHTML = meses.map(d => `
+    <div class="pd" style="min-width:150px">
+      <label>${MESES_ABREV_OBJ[d.mes]}-${d.anio}</label>
+      <input type="number" class="objetivo-mes-input" data-anio="${d.anio}" data-mes="${d.mes}" placeholder="(reparte el Total)">
+    </div>`).join('');
+}
+document.getElementById('destinoDesde').addEventListener('change', renderObjetivosPorMes);
+document.getElementById('destinoHasta').addEventListener('change', renderObjetivosPorMes);
+renderObjetivosPorMes();
+
+document.getElementById('btnGenerar').addEventListener('click', async () => {
+  const msg = document.getElementById('msgGenerar');
+  msg.textContent = 'Generando...'; msg.className='msg';
+  // TODO el handler en un solo try/catch (antes solo cubría el fetch) — si algo
+  // revienta silenciosamente ANTES de llamar al servidor (parseo de fechas,
+  // un elemento que no se encuentra, etc.) ahora se ve en pantalla en vez de
+  // quedarse pegado en "Generando..." para siempre sin pista alguna.
+  try {
+    console.log('[Generar] click recibido, armando request...');
+    const [da, dm] = document.getElementById('destinoDesde').value.split('-').map(Number);
+    const [ha, hm] = document.getElementById('destinoHasta').value.split('-').map(Number);
+    const destino = [];
+    if (da && dm && ha && hm) {
+      let a = da, m = dm;
+      let guard = 0;
+      while ((a < ha || (a === ha && m <= hm)) && guard < 240) {
+        destino.push({ anio: a, mes: m });
+        m++; if (m > 12) { m = 1; a++; }
+        guard++;
+      }
+    }
+    const reps = document.getElementById('reps').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const compVal = document.getElementById('compararAnioMes').value; // "2026-08" o vacío
+    const [compAnio, compMes] = compVal ? compVal.split('-').map(Number) : [null, null];
+    const objetivoRaw = document.getElementById('objetivoMonto').value;
+    const objetivoModo = document.getElementById('objetivoModo').value; // 'valor' | 'unidades'
+    const objetivoNum = objetivoRaw ? parseFloat(objetivoRaw) : null;
+    const canalesMarcados = Array.from(document.querySelectorAll('#canalesCheck input:checked')).map(c => parseInt(c.value));
+    const objetivosPorMes = Array.from(document.querySelectorAll('.objetivo-mes-input'))
+      .filter(el => el.value !== '')
+      .map(el => ({ anio: parseInt(el.dataset.anio), mes: parseInt(el.dataset.mes), valor: parseFloat(el.value), modo: objetivoModo }));
+    const body = {
+      baseFechaInicio: document.getElementById('baseIni').value,
+      baseFechaFin: document.getElementById('baseFin').value,
+      destino, preTipo: 'Unddprod',
+      reps: reps.length ? reps : null,
+      descripcion: document.getElementById('descripcion').value || null,
+      compAnio, compMes,
+      montoValorSugerido: (objetivoNum && objetivoModo==='valor') ? objetivoNum : null,
+      montoTotalSugerido: (objetivoNum && objetivoModo==='unidades') ? objetivoNum : null,
+      objetivosPorMes: objetivosPorMes.length ? objetivosPorMes : null,
+      canales: canalesMarcados.length ? canalesMarcados : null,
+    };
+    console.log('[Generar] body armado:', body, 'URL:', BASE+'/apipresupuestogestion/generar');
+    const r = await fetch(BASE+'/apipresupuestogestion/generar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    console.log('[Generar] respuesta recibida, status:', r.status);
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error || 'Error'; msg.className='msg err'; return; }
+    msg.textContent = `Lote generado: ${j.filasInsertadas} filas, ${j.anomalias} anomalías.`; msg.className='msg ok';
+    await cargarLote(CTX_GEN, j.loteId);
+  } catch(e) { console.error('[Generar] excepcion:', e); msg.textContent = 'Error: '+e; msg.className='msg err'; }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// "5. Editar / Reajustar Presupuesto" (2026-09-06) — MISMO endpoint /generar,
+// con filtros adicionales (Canal/Supervisor/Vendedor/Suplidor/Categoría/
+// Producto) y un solo mes Destino. Reusa el MISMO panelLote/panelComparativo
+// (cargarLote) que "1. Generar" — sin duplicar esa UI.
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('btnEditarGenerar').addEventListener('click', async () => {
+  const msg = document.getElementById('msgEditar');
+  msg.textContent = 'Generando...'; msg.className = 'msg';
+  try {
+    if (!document.getElementById('edBaseIni').value || !document.getElementById('edBaseFin').value) {
+      msg.textContent = 'Completa el rango Base (desde/hasta).'; msg.className = 'msg err'; return;
+    }
+    const [ea, em] = document.getElementById('edAnioMes').value.split('-').map(Number);
+    if (!ea || !em) { msg.textContent = 'Elige un Año-Mes a editar.'; msg.className = 'msg err'; return; }
+    const reps = document.getElementById('edReps').value.split(',').map(s=>s.trim()).filter(Boolean);
+    const productos = document.getElementById('edProductos').value.split(',').map(s=>s.trim()).filter(Boolean).map(Number);
+    const objetivoRaw = document.getElementById('edObjetivoMonto').value;
+    const objetivoModo = document.getElementById('edObjetivoModo').value;
+    const objetivoNum = objetivoRaw ? parseFloat(objetivoRaw) : null;
+    const canales = Array.from(document.querySelectorAll('#edCanalesCheck input:checked')).map(c=>parseInt(c.value));
+    const supervisores = Array.from(document.querySelectorAll('#edSupervisoresCheck input:checked')).map(c=>c.value);
+    const suplidores = Array.from(document.querySelectorAll('#edSuplidoresCheck input:checked')).map(c=>c.value);
+    const categorias = Array.from(document.querySelectorAll('#edCategoriasCheck input:checked')).map(c=>c.value);
+    const body = {
+      baseFechaInicio: document.getElementById('edBaseIni').value,
+      baseFechaFin: document.getElementById('edBaseFin').value,
+      destino: [{ anio: ea, mes: em }], preTipo: 'Unddprod',
+      reps: reps.length ? reps : null,
+      descripcion: document.getElementById('edDescripcion').value || null,
+      compAnio: null, compMes: null,
+      montoValorSugerido: (objetivoNum && objetivoModo==='valor') ? objetivoNum : null,
+      montoTotalSugerido: (objetivoNum && objetivoModo==='unidades') ? objetivoNum : null,
+      objetivosPorMes: null,
+      canales: canales.length ? canales : null,
+      supervisores: supervisores.length ? supervisores : null,
+      suplidores: suplidores.length ? suplidores : null,
+      categorias: categorias.length ? categorias : null,
+      productos: productos.length ? productos : null,
+    };
+    const r = await fetch(BASE+'/apipresupuestogestion/generar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error || 'Error'; msg.className='msg err'; return; }
+    msg.textContent = `Lote de edición generado: ${j.filasInsertadas} filas, ${j.anomalias} anomalías. Revisa y publica abajo en "5b. Revisar y publicar edición".`; msg.className='msg ok';
+    await cargarLote(CTX_ED, j.loteId);
+  } catch(e) { msg.textContent = 'Error: '+e; msg.className='msg err'; }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// "6. Eliminar Presupuestos" (2026-09-06) — mismo patrón de confirmación ya
+// conocido de "4. Rebalancear" (vista previa + escribir CONFIRMAR). Bloquea
+// meses cerrados tanto aquí (mensaje inmediato) como en el servidor (defensa
+// en profundidad — ver EliminarAplicar en el controller).
+// ══════════════════════════════════════════════════════════════════════════
+function construirFiltroEliminar(anio, mes) {
+  const reps = document.getElementById('elReps').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const productos = document.getElementById('elProductos').value.split(',').map(s=>s.trim()).filter(Boolean).map(Number);
+  const canales = Array.from(document.querySelectorAll('#elCanalesCheck input:checked')).map(c=>parseInt(c.value));
+  const supervisores = Array.from(document.querySelectorAll('#elSupervisoresCheck input:checked')).map(c=>c.value);
+  const suplidores = Array.from(document.querySelectorAll('#elSuplidoresCheck input:checked')).map(c=>c.value);
+  const categorias = Array.from(document.querySelectorAll('#elCategoriasCheck input:checked')).map(c=>c.value);
+  return {
+    anio, mes, preTipo: 'Unddprod',
+    reps: reps.length ? reps : null,
+    canales: canales.length ? canales : null,
+    supervisores: supervisores.length ? supervisores : null,
+    suplidores: suplidores.length ? suplidores : null,
+    categorias: categorias.length ? categorias : null,
+    productos: productos.length ? productos : null,
+    confirmacion: null,
+  };
+}
+
+document.getElementById('btnEliminarPreview').addEventListener('click', async () => {
+  const msg = document.getElementById('msgEliminar');
+  msg.textContent = 'Consultando...'; msg.className = 'msg';
+  document.getElementById('resumenEliminar').innerHTML = '';
+  document.getElementById('panelConfirmarEliminar').style.display = 'none';
+  document.getElementById('elConfirmTexto').value = '';
+  document.getElementById('btnEliminarAplicar').disabled = true;
+  try {
+    const [ea, em] = document.getElementById('elAnioMes').value.split('-').map(Number);
+    if (!ea || !em) { msg.textContent = 'Elige un Año-Mes.'; msg.className='msg err'; return; }
+    const filtro = construirFiltroEliminar(ea, em);
+    const r = await fetch(BASE+'/apipresupuestogestion/historicos/eliminar/preview', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(filtro) });
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error || 'Error'; msg.className='msg err'; return; }
+    document.getElementById('resumenEliminar').innerHTML =
+      `<div class="tarjeta"><div class="lbl">Filas que se eliminarían</div><div class="val">${j.filas}</div></div>` +
+      `<div class="tarjeta"><div class="lbl">Suma total</div><div class="val">${fmt(j.sumaTotal)}</div></div>`;
+    if (j.mesCerrado) {
+      msg.textContent = `${ea}-${String(em).padStart(2,'0')} es un mes CERRADO — no se puede eliminar, solo el mes actual o futuros.`;
+      msg.className = 'msg err';
+      return;
+    }
+    if (j.filas === 0) { msg.textContent = 'No hay filas que calcen con estos filtros.'; msg.className='msg'; return; }
+    msg.textContent = 'Vista previa lista — escribe CONFIRMAR abajo para eliminar.'; msg.className='msg ok';
+    document.getElementById('panelConfirmarEliminar').style.display = 'flex';
+  } catch(e) { msg.textContent = 'Error: '+e; msg.className='msg err'; }
+});
+
+document.getElementById('elConfirmTexto').addEventListener('input', (e) => {
+  document.getElementById('btnEliminarAplicar').disabled = e.target.value.trim() !== 'CONFIRMAR';
+});
+
+document.getElementById('btnEliminarAplicar').addEventListener('click', async () => {
+  const msg = document.getElementById('msgEliminar');
+  const [ea, em] = document.getElementById('elAnioMes').value.split('-').map(Number);
+  const confirmacion = document.getElementById('elConfirmTexto').value.trim();
+  if (!confirm(`¿ELIMINAR de producción el presupuesto de ${ea}-${String(em).padStart(2,'0')} que calce con estos filtros? Esta acción no se puede deshacer.`)) return;
+  msg.textContent = 'Eliminando...'; msg.className = 'msg';
+  try {
+    const filtro = construirFiltroEliminar(ea, em);
+    filtro.confirmacion = confirmacion;
+    const r = await fetch(BASE+'/apipresupuestogestion/historicos/eliminar/aplicar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(filtro) });
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error || 'Error'; msg.className = 'msg err'; return; }
+    msg.textContent = `Eliminado: ${j.filasAfectadas} filas, suma ${fmt(j.sumaTotal)}.`; msg.className = 'msg ok';
+    document.getElementById('elConfirmTexto').value = '';
+    document.getElementById('btnEliminarAplicar').disabled = true;
+    document.getElementById('panelConfirmarEliminar').style.display = 'none';
+  } catch(e) { msg.textContent = 'Error: '+e; msg.className = 'msg err'; }
+});
+
+async function cargarLote(ctx, loteId){
+  ctx.lote = loteId;
+  const r = await fetch(BASE+'/apipresupuestogestion/lote/'+loteId);
+  const j = await r.json();
+  if (!j.ok) return;
+  ctx.filas = j.filas;
+  document.getElementById('panelLote'+ctx.suf).style.display='block';
+  pintarTabla(ctx, j.lote.Estado, j.lote.Descripcion);
+  // "3. Análisis comparativo" es exclusivo del flujo de "1. Generar" (CTX_GEN) —
+  // "5. Editar" no lo duplica (pedido acotado a filtros+Generar+Publicar, ver
+  // PROGRESS.md 2026-09-08).
+  if (ctx === CTX_GEN) {
+    document.getElementById('panelComparativo').style.display='block';
+    poblarFiltroMesComp(j.lote.DestinoDetalle);
+  }
+}
+
+// "Mes a ver/ajustar" (2026-09-01) — opciones = los meses Destino reales del
+// lote (DestinoDetalle = "2026-09,2026-10,..."), no un rango arbitrario.
+const NOMBRES_MES_ES = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function poblarFiltroMesComp(destinoDetalle){
+  const sel = document.getElementById('filtroMesComp');
+  const previo = sel.value;
+  const meses = (destinoDetalle||'').split(',').map(s=>s.trim()).filter(Boolean);
+  sel.innerHTML = '<option value="">Todos (promedio mensual)</option>' + meses.map(v => {
+    const [a,m] = v.split('-').map(Number);
+    return `<option value="${v}">${NOMBRES_MES_ES[m]} ${a}</option>`;
+  }).join('');
+  if (meses.includes(previo)) sel.value = previo;
+}
+
+// Devuelve el mes elegido en "Mes a ver/ajustar", o {anio:null,mes:null} si está en "Todos".
+function obtenerFiltroMesActual(){
+  const v = document.getElementById('filtroMesComp').value;
+  if (!v) return { anio: null, mes: null };
+  const [a, m] = v.split('-').map(Number);
+  return { anio: a, mes: m };
+}
+
+function pintarTabla(ctx, estado, descripcion){
+  const filas = ctx.filas;
+  const totalProp = filas.reduce((s,f)=>s+f.Propuesto,0);
+  const totalAct = filas.reduce((s,f)=>s+(f.Actual||0),0);
+  const anomCount = filas.filter(f=>f.Anomalia).length;
+  document.getElementById('resumenLote'+ctx.suf).innerHTML =
+    `<span>Estado: <b>${estado}</b></span><span>Filas: <b>${filas.length}</b></span>`+
+    `<span>Total propuesto: <b>${fmt(totalProp)}</b></span><span>Total actual: <b>${fmt(totalAct)}</b></span>`+
+    `<span>Anomalías: <b>${anomCount}</b></span>` +
+    (descripcion ? `<span>${descripcion}</span>` : '');
+  const soloLectura = estado !== 'Borrador';
+  const tbody = document.getElementById('tbodyLote'+ctx.suf);
+  tbody.innerHTML = filas.map(f => `
+    <tr class="${f.Anomalia?'anom':''}" data-id="${f.Id}">
+      <td>${f.Id}</td>
+      <td>${f.RepCodigo} — ${f.RepNombre||''}</td>
+      <td>${f.PreReferencia} — ${f.ProductoNombre||''}</td>
+      <td>${f.PreAnio}-${String(f.PreMes).padStart(2,'0')}</td>
+      <td class="propuesto" ${soloLectura?'':'onclick="editarCelda(this,'+f.Id+','+ctx.nombre+')"'}>${fmt(f.Propuesto)}</td>
+      <td>${fmt(f.Actual)}</td>
+      <td>${fmt(f.Actual!=null ? f.Propuesto-f.Actual : null)}</td>
+      <td>${f.Anomalia ? `<span class="badge warn" title="${f.AnomaliaDetalle||''}">Revisar</span>` : ''}</td>
+      <td>${soloLectura?'':'<button class="btn-mini" onclick="eliminarFila('+f.Id+','+ctx.nombre+')">Quitar</button>'}</td>
+    </tr>`).join('');
+}
+
+window.editarCelda = function(td, id, ctx){
+  const actual = ctx.filas.find(f=>f.Id===id).Propuesto;
+  td.innerHTML = `<input type="number" step="0.01" value="${actual}">`;
+  const input = td.querySelector('input'); input.focus(); input.select();
+  const commit = async () => {
+    const nuevo = parseFloat(input.value);
+    if (isNaN(nuevo)) { pintarTabla(ctx, 'Borrador'); return; }
+    await guardarValores(ctx, [{id, valor: nuevo}]);
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if (e.key==='Enter') input.blur(); if (e.key==='Escape') pintarTabla(ctx, 'Borrador'); });
+};
+
+async function guardarValores(ctx, items){
+  const msg = document.getElementById('msgLote'+ctx.suf);
+  const r = await fetch(BASE+'/apipresupuestogestion/staging/actualizarvalores', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({loteId: ctx.lote, items}) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = `${j.actualizados} valor(es) actualizado(s).`; msg.className='msg ok';
+  await cargarLote(ctx, ctx.lote);
+}
+
+window.eliminarFila = async function(id, ctx){
+  if (!confirm('¿Quitar esta fila del lote?')) return;
+  const msg = document.getElementById('msgLote'+ctx.suf);
+  const r = await fetch(BASE+'/apipresupuestogestion/staging/eliminarfila', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({loteId: ctx.lote, id}) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  await cargarLote(ctx, ctx.lote);
+};
+
+function wireLoteButtons(ctx){
+  document.getElementById('btnAgregar'+ctx.suf).addEventListener('click', async () => {
+    const [anio, mes] = document.getElementById('addAnioMes'+ctx.suf).value.split('-').map(s=>parseInt(s));
+    const body = {
+      loteId: ctx.lote,
+      repCodigo: document.getElementById('addRep'+ctx.suf).value.trim(),
+      preReferencia: document.getElementById('addRef'+ctx.suf).value.trim(),
+      preAnio: anio, preMes: mes,
+      valor: parseFloat(document.getElementById('addValor'+ctx.suf).value) || 0,
+    };
+    const msg = document.getElementById('msgLote'+ctx.suf);
+    if (!body.repCodigo || !body.preReferencia || !anio || !mes) { msg.textContent='Completa Rep, Producto y Año-Mes.'; msg.className='msg err'; return; }
+    const r = await fetch(BASE+'/apipresupuestogestion/staging/agregarfila', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+    msg.textContent = 'Fila agregada.'; msg.className='msg ok';
+    await cargarLote(ctx, ctx.lote);
+  });
+
+  document.getElementById('btnExportar'+ctx.suf).addEventListener('click', () => {
+    const head = ['Id','Rep','RepNombre','Producto','ProductoNombre','Anio','Mes','Propuesto','Actual','Anomalia','Detalle'];
+    const rows = ctx.filas.map(f => [f.Id, f.RepCodigo, f.RepNombre||'', f.PreReferencia, f.ProductoNombre||'', f.PreAnio, f.PreMes, f.Propuesto, f.Actual, f.Anomalia?'SI':'', f.AnomaliaDetalle||'']);
+    const ws = XLSX.utils.aoa_to_sheet([head].concat(rows));
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Lote');
+    XLSX.writeFile(wb, 'presupuesto_lote_'+ctx.lote+'.xlsx');
+  });
+
+  document.getElementById('inputImportar'+ctx.suf).addEventListener('change', async (ev) => {
+    const file = ev.target.files[0]; if (!file) return;
+    const msg = document.getElementById('msgLote'+ctx.suf);
+    try {
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, { type:'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1 });
+      const head = rows[0].map(h => String(h).trim());
+      const idxId = head.indexOf('Id'), idxProp = head.indexOf('Propuesto');
+      if (idxId < 0 || idxProp < 0) { msg.textContent = 'El Excel debe tener columnas "Id" y "Propuesto" (usa el exportado por este mismo lote).'; msg.className='msg err'; return; }
+      const items = rows.slice(1).filter(r => r.length && r[idxId]!=null && r[idxId]!=='').map(r => ({ id: parseInt(r[idxId]), valor: parseFloat(r[idxProp]) })).filter(it => !isNaN(it.id) && !isNaN(it.valor));
+      if (items.length === 0) { msg.textContent = 'No se encontraron filas válidas en el Excel.'; msg.className='msg err'; return; }
+      await guardarValores(ctx, items);
+    } catch(e) { msg.textContent = 'Error leyendo el Excel: '+e; msg.className='msg err'; }
+    ev.target.value = '';
+  });
+
+  document.getElementById('btnPublicar'+ctx.suf).addEventListener('click', () => publicarLote(ctx, false));
+
+  document.getElementById('btnDescartar'+ctx.suf).addEventListener('click', async () => {
+    if (!ctx.lote || !confirm('¿Descartar este lote?')) return;
+    const msg = document.getElementById('msgLote'+ctx.suf);
+    const r = await fetch(BASE+'/apipresupuestogestion/descartar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({loteId: ctx.lote}) });
+    const j = await r.json();
+    msg.textContent = j.ok && j.actualizado ? 'Lote descartado.' : (j.error||'No se pudo descartar.');
+    msg.className = j.ok && j.actualizado ? 'msg ok' : 'msg err';
+    if (j.ok && j.actualizado) await cargarLote(ctx, ctx.lote);
+  });
+}
+wireLoteButtons(CTX_GEN);
+wireLoteButtons(CTX_ED);
+
+async function publicarLote(ctx, forzar){
+  if (!ctx.lote || !confirm(forzar ? '¿Publicar IGUAL, a pesar de la meta de activación obligatoria no alcanzada?' : '¿Publicar este lote a PresupuestosHistoricos?')) return;
+  const msg = document.getElementById('msgLote'+ctx.suf);
+  const r = await fetch(BASE+'/apipresupuestogestion/publicar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({loteId: ctx.lote, forzar}) });
+  const j = await r.json();
+  if (!j.ok) {
+    if (j.requiereForzar && confirm((j.error||'')+'\n\n¿Publicar de todas formas?')) { await publicarLote(ctx, true); return; }
+    msg.textContent = j.error||'Error'; msg.className='msg err'; return;
+  }
+  msg.textContent = `Publicado: ${j.filasAfectadas} filas, suma ${fmt(j.sumaTotal)}.`; msg.className='msg ok';
+  await cargarLote(ctx, ctx.lote);
+}
+
+// ══════════════════ ⚙ Configuración de variables/metodologías ══════════════
+let definicionesActuales = [];
+let varSeleccionada = null;
+
+document.getElementById('btnConfig').addEventListener('click', async () => {
+  document.getElementById('modalConfig').classList.add('open');
+  document.getElementById('panelValores').style.display = 'none';
+  await cargarDefiniciones();
+  await cargarActivacionMetas();
+  await cargarRappelMetas();
+  await cargarEfectividadMetas();
+  await cargarLimitesRep();
+});
+
+// ══════════════════ ⚙ Import/Export masivo (Excel) — genérico ══════════════
+// Pedido explícito del usuario 2026-09-01: "¿cómo puedo configurar de manera
+// masiva, subir un archivo o algo así?" — reusa el MISMO patrón ya usado para
+// exportar/reimportar el staging de un lote (btnExportar/inputImportar más
+// arriba): SheetJS 100% client-side, SIN endpoint nuevo — cada fila del
+// Excel se manda al mismo endpoint 'guardar' que ya usa el alta manual de 1
+// fila (upsert, así que reimportar el mismo archivo 2 veces no duplica).
+function descargarPlantilla(headers, filename){
+  const ws = XLSX.utils.aoa_to_sheet([headers]);
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Plantilla');
+  XLSX.writeFile(wb, filename);
+}
+
+async function importarConfigExcel(file, endpoint, construirBody, msgElId, onExito){
+  const msg = document.getElementById(msgElId);
+  if (!file) return;
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const filas = XLSX.utils.sheet_to_json(ws, { header:1 });
+    if (filas.length < 2) { msg.textContent = 'El archivo no tiene filas de datos.'; msg.className='msg err'; return; }
+    const headers = filas[0].map(h => String(h||'').trim());
+    let ok = 0, fail = 0;
+    for (let i = 1; i < filas.length; i++) {
+      const fila = filas[i];
+      if (!fila || fila.every(c => c === undefined || c === '')) continue; // fila vacía, se ignora
+      const valores = {};
+      headers.forEach((h, idx) => { valores[h] = fila[idx]; });
+      const body = construirBody(valores);
+      if (!body) { fail++; continue; }
+      try {
+        const r = await fetch(BASE+endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+        const j = await r.json();
+        if (j.ok) ok++; else fail++;
+      } catch { fail++; }
+    }
+    msg.textContent = `Importación completa: ${ok} agregadas/actualizadas, ${fail} con error (revisa que esas filas tengan los campos obligatorios).`;
+    msg.className = fail > 0 ? 'msg err' : 'msg ok';
+    await onExito();
+  } catch (e) {
+    msg.textContent = 'No se pudo leer el archivo: ' + e.message;
+    msg.className = 'msg err';
+  }
+}
+
+const esVerdadero = (v) => /^(1|true|si|sí|x)$/i.test(String(v||''));
+
+window.importarValoresExcel = function(file){
+  if (!varSeleccionada) { alert('Primero abre "Valores" de una variable (arriba) antes de importar.'); return; }
+  importarConfigExcel(file, '/apipresupuestogestion/variables/valores/guardar', (v) => {
+    const periodoAnio = parseInt(v.PeriodoAnio);
+    const valor = parseFloat(v.Valor);
+    if (!v.AmbitoTipo || !periodoAnio || isNaN(valor)) return null;
+    return {
+      id: null, varCodigo: varSeleccionada,
+      ambitoTipo: String(v.AmbitoTipo).trim(),
+      ambitoValor: v.AmbitoValor !== undefined && v.AmbitoValor !== '' ? String(v.AmbitoValor).trim() : null,
+      periodoTipo: v.PeriodoTipo ? String(v.PeriodoTipo).trim() : 'Anio',
+      periodoAnio,
+      periodoTrimestre: v.PeriodoTrimestre !== undefined && v.PeriodoTrimestre !== '' ? parseInt(v.PeriodoTrimestre) : null,
+      periodoMes: v.PeriodoMes !== undefined && v.PeriodoMes !== '' ? parseInt(v.PeriodoMes) : null,
+      valor,
+    };
+  }, 'msgValores', () => window.verValores(varSeleccionada));
+};
+
+window.importarActivacionExcel = function(file){
+  importarConfigExcel(file, '/apipresupuestogestion/activacion/metas/guardar', (v) => {
+    const cat3Id = parseInt(v.Cat3ID), cat1Id = parseInt(v.Cat1ID), metaPct = parseFloat(v.MetaPct);
+    if (!cat3Id || !cat1Id || isNaN(metaPct)) return null;
+    const canId = v.CanID !== undefined && v.CanID !== '' ? parseInt(v.CanID) : null;
+    const repTipe = v.RepTipe !== undefined && v.RepTipe !== '' ? String(v.RepTipe).trim() : null;
+    const repCodigo = v.RepCodigo !== undefined && v.RepCodigo !== '' ? String(v.RepCodigo).trim() : null;
+    if ((canId?1:0)+(repTipe?1:0)+(repCodigo?1:0) > 1) return null; // Canal/División/Vendedor son overrides alternativos, no combinados
+    return {
+      id: null, cat3Id, cat1Id, canId, repTipe, repCodigo, metaPct,
+      modo: (v.Modo && String(v.Modo).trim()) || 'Ideal',
+      bloqueaPublicar: esVerdadero(v.BloqueaPublicar),
+      activo: v.Activo === undefined || v.Activo === '' ? true : esVerdadero(v.Activo),
+    };
+  }, 'msgActivacionMetas', cargarActivacionMetas);
+};
+
+window.importarEfectividadExcel = function(file){
+  importarConfigExcel(file, '/apipresupuestogestion/efectividad/metas/guardar', (v) => {
+    const metaPct = parseFloat(v.MetaPct);
+    if (isNaN(metaPct)) return null;
+    return {
+      id: null,
+      repTipe: v.RepTipe !== undefined && v.RepTipe !== '' ? String(v.RepTipe).trim() : '',
+      metaPct,
+      modo: (v.Modo && String(v.Modo).trim()) || 'Ideal',
+      bloqueaPublicar: esVerdadero(v.BloqueaPublicar),
+      activo: v.Activo === undefined || v.Activo === '' ? true : esVerdadero(v.Activo),
+    };
+  }, 'msgEfectividadMetas', cargarEfectividadMetas);
+};
+
+window.importarLimitesExcel = function(file){
+  importarConfigExcel(file, '/apipresupuestogestion/limitesrep/guardar', (v) => {
+    const repCodigo = v.RepCodigo !== undefined ? String(v.RepCodigo).trim() : '';
+    const pctMinimo = v.PctMinimo !== undefined && v.PctMinimo !== '' ? parseFloat(v.PctMinimo) : null;
+    const pctMaximo = v.PctMaximo !== undefined && v.PctMaximo !== '' ? parseFloat(v.PctMaximo) : null;
+    if (!repCodigo || (pctMinimo == null && pctMaximo == null)) return null;
+    return {
+      repCodigo, pctMinimo, pctMaximo,
+      activo: v.Activo === undefined || v.Activo === '' ? true : esVerdadero(v.Activo),
+    };
+  }, 'msgLimitesRep', cargarLimitesRep);
+};
+
+// ══════════════════ ⚙ Metas de activación mínima (Suplidor×Categoría) ══════
+async function cargarActivacionMetas(){
+  const r = await fetch(BASE+'/apipresupuestogestion/activacion/metas');
+  const j = await r.json();
+  const tbody = document.getElementById('tbodyActivacionMetas');
+  if (!j.ok) { tbody.innerHTML = `<tr><td colspan="10">${j.error||'(No se pudo cargar — falta correr SQL/PresupuestoActivacionMetas_RM.sql)'}</td></tr>`; return; }
+  tbody.innerHTML = j.metas.map(m => `
+    <tr data-id="${m.Id}">
+      <td>${m.Cat3ID} — ${m.Cat3Nombre}</td>
+      <td>${m.Cat1ID} — ${m.Cat1Nombre}</td>
+      <td><input type="number" value="${m.CanID ?? ''}" data-f="canId" placeholder="(todos)" style="width:80px" title="${m.CanNombre||''}"></td>
+      <td><input value="${m.RepTipe ?? ''}" data-f="repTipe" placeholder="(todas)" style="width:80px"></td>
+      <td><input value="${m.RepCodigo ?? ''}" data-f="repCodigo" placeholder="(todos)" style="width:90px" title="${m.RepNombre||''}"></td>
+      <td><input value="${m.MetaPct}" data-f="metaPct" style="width:60px"></td>
+      <td><select data-f="modo">${['Ideal','Obligatorio'].map(o=>`<option ${o===m.Modo?'selected':''}>${o}</option>`).join('')}</select></td>
+      <td style="text-align:center"><input type="checkbox" data-f="bloquea" ${m.BloqueaPublicar?'checked':''}></td>
+      <td style="text-align:center"><input type="checkbox" data-f="activo" ${m.Activo?'checked':''}></td>
+      <td>
+        <button class="btn-sm" onclick="guardarActivacionMetaFila(${m.Id},${m.Cat3ID},${m.Cat1ID},this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarActivacionMeta(${m.Id})">Borrar</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.guardarActivacionMetaFila = async function(id, cat3Id, cat1Id, btn){
+  const tr = btn.closest('tr');
+  const canRaw = tr.querySelector('[data-f=canId]').value;
+  const repTipeRaw = tr.querySelector('[data-f=repTipe]').value.trim();
+  const repCodigoRaw = tr.querySelector('[data-f=repCodigo]').value.trim();
+  const body = {
+    id, cat3Id, cat1Id,
+    canId: canRaw ? parseInt(canRaw) : null,
+    repTipe: repTipeRaw || null,
+    repCodigo: repCodigoRaw || null,
+    metaPct: parseFloat(tr.querySelector('[data-f=metaPct]').value),
+    modo: tr.querySelector('[data-f=modo]').value,
+    bloqueaPublicar: tr.querySelector('[data-f=bloquea]').checked,
+    activo: tr.querySelector('[data-f=activo]').checked,
+  };
+  if ((body.canId?1:0)+(body.repTipe?1:0)+(body.repCodigo?1:0) > 1) { alert('Canal, División y Vendedor son overrides alternativos — llena solo uno de los tres.'); return; }
+  const r = await fetch(BASE+'/apipresupuestogestion/activacion/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarActivacionMeta = async function(id){
+  if (!confirm('¿Eliminar esta meta de activación?')) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/activacion/metas/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await cargarActivacionMetas();
+};
+
+document.getElementById('btnNuevaActivacionMeta').addEventListener('click', async () => {
+  const msg = document.getElementById('msgActivacionMetas');
+  const canRaw = document.getElementById('amCanId').value;
+  const repTipeRaw = document.getElementById('amRepTipe').value.trim();
+  const repCodigoRaw = document.getElementById('amRepCodigo').value.trim();
+  const body = {
+    id: null,
+    cat3Id: parseInt(document.getElementById('amCat3Id').value),
+    cat1Id: parseInt(document.getElementById('amCat1Id').value),
+    canId: canRaw ? parseInt(canRaw) : null,
+    repTipe: repTipeRaw || null,
+    repCodigo: repCodigoRaw || null,
+    metaPct: parseFloat(document.getElementById('amMetaPct').value),
+    modo: document.getElementById('amModo').value,
+    bloqueaPublicar: document.getElementById('amBloquea').checked,
+    activo: document.getElementById('amActivo').checked,
+  };
+  if (!body.cat3Id || !body.cat1Id || isNaN(body.metaPct)) { msg.textContent = 'Completa Suplidor (Cat3ID), Categoría (Cat1ID) y Meta %.'; msg.className='msg err'; return; }
+  if ((body.canId?1:0)+(body.repTipe?1:0)+(body.repCodigo?1:0) > 1) { msg.textContent = 'Canal, División y Vendedor son overrides alternativos — llena solo uno de los tres.'; msg.className='msg err'; return; }
+  const r = await fetch(BASE+'/apipresupuestogestion/activacion/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = 'Agregada.'; msg.className='msg ok';
+  document.getElementById('amCat3Id').value=''; document.getElementById('amCat1Id').value=''; document.getElementById('amCanId').value=''; document.getElementById('amRepTipe').value=''; document.getElementById('amRepCodigo').value=''; document.getElementById('amMetaPct').value='';
+  await cargarActivacionMetas();
+});
+
+// ══════════════ ⚙ Modelo Rappel generalizado (Monto/Activaciones/Factura) ═══
+async function cargarRappelMetas(){
+  const r = await fetch(BASE+'/apipresupuestogestion/rappel/metas');
+  const j = await r.json();
+  const tbody = document.getElementById('tbodyRappelMetas');
+  if (!j.ok) { tbody.innerHTML = `<tr><td colspan="8">${j.error||'(No se pudo cargar — falta correr SQL/PresupuestoRappelMetas_RM.sql)'}</td></tr>`; return; }
+  tbody.innerHTML = j.metas.map(m => `
+    <tr data-id="${m.Id}">
+      <td>${m.TipoRequerimiento}</td>
+      <td>${m.AmbitoTipo}</td>
+      <td>${m.AmbitoTipo==='Suplidor' ? `${m.Cat3ID} - ${m.Cat3Nombre}` : `${m.Cat1ID} - ${m.Cat1Nombre}`}</td>
+      <td>${m.PeriodoAnio}</td>
+      <td>${m.PeriodoMes ?? ''}</td>
+      <td><input type="number" step="0.01" value="${m.MetaValor}" data-f="metaValor" style="width:100px"></td>
+      <td style="text-align:center"><input type="checkbox" data-f="activo" ${m.Activo?'checked':''}></td>
+      <td>
+        <button class="btn-sm" onclick="guardarRappelMetaFila(${m.Id},'${m.TipoRequerimiento}','${m.AmbitoTipo}',${m.Cat3ID??'null'},${m.Cat1ID??'null'},${m.PeriodoAnio},${m.PeriodoMes??'null'},this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarRappelMeta(${m.Id})">Borrar</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.guardarRappelMetaFila = async function(id, tipoRequerimiento, ambitoTipo, cat3Id, cat1Id, periodoAnio, periodoMes, btn){
+  const tr = btn.closest('tr');
+  const metaValor = parseFloat(tr.querySelector('[data-f=metaValor]').value);
+  const activo = tr.querySelector('[data-f=activo]').checked;
+  const r = await fetch(BASE+'/apipresupuestogestion/rappel/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+    id, tipoRequerimiento, ambitoTipo, cat3Id, cat1Id, periodoAnio, periodoMes, metaValor, activo,
+  })});
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarRappelMeta = async function(id){
+  if (!confirm('¿Eliminar este requerimiento de Rappel?')) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/rappel/metas/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await cargarRappelMetas();
+};
+
+document.getElementById('btnNuevaRappelMeta').addEventListener('click', async () => {
+  const msg = document.getElementById('msgRappelMetas');
+  const tipoRequerimiento = document.getElementById('rmTipo').value;
+  const ambitoTipo = document.getElementById('rmAmbitoTipo').value;
+  const ambitoValorRaw = document.getElementById('rmAmbitoValor').value.trim();
+  const periodoAnio = parseInt(document.getElementById('rmAnio').value);
+  const mesRaw = document.getElementById('rmMes').value;
+  const metaValorRaw = document.getElementById('rmMetaValor').value;
+  if (!ambitoValorRaw || !periodoAnio || metaValorRaw === '') { msg.textContent = 'Completa Suplidor/Categoría, Año y Meta.'; msg.className='msg err'; return; }
+  const ambitoValorNum = parseInt(ambitoValorRaw);
+  const body = {
+    id: null, tipoRequerimiento, ambitoTipo,
+    cat3Id: ambitoTipo === 'Suplidor' ? ambitoValorNum : null,
+    cat1Id: ambitoTipo === 'Categoria' ? ambitoValorNum : null,
+    periodoAnio, periodoMes: mesRaw ? parseInt(mesRaw) : null,
+    metaValor: parseFloat(metaValorRaw), activo: document.getElementById('rmActivo').checked,
+  };
+  const r = await fetch(BASE+'/apipresupuestogestion/rappel/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = 'Agregado.'; msg.className='msg ok';
+  document.getElementById('rmAmbitoValor').value=''; document.getElementById('rmAnio').value=''; document.getElementById('rmMes').value=''; document.getElementById('rmMetaValor').value='';
+  await cargarRappelMetas();
+});
+
+// ══════════════════ ⚙ Metas de efectividad mínima (por División) ═══════════
+async function cargarEfectividadMetas(){
+  const r = await fetch(BASE+'/apipresupuestogestion/efectividad/metas');
+  const j = await r.json();
+  const tbody = document.getElementById('tbodyEfectividadMetas');
+  if (!j.ok) { tbody.innerHTML = `<tr><td colspan="6">${j.error||'(No se pudo cargar — falta correr SQL/PresupuestoEfectividadMetas_RM.sql)'}</td></tr>`; return; }
+  tbody.innerHTML = j.metas.map(m => `
+    <tr data-id="${m.Id}">
+      <td>${m.RepTipe || '(default)'}</td>
+      <td><input value="${m.MetaPct}" data-f="metaPct" style="width:60px"></td>
+      <td><select data-f="modo">${['Ideal','Obligatorio'].map(o=>`<option ${o===m.Modo?'selected':''}>${o}</option>`).join('')}</select></td>
+      <td style="text-align:center"><input type="checkbox" data-f="bloquea" ${m.BloqueaPublicar?'checked':''}></td>
+      <td style="text-align:center"><input type="checkbox" data-f="activo" ${m.Activo?'checked':''}></td>
+      <td>
+        <button class="btn-sm" onclick="guardarEfectividadMetaFila(${m.Id},'${m.RepTipe}',this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarEfectividadMeta(${m.Id})">Borrar</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.guardarEfectividadMetaFila = async function(id, repTipe, btn){
+  const tr = btn.closest('tr');
+  const body = {
+    id, repTipe,
+    metaPct: parseFloat(tr.querySelector('[data-f=metaPct]').value),
+    modo: tr.querySelector('[data-f=modo]').value,
+    bloqueaPublicar: tr.querySelector('[data-f=bloquea]').checked,
+    activo: tr.querySelector('[data-f=activo]').checked,
+  };
+  const r = await fetch(BASE+'/apipresupuestogestion/efectividad/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarEfectividadMeta = async function(id){
+  if (!confirm('¿Eliminar esta meta de efectividad?')) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/efectividad/metas/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await cargarEfectividadMetas();
+};
+
+document.getElementById('btnNuevaEfectividadMeta').addEventListener('click', async () => {
+  const msg = document.getElementById('msgEfectividadMetas');
+  const body = {
+    id: null,
+    repTipe: document.getElementById('emRepTipe').value.trim(),
+    metaPct: parseFloat(document.getElementById('emMetaPct').value),
+    modo: document.getElementById('emModo').value,
+    bloqueaPublicar: document.getElementById('emBloquea').checked,
+    activo: document.getElementById('emActivo').checked,
+  };
+  if (isNaN(body.metaPct)) { msg.textContent = 'Completa Meta %.'; msg.className='msg err'; return; }
+  const r = await fetch(BASE+'/apipresupuestogestion/efectividad/metas/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = 'Agregada.'; msg.className='msg ok';
+  document.getElementById('emRepTipe').value=''; document.getElementById('emMetaPct').value='';
+  await cargarEfectividadMetas();
+});
+
+// ══════════════════ ⚙ Límites (mínimo/máximo) por vendedor ═════════════════
+async function cargarLimitesRep(){
+  const r = await fetch(BASE+'/apipresupuestogestion/limitesrep');
+  const j = await r.json();
+  const tbody = document.getElementById('tbodyLimitesRep');
+  if (!j.ok) { tbody.innerHTML = `<tr><td colspan="5">${j.error||'(No se pudo cargar — falta correr SQL/PresupuestoLimitesRep_RM.sql)'}</td></tr>`; return; }
+  tbody.innerHTML = j.limites.map(l => `
+    <tr data-rep="${l.RepCodigo}">
+      <td>${l.RepCodigo} — ${l.RepNombre}</td>
+      <td><input type="number" step="0.01" value="${l.PctMinimo ?? ''}" data-f="pctMinimo" placeholder="(sin piso)" style="width:80px"></td>
+      <td><input type="number" step="0.01" value="${l.PctMaximo ?? ''}" data-f="pctMaximo" placeholder="(sin techo)" style="width:80px"></td>
+      <td style="text-align:center"><input type="checkbox" data-f="activo" ${l.Activo?'checked':''}></td>
+      <td>
+        <button class="btn-sm" onclick="guardarLimiteRepFila('${l.RepCodigo}',this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarLimiteRep('${l.RepCodigo}')">Borrar</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.guardarLimiteRepFila = async function(repCodigo, btn){
+  const tr = btn.closest('tr');
+  const minRaw = tr.querySelector('[data-f=pctMinimo]').value;
+  const maxRaw = tr.querySelector('[data-f=pctMaximo]').value;
+  const body = {
+    repCodigo,
+    pctMinimo: minRaw ? parseFloat(minRaw) : null,
+    pctMaximo: maxRaw ? parseFloat(maxRaw) : null,
+    activo: tr.querySelector('[data-f=activo]').checked,
+  };
+  const r = await fetch(BASE+'/apipresupuestogestion/limitesrep/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarLimiteRep = async function(repCodigo){
+  if (!confirm('¿Eliminar los límites de este vendedor?')) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/limitesrep/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({repCodigo}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await cargarLimitesRep();
+};
+
+document.getElementById('btnNuevoLimiteRep').addEventListener('click', async () => {
+  const msg = document.getElementById('msgLimitesRep');
+  const minRaw = document.getElementById('lrPctMinimo').value;
+  const maxRaw = document.getElementById('lrPctMaximo').value;
+  const body = {
+    repCodigo: document.getElementById('lrRepCodigo').value.trim(),
+    pctMinimo: minRaw ? parseFloat(minRaw) : null,
+    pctMaximo: maxRaw ? parseFloat(maxRaw) : null,
+    activo: document.getElementById('lrActivo').checked,
+  };
+  if (!body.repCodigo || (body.pctMinimo == null && body.pctMaximo == null)) { msg.textContent = 'Completa el RepCodigo y al menos un % (Mínimo o Máximo).'; msg.className='msg err'; return; }
+  const r = await fetch(BASE+'/apipresupuestogestion/limitesrep/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = 'Agregado.'; msg.className='msg ok';
+  document.getElementById('lrRepCodigo').value=''; document.getElementById('lrPctMinimo').value=''; document.getElementById('lrPctMaximo').value='';
+  await cargarLimitesRep();
+});
+// ══════════════════════════════════════════════════════════════════════════
+// "Crecimiento sugerido entre mes" (Bloque C, 2026-09-06) — pantalla dedicada
+// que alimenta la MISMA variable FACTOR_CRECIMIENTO_MES (GET/POST
+// variables/valores... ya existentes, sin endpoints nuevos), presentada como
+// matriz Ene-Dic en % en vez de filas sueltas del catálogo genérico.
+// ══════════════════════════════════════════════════════════════════════════
+document.getElementById('btnCargarCrecimientoMes').addEventListener('click', async () => {
+  const msg = document.getElementById('msgCrecimientoMes');
+  for (let m=1;m<=12;m++) { const el = document.getElementById('cmMes'+m); el.value=''; delete el.dataset.id; }
+  try {
+    const r = await fetch(BASE+'/apipresupuestogestion/variables/valores?varCodigo=FACTOR_CRECIMIENTO_MES');
+    const j = await r.json();
+    if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+    const ambitoTipo = document.getElementById('cmAmbitoTipo').value;
+    const ambitoValorRaw = document.getElementById('cmAmbitoValor').value.trim();
+    const anio = parseInt(document.getElementById('cmAnio').value);
+    const ambitoValor = ambitoTipo === 'Global' ? null : ambitoValorRaw;
+    const filas = (j.valores||[]).filter(v => v.PeriodoTipo === 'Mes' && v.PeriodoAnio === anio && v.AmbitoTipo === ambitoTipo && (v.AmbitoValor||null) === ambitoValor);
+    for (const f of filas) {
+      const el = document.getElementById('cmMes'+f.PeriodoMes);
+      if (el) { el.value = ((f.Valor - 1) * 100).toFixed(2); el.dataset.id = f.Id; }
+    }
+    msg.textContent = `Cargado: ${filas.length} mes(es) con valor.`; msg.className='msg ok';
+  } catch(e) { msg.textContent = 'Error: '+e; msg.className='msg err'; }
+});
+
+document.getElementById('btnGuardarCrecimientoMes').addEventListener('click', async () => {
+  const msg = document.getElementById('msgCrecimientoMes');
+  const ambitoTipo = document.getElementById('cmAmbitoTipo').value;
+  const ambitoValorRaw = document.getElementById('cmAmbitoValor').value.trim();
+  const anio = parseInt(document.getElementById('cmAnio').value);
+  if (!anio) { msg.textContent = 'Indica el Año.'; msg.className='msg err'; return; }
+  if (ambitoTipo !== 'Global' && !ambitoValorRaw) { msg.textContent = 'Indica el valor de ámbito (Cat3ID/Cat1ID).'; msg.className='msg err'; return; }
+  const ambitoValor = ambitoTipo === 'Global' ? null : ambitoValorRaw;
+  msg.textContent = 'Guardando...'; msg.className='msg';
+  try {
+    let guardados = 0;
+    for (let m=1;m<=12;m++) {
+      const el = document.getElementById('cmMes'+m);
+      const raw = el.value;
+      if (raw === '') continue;
+      const pct = parseFloat(raw);
+      const valor = 1 + (pct/100);
+      const idExistente = el.dataset.id ? parseInt(el.dataset.id) : null;
+      const body = { id: idExistente, varCodigo:'FACTOR_CRECIMIENTO_MES', ambitoTipo, ambitoValor, periodoTipo:'Mes', periodoAnio:anio, periodoTrimestre:null, periodoMes:m, valor };
+      const r = await fetch(BASE+'/apipresupuestogestion/variables/valores/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+      const j = await r.json();
+      if (!j.ok) throw new Error(j.error || `Error guardando mes ${m}`);
+      if (!idExistente && j.id) el.dataset.id = j.id;
+      guardados++;
+    }
+    msg.textContent = `Guardado: ${guardados} mes(es) actualizados.`; msg.className='msg ok';
+  } catch(e) { msg.textContent = 'Error: '+e; msg.className='msg err'; }
+});
+
+document.getElementById('btnCerrarConfig').addEventListener('click', () => {
+  document.getElementById('modalConfig').classList.remove('open');
+});
+
+async function cargarDefiniciones(){
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/definiciones');
+  const j = await r.json();
+  if (!j.ok) return;
+  definicionesActuales = j.definiciones;
+  const tbody = document.getElementById('tbodyDefiniciones');
+  tbody.innerHTML = definicionesActuales.map(d => `
+    <tr class="def-row ${varSeleccionada===d.VarCodigo?'sel':''}" data-cod="${d.VarCodigo}">
+      <td><b>${d.VarCodigo}</b></td>
+      <td><input value="${d.VarNombre}" data-f="varNombre"></td>
+      <td><input value="${d.VarDescripcion||''}" data-f="varDescripcion"></td>
+      <td>
+        <select data-f="varTipoDato">
+          ${['decimal','int','texto'].map(t=>`<option ${t===d.VarTipoDato?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </td>
+      <td><input value="${d.VarAmbitoPermitido}" data-f="varAmbitoPermitido"></td>
+      <td style="text-align:center"><input type="checkbox" data-f="activo" ${d.Activo?'checked':''}></td>
+      <td>${d.ValoresCargados} <button class="btn-sm" style="margin-left:4px" onclick="verValores('${d.VarCodigo}')">Ver</button></td>
+      <td>
+        <button class="btn-sm" onclick="guardarDefinicionFila('${d.VarCodigo}', this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarDefinicion('${d.VarCodigo}')">Borrar</button>
+      </td>
+    </tr>`).join('');
+}
+
+window.guardarDefinicionFila = async function(varCodigo, btn){
+  const tr = btn.closest('tr');
+  const body = { varCodigo,
+    varNombre: tr.querySelector('[data-f=varNombre]').value,
+    varDescripcion: tr.querySelector('[data-f=varDescripcion]').value,
+    varTipoDato: tr.querySelector('[data-f=varTipoDato]').value,
+    varAmbitoPermitido: tr.querySelector('[data-f=varAmbitoPermitido]').value,
+    activo: tr.querySelector('[data-f=activo]').checked,
+  };
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/definiciones/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarDefinicion = async function(varCodigo){
+  if (!confirm(`¿Eliminar la variable "${varCodigo}"?`)) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/definiciones/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({varCodigo}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await cargarDefiniciones();
+};
+
+document.getElementById('btnNuevaDefinicion').addEventListener('click', async () => {
+  const cod = document.getElementById('nuevoCodigo').value.trim().toUpperCase().replace(/\s+/g,'_');
+  if (!cod) { alert('Escribe un código para la variable nueva.'); return; }
+  const body = {
+    varCodigo: cod,
+    varNombre: document.getElementById('nuevoNombre').value || cod,
+    varDescripcion: document.getElementById('nuevoDesc').value,
+    varTipoDato: document.getElementById('nuevoTipo').value,
+    varAmbitoPermitido: document.getElementById('nuevoAmbito').value || 'Global',
+    activo: document.getElementById('nuevoActivo').checked,
+  };
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/definiciones/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  document.getElementById('nuevoCodigo').value=''; document.getElementById('nuevoNombre').value='';
+  document.getElementById('nuevoDesc').value=''; document.getElementById('nuevoAmbito').value='';
+  await cargarDefiniciones();
+});
+
+// Nombre de Suplidor/Categoría junto al código (2026-09-06, pedido explícito del usuario para
+// "Metas Rapel" y demás variables por Ámbito) — el código crudo se conserva en el atributo
+// data-raw de la celda (ver guardarValorFila) para no romper el guardado.
+function textoAmbitoValor(ambitoTipo, ambitoValor) {
+  if (!ambitoValor) return '—';
+  if (ambitoTipo === 'Suplidor') {
+    const s = catalogoSuplidores.find(x => x.v === ambitoValor);
+    return s ? `${ambitoValor} - ${s.t}` : ambitoValor;
+  }
+  if (ambitoTipo === 'Categoria') {
+    const c = catalogoCategorias.find(x => x.v === ambitoValor);
+    return c ? `${ambitoValor} - ${c.t}` : ambitoValor;
+  }
+  if (ambitoTipo === 'RutaSuplidor' && ambitoValor.includes('|')) {
+    const [rep, cat3] = ambitoValor.split('|');
+    const s = catalogoSuplidores.find(x => x.v === cat3);
+    return s ? `${ambitoValor} (${rep} → ${s.t})` : ambitoValor;
+  }
+  return ambitoValor;
+}
+
+window.verValores = async function(varCodigo){
+  varSeleccionada = varCodigo;
+  await cargarDefiniciones();
+  document.getElementById('panelValores').style.display = 'block';
+  document.getElementById('tituloValores').textContent = `Valores de ${varCodigo}`;
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/valores?varCodigo='+encodeURIComponent(varCodigo));
+  const j = await r.json();
+  if (!j.ok) return;
+  const tbody = document.getElementById('tbodyValores');
+  tbody.innerHTML = j.valores.map(v => `
+    <tr data-id="${v.Id}">
+      <td>${v.AmbitoTipo}</td>
+      <td data-raw="${v.AmbitoValor??''}">${textoAmbitoValor(v.AmbitoTipo, v.AmbitoValor)}</td>
+      <td>${v.PeriodoTipo}</td>
+      <td>${v.PeriodoAnio}</td>
+      <td>${v.PeriodoTrimestre??''}</td>
+      <td>${v.PeriodoMes??''}</td>
+      <td><input value="${v.Valor}" data-f="valor" style="width:80px"></td>
+      <td>
+        <button class="btn-sm" onclick="guardarValorFila(${v.Id},'${varCodigo}',this)">Guardar</button>
+        <button class="btn-sm del" onclick="eliminarValorFila(${v.Id},'${varCodigo}')">Borrar</button>
+      </td>
+    </tr>`).join('');
+};
+
+window.guardarValorFila = async function(id, varCodigo, btn){
+  const tr = btn.closest('tr');
+  const valor = parseFloat(tr.querySelector('[data-f=valor]').value);
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/valores/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
+    id, varCodigo,
+    ambitoTipo: tr.children[0].textContent, ambitoValor: tr.children[1].dataset.raw || null,
+    periodoTipo: tr.children[2].textContent, periodoAnio: parseInt(tr.children[3].textContent),
+    periodoTrimestre: tr.children[4].textContent?parseInt(tr.children[4].textContent):null,
+    periodoMes: tr.children[5].textContent?parseInt(tr.children[5].textContent):null,
+    valor,
+  })});
+  const j = await r.json();
+  if (j.ok) { btn.textContent='✓'; setTimeout(()=>btn.textContent='Guardar',1200); } else alert(j.error||'Error');
+};
+
+window.eliminarValorFila = async function(id, varCodigo){
+  if (!confirm('¿Eliminar este valor?')) return;
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/valores/eliminar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id}) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  await window.verValores(varCodigo);
+};
+
+document.getElementById('btnNuevoValor').addEventListener('click', async () => {
+  if (!varSeleccionada) return;
+  const body = {
+    id: null, varCodigo: varSeleccionada,
+    ambitoTipo: document.getElementById('nvAmbitoTipo').value,
+    ambitoValor: document.getElementById('nvAmbitoValor').value || null,
+    periodoTipo: document.getElementById('nvPeriodoTipo').value,
+    periodoAnio: parseInt(document.getElementById('nvAnio').value),
+    periodoTrimestre: document.getElementById('nvTrimestre').value ? parseInt(document.getElementById('nvTrimestre').value) : null,
+    periodoMes: document.getElementById('nvMes').value ? parseInt(document.getElementById('nvMes').value) : null,
+    valor: parseFloat(document.getElementById('nvValor').value),
+  };
+  const msg = document.getElementById('msgValores');
+  if (!body.periodoAnio || isNaN(body.valor)) { msg.textContent='Completa al menos Año y Valor.'; msg.className='msg err'; return; }
+  const r = await fetch(BASE+'/apipresupuestogestion/variables/valores/guardar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className='msg err'; return; }
+  msg.textContent = 'Agregado.'; msg.className='msg ok';
+  document.getElementById('nvAmbitoValor').value=''; document.getElementById('nvValor').value='';
+  await window.verValores(varSeleccionada);
+});
+
+// ══════════════════ 3. Análisis comparativo (3 cadenas apiladas) ═══════════
+// Rediseño 2026-08-30 (pedido explícito del usuario): el drill de antes
+// REEMPLAZABA la tabla al bajar de nivel — "si paso de compañía a Centro solo
+// puedo ver los del centro X no ambos a la vez". Ahora cada nivel es su PROPIA
+// tarjeta que se apila debajo de la anterior (nunca desaparece), con "‹ Ver
+// todos" para volver sin perder de vista lo de arriba — mismo patrón ya
+// validado por el usuario en Views/Presupuestos/Index.cshtml
+// (renderCadenaCentro/Canal/Suplidor). Además del eje Organización (Centro/
+// Canal→Supervisor→Vendedor) se agrega el eje Producto (Suplidor→Categoría) y
+// TODAS las cadenas terminan en Producto — "hasta llegar al representante y el
+// producto", pedido explícito del usuario.
+const METRICAS = {
+  unidades: { sugerido: 'UnidadesPropuesto', comparar: 'UnidadesComparacion', promedio: 'UnidadesVentaPromedio', lbl: 'Unidades' },
+  cajas:    { sugerido: 'CajasPropuesto',    comparar: 'CajasComparacion',    promedio: 'CajasVentaPromedio',    lbl: 'Cajas' },
+  monto:    { sugerido: 'MontoPropuesto',    comparar: 'MontoComparacion',    promedio: 'MontoVentaPromedio',    lbl: 'RD$ (estimado)' },
+};
+const CADENAS = {
+  centro: { niveles: [
+    { label: 'Centro', dim: f => f.CedCodigo, nombre: f => f.CentroNombre, ambito: v => ({ cedCodigo: v }) },
+    { label: 'Supervisor', dim: f => f.SupCod, nombre: f => f.SupNombre || '(Sin supervisor)', ambito: v => ({ supCod: v }) },
+    { label: 'Vendedor', dim: f => f.RepCodigo, nombre: f => `${f.RepCodigo} — ${f.RepNombre}`, ambito: v => ({ repCodigo: v }) },
+    { label: 'Producto', dim: f => f.ProId, nombre: f => `${f.ProId} — ${f.ProDescripcion}`, ambito: v => ({ proId: Number(v) }) },
+  ]},
+  canal: { niveles: [
+    { label: 'Canal', dim: f => f.CanID, nombre: f => f.CanNombre, ambito: v => ({ canId: Number(v) }) },
+    { label: 'Supervisor', dim: f => f.SupCod, nombre: f => f.SupNombre || '(Sin supervisor)', ambito: v => ({ supCod: v }) },
+    { label: 'Vendedor', dim: f => f.RepCodigo, nombre: f => `${f.RepCodigo} — ${f.RepNombre}`, ambito: v => ({ repCodigo: v }) },
+    { label: 'Producto', dim: f => f.ProId, nombre: f => `${f.ProId} — ${f.ProDescripcion}`, ambito: v => ({ proId: Number(v) }) },
+  ]},
+  suplidor: { niveles: [
+    { label: 'Suplidor', dim: f => f.Cat3ID, nombre: f => f.Cat3Nombre, ambito: v => ({ cat3Id: Number(v) }) },
+    { label: 'Categoría', dim: f => f.Cat1ID, nombre: f => f.Cat1Nombre, ambito: v => ({ cat1Id: Number(v) }) },
+    { label: 'Producto', dim: f => f.ProId, nombre: f => `${f.ProId} — ${f.ProDescripcion}`, ambito: v => ({ proId: Number(v) }) },
+  ]},
+};
+const CADENA_NAV = { centro: [], canal: [], suplidor: [] }; // por cadena: [{valor,nombre}, ...] elegido nivel a nivel
+let AMBITO_REGISTRY = {}; let ambitoSeq = 0;
+let compFilas = [];
+let compEsPromedioMensual = false;
+let compEtiquetaMes = 'Mismo período';
+let compMetrica = 'monto'; // pedido explícito del usuario 2026-09-01: default en RD$, no unidades
+let vistaModo = 'ventas'; // 'ventas' | 'activaciones' (Fase C, 2026-09-01)
+
+window.cambiarVista = function(v){
+  vistaModo = v;
+  ['vVentas','vActivaciones'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.getElementById({ventas:'vVentas',activaciones:'vActivaciones'}[v]).classList.add('on');
+  renderTodasLasCadenas();
+};
+
+document.getElementById('compModoActual').addEventListener('change', () => { document.getElementById('compAnioMes').disabled = true; });
+document.getElementById('compModoMes').addEventListener('change', () => { document.getElementById('compAnioMes').disabled = false; });
+
+window.cambiarMetrica = function(m){
+  compMetrica = m;
+  ['mUnidades','mCajas','mMonto'].forEach(id => document.getElementById(id).classList.remove('on'));
+  document.getElementById({unidades:'mUnidades',cajas:'mCajas',monto:'mMonto'}[m]).classList.add('on');
+  renderTodasLasCadenas();
+};
+
+document.getElementById('btnCargarComparativo').addEventListener('click', async () => {
+  if (!CTX_GEN.lote) return;
+  await cargarComparativo();
+});
+
+// Fase D (2026-09-01): Excel de revisión — reporte de SOLO LECTURA (Resumen +
+// Supervisor/Vendedor/Suplidor/Categoría), mismos números que esta pantalla.
+// Descarga directa (navegación, no fetch) para que el navegador maneje el
+// archivo binario solo — la sesión viaja igual por la cookie.
+document.getElementById('btnDescargarRevision').addEventListener('click', () => {
+  if (!CTX_GEN.lote) { alert('Primero elige/genera un lote.'); return; }
+  const params = new URLSearchParams();
+  if (document.getElementById('compModoMes').checked) {
+    const v = document.getElementById('compAnioMes').value;
+    if (v) { const [a, m] = v.split('-'); params.set('compAnio', a); params.set('compMes', parseInt(m)); }
+  }
+  const { anio: fAnio, mes: fMes } = obtenerFiltroMesActual();
+  if (fAnio) { params.set('filtroAnio', fAnio); params.set('filtroMes', fMes); }
+  const qs = params.toString();
+  window.location.href = BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/revision.xlsx'+(qs?'?'+qs:'');
+});
+
+async function cargarComparativo(){
+  const msg = document.getElementById('msgComparativo');
+  msg.textContent = 'Cargando...'; msg.className = 'msg';
+  const params = new URLSearchParams();
+  compEtiquetaMes = 'Mismo período (ya publicado)';
+  if (document.getElementById('compModoMes').checked) {
+    const v = document.getElementById('compAnioMes').value; // "2025-09"
+    if (!v) { msg.textContent = 'Elige un Año-Mes para comparar.'; msg.className = 'msg err'; return; }
+    const [a, m] = v.split('-');
+    params.set('compAnio', a); params.set('compMes', parseInt(m));
+    compEtiquetaMes = `Presupuesto ${v}`;
+  }
+  const { anio: fAnio, mes: fMes } = obtenerFiltroMesActual();
+  if (fAnio) { params.set('filtroAnio', fAnio); params.set('filtroMes', fMes); }
+  const url = BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/comparativo?'+params.toString();
+  const r = await fetch(url);
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error || 'Error'; msg.className = 'msg err'; return; }
+  msg.textContent = '';
+  compFilas = j.filas;
+  compEsPromedioMensual = j.esPromedioMensual;
+  CADENA_NAV.centro = []; CADENA_NAV.canal = []; CADENA_NAV.suplidor = [];
+  renderTodasLasCadenas();
+}
+
+function sumaGrupo(filas){
+  const campos = ['UnidadesPropuesto','UnidadesComparacion','UnidadesVentaPromedio','CajasPropuesto','CajasComparacion','CajasVentaPromedio','MontoPropuesto','MontoComparacion','MontoVentaPromedio'];
+  const init = {}; campos.forEach(c => init[c] = 0);
+  return filas.reduce((s,f) => { const r = {...s}; campos.forEach(c => r[c] = s[c] + f[c]); return r; }, init);
+}
+
+function pctCrecimiento(nuevo, base){
+  if (base === 0) return nuevo > 0 ? { txt: 'Nuevo', cls: 'good' } : { txt: '—', cls: 'na' };
+  const pct = (nuevo - base) / base * 100;
+  return { txt: (pct>=0?'+':'')+pct.toFixed(1)+'%', cls: pct >= 0 ? 'good' : 'bad' };
+}
+
+function registrarAmbito(a){ const id = 'a'+(ambitoSeq++); AMBITO_REGISTRY[id] = a; return id; }
+
+window.cadenaAjustar = async function(ambitoId, etiqueta){
+  if (!CTX_GEN.lote) return;
+  const ambito = AMBITO_REGISTRY[ambitoId] || {};
+  const txt = prompt(`Ajustar "${etiqueta}"\n\nEscribe el VALOR al que debe llegar el total propuesto de este nodo (ej. 850000), o un % (ej. 110% = crecer a 110% de lo que tiene hoy). Se reparte proporcional entre todas sus filas.`);
+  if (!txt) return;
+  const t = txt.trim();
+  const modo = t.endsWith('%') ? 'pct' : 'valor';
+  const monto = parseFloat(t.replace('%','').replace(/,/g,''));
+  if (isNaN(monto)) { alert('Número inválido.'); return; }
+  const { anio, mes } = obtenerFiltroMesActual();
+  const r = await fetch(BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/ajustar-nodo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ambito, modo, monto, anio, mes }) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  alert(`Ajustado${anio?` (solo ${mes}/${anio})`:''}: ${j.filasActualizadas} fila(s), escala=${j.escala.toFixed(4)}${j.anomalias?`, ${j.anomalias} anomalía(s)`:''}.`);
+  await cargarComparativo();
+  await cargarLote(CTX_GEN, CTX_GEN.lote); // "2. Revisar" también cambió (PrePresupuestoPropuesto)
+};
+
+window.cadenaDrill = function(cadenaKey, nivelIdx, valor, nombre){
+  CADENA_NAV[cadenaKey] = CADENA_NAV[cadenaKey].slice(0, nivelIdx).concat([{ valor, nombre }]);
+  renderNivelCadena(cadenaKey);
+};
+
+window.cadenaVolver = function(cadenaKey, hastaIdx){
+  CADENA_NAV[cadenaKey] = CADENA_NAV[cadenaKey].slice(0, hastaIdx);
+  renderNivelCadena(cadenaKey);
+};
+
+// Columnas de ajuste por fila (pedido explícito del usuario 2026-09-01):
+// %  y  Monto (RD$), precargadas con 100% / el monto sugerido actual — si no
+// se tocan, "Recalcular" no cambiaría nada. Al escribir un nuevo valor y
+// presionar Recalcular, se convierte a UNIDADES con el precio promedio
+// PONDERADO de ESE nodo específico (montoActual÷unidadesActual — el mismo
+// precio de Lista que ya arma "Sugerido", nunca un precio inventado) y se
+// llama a /ajustar-nodo con ese ámbito EXACTO (solo esta fila, ninguna otra)
+// — por eso el ajuste SIEMPRE suma hacia arriba: las demás filas/nodos no se
+// tocan, así que el total de la compañía sube o baja exactamente el delta
+// (ej. Canal Minorista 50MM→60MM: el resto de canales queda igual, compañía
+// pasa de 100MM a 110MM), nunca se re-escala todo para "mantener" el total.
+function filaNivelHtml(cadenaKey, nivelIdx, nombre, s, clickable, valorClave, ambitoBase, nivel){
+  const m = METRICAS[compMetrica];
+  const sugerido = s[m.sugerido], comparar = s[m.comparar], promedio = s[m.promedio];
+  const cMes = pctCrecimiento(sugerido, comparar);
+  const cProm = pctCrecimiento(sugerido, promedio);
+  const onclick = clickable ? `onclick="cadenaDrill('${cadenaKey}',${nivelIdx},'${String(valorClave).replace(/'/g,"\\'")}','${nombre.replace(/'/g,"\\'")}')" style="cursor:pointer"` : '';
+  const ambitoFila = { ...ambitoBase, ...nivel.ambito(valorClave) };
+  const ambitoId = registrarAmbito(ambitoFila);
+  const montoBase = s.MontoPropuesto, unidBase = s.UnidadesPropuesto;
+  const sinPrecio = !(montoBase > 0 && unidBase > 0);
+  return `<tr class="${clickable?'clickable':''}">
+    <td ${onclick}>${nombre}${clickable?' →':''}</td>
+    <td>${fmt(comparar)}</td><td>${fmt(promedio)}</td><td>${fmt(sugerido)}</td>
+    <td><span class="pct2 ${cMes.cls}">${cMes.txt}</span></td>
+    <td><span class="pct2 ${cProm.cls}">${cProm.txt}</span></td>
+    <td>${sinPrecio ? '—' : `<input type="number" step="0.01" value="100" data-amb="${ambitoId}" data-tipo="pct" style="width:65px" onchange="sincronizarAjusteFila(this)">`}</td>
+    <td>${sinPrecio ? '—' : `<input type="number" step="0.01" value="${montoBase.toFixed(2)}" data-amb="${ambitoId}" data-tipo="monto" data-base="${montoBase}" data-unidbase="${unidBase}" style="width:100px" onchange="sincronizarAjusteFila(this)">`}</td>
+    <td>${sinPrecio ? '' : `<button class="btn-sm" onclick="recalcularFila('${ambitoId}')">Recalcular</button>`}</td>
+  </tr>`;
+}
+
+window.sincronizarAjusteFila = function(input){
+  const tr = input.closest('tr');
+  const pctInput = tr.querySelector('[data-tipo=pct]');
+  const montoInput = tr.querySelector('[data-tipo=monto]');
+  const base = parseFloat(montoInput.dataset.base);
+  if (!base) return;
+  if (input.dataset.tipo === 'pct') {
+    const pct = parseFloat(pctInput.value);
+    if (!isNaN(pct)) montoInput.value = (base * pct / 100).toFixed(2);
+  } else {
+    const monto = parseFloat(montoInput.value);
+    if (!isNaN(monto)) pctInput.value = (monto / base * 100).toFixed(2);
+  }
+};
+
+window.recalcularFila = async function(ambitoId){
+  if (!CTX_GEN.lote) return;
+  const montoInput = document.querySelector(`[data-amb="${ambitoId}"][data-tipo="monto"]`);
+  if (!montoInput) return;
+  const montoNuevo = parseFloat(montoInput.value);
+  const montoBase = parseFloat(montoInput.dataset.base);
+  const unidBase = parseFloat(montoInput.dataset.unidbase);
+  if (isNaN(montoNuevo) || !montoBase || !unidBase) { alert('No se puede recalcular esta fila (falta precio de referencia).'); return; }
+  const precioPonderado = montoBase / unidBase; // precio promedio ponderado de ESTE nodo, no un precio inventado
+  const unidadesObjetivo = montoNuevo / precioPonderado; // el sistema SIEMPRE guarda en unidades
+  const ambito = AMBITO_REGISTRY[ambitoId] || {};
+  const { anio, mes } = obtenerFiltroMesActual();
+  const r = await fetch(BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/ajustar-nodo', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ambito, modo: 'valor', monto: unidadesObjetivo, anio, mes }) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  alert(`Recalculado${anio?` (solo ${mes}/${anio})`:''}: ${j.filasActualizadas} fila(s) de este nodo. RD$${fmt(montoBase)} → RD$${fmt(montoNuevo)} (${fmt(unidadesObjetivo)} unidades al precio promedio ponderado RD$${precioPonderado.toFixed(2)}/u). El resto de la propuesta no se tocó.`);
+  await cargarComparativo();
+  await cargarLote(CTX_GEN, CTX_GEN.lote);
+};
+
+async function renderNivelCadena(cadenaKey){
+  const { niveles } = CADENAS[cadenaKey];
+  const nav = CADENA_NAV[cadenaKey];
+  const host = document.getElementById('cadena'+cadenaKey.charAt(0).toUpperCase()+cadenaKey.slice(1));
+  if (vistaModo === 'activaciones') host.innerHTML = '<div class="hint">Cargando activaciones…</div>';
+  let htmlTotal = '';
+
+  for (let i = 0; i < niveles.length; i++) {
+    const nivel = niveles[i];
+    const filasFiltradas = compFilas.filter(f => nav.slice(0, i).every((sel, j) => String(niveles[j].dim(f)) === String(sel.valor)));
+    const grupos = new Map();
+    for (const f of filasFiltradas) {
+      const k = String(nivel.dim(f));
+      if (!grupos.has(k)) grupos.set(k, { nombre: nivel.nombre(f), filas: [] });
+      grupos.get(k).filas.push(f);
+    }
+    const esUltimo = i === niveles.length - 1;
+    const m = METRICAS[compMetrica];
+    const filasOrdenadas = [...grupos.entries()].sort((a,b) => sumaGrupo(b[1].filas)[m.sugerido] - sumaGrupo(a[1].filas)[m.sugerido]);
+
+    let ambitoBase = {};
+    nav.slice(0, i).forEach((sel, j) => Object.assign(ambitoBase, niveles[j].ambito(sel.valor)));
+    const ambitoId = registrarAmbito(ambitoBase);
+    const titulo = i > 0 ? `${nivel.label} de ${nav[i-1].nombre}` : `Por ${nivel.label}`;
+    const volverBtn = i > 0 ? `<span class="crumb2 chico" onclick="cadenaVolver('${cadenaKey}',${i-1})">‹ Ver todos</span>` : '';
+
+    let filasHtml, cabecera, ajustarBtn;
+    if (vistaModo === 'activaciones') {
+      ajustarBtn = ''; // "Sugerir para todo" es de Ventas; en Activaciones cada fila tiene su propio Recalcular
+      const entradas = filasOrdenadas.map(([k, g]) => ({ k, g, ambitoId: registrarAmbito({ ...ambitoBase, ...nivel.ambito(k) }) }));
+      const datos = await Promise.all(entradas.map(e => fetch(BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/detalle-activacion', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ambito: AMBITO_REGISTRY[e.ambitoId] })
+      }).then(r => r.json()).catch(() => ({ ok: false }))));
+      filasHtml = entradas.map((e, idx) => filaActivacionHtml(cadenaKey, i, e.g.nombre, datos[idx], !esUltimo, e.k, e.ambitoId)).join('');
+      cabecera = `<th></th><th>Clientes Asignados</th><th>Clientes Efectivos</th><th>% Activación</th><th>Ajuste %</th><th>Ajuste Absoluto</th><th></th>`;
+    } else {
+      ajustarBtn = `<button class="btn-out" style="height:24px;padding:2px 9px;font-size:11px" onclick="cadenaAjustar('${ambitoId}','${titulo.replace(/'/g,"\\'")}')">🎯 Sugerir para todo</button>`;
+      filasHtml = filasOrdenadas.map(([k, g]) => filaNivelHtml(cadenaKey, i, g.nombre, sumaGrupo(g.filas), !esUltimo, k, ambitoBase, nivel)).join('');
+      cabecera = `<th></th><th>${compEtiquetaMes}</th><th>Ventas Promedio (mensual)</th><th>Presupuesto Sugerido</th><th>Var. % vs Mes</th><th>Var. % vs Promedio</th><th>Ajuste %</th><th>Ajuste Monto (RD$)</th><th></th>`;
+    }
+
+    htmlTotal += `<div class="cadena-nivel">
+      <div class="cadena-titulo"><span>${titulo}</span>${volverBtn}${ajustarBtn}</div>
+      <div style="overflow:auto;max-height:340px"><table class="res"><thead><tr>${cabecera}</tr></thead><tbody>${filasHtml}</tbody></table></div></div>`;
+
+    if (nav[i] == null) break; // no se ha drillado más allá de este nivel -> no mostrar los siguientes
+  }
+  host.innerHTML = htmlTotal;
+}
+
+// ── Vista de Activaciones (Fase C, 2026-09-01) ──────────────────────────────
+// Clientes Asignados/Efectivos vienen de /detalle-activacion (no están en
+// 'compFilas' — a diferencia de Ventas, hay que pedirlos al servidor por cada
+// fila visible). Ajuste %/Absoluto precargados con 100%/clientes efectivos
+// actuales, sincronizados entre sí igual que en la vista de Ventas.
+function filaActivacionHtml(cadenaKey, nivelIdx, nombre, datos, clickable, valorClave, ambitoId){
+  const onclick = clickable ? `onclick="cadenaDrill('${cadenaKey}',${nivelIdx},'${String(valorClave).replace(/'/g,"\\'")}','${nombre.replace(/'/g,"\\'")}')" style="cursor:pointer"` : '';
+  if (!datos || !datos.ok) {
+    return `<tr><td ${onclick}>${nombre}${clickable?' →':''}</td><td colspan="5">— (no se pudo cargar)</td></tr>`;
+  }
+  const asignados = datos.clientesAsignados, efectivos = datos.clientesEfectivos, pct = (datos.pctActivacion*100);
+  const sinBase = !(efectivos > 0);
+  return `<tr class="${clickable?'clickable':''}">
+    <td ${onclick}>${nombre}${clickable?' →':''}</td>
+    <td>${fmt(asignados)}</td>
+    <td>${fmt(efectivos)}</td>
+    <td>${pct.toFixed(1)}%</td>
+    <td>${sinBase ? '—' : `<input type="number" step="0.01" value="100" data-ambact="${ambitoId}" data-tipoact="pct" style="width:65px" onchange="sincronizarAjusteActivacion(this)">`}</td>
+    <td>${sinBase ? '—' : `<input type="number" step="1" value="${efectivos}" data-ambact="${ambitoId}" data-tipoact="abs" data-baseact="${efectivos}" style="width:80px" onchange="sincronizarAjusteActivacion(this)">`}</td>
+    <td>${sinBase ? '' : `<button class="btn-sm" onclick="recalcularActivacionFila('${ambitoId}')">Recalcular</button>`}</td>
+  </tr>`;
+}
+
+window.sincronizarAjusteActivacion = function(input){
+  const tr = input.closest('tr');
+  const pctInput = tr.querySelector('[data-tipoact=pct]');
+  const absInput = tr.querySelector('[data-tipoact=abs]');
+  const base = parseFloat(absInput.dataset.baseact);
+  if (!base) return;
+  if (input.dataset.tipoact === 'pct') {
+    const pct = parseFloat(pctInput.value);
+    if (!isNaN(pct)) absInput.value = Math.round(base * pct / 100);
+  } else {
+    const abs = parseFloat(absInput.value);
+    if (!isNaN(abs)) pctInput.value = (abs / base * 100).toFixed(2);
+  }
+};
+
+window.recalcularActivacionFila = async function(ambitoId){
+  if (!CTX_GEN.lote) return;
+  const absInput = document.querySelector(`[data-ambact="${ambitoId}"][data-tipoact="abs"]`);
+  if (!absInput) return;
+  const valor = parseFloat(absInput.value);
+  if (isNaN(valor)) { alert('Valor inválido.'); return; }
+  const ambito = AMBITO_REGISTRY[ambitoId] || {};
+  const { anio, mes } = obtenerFiltroMesActual();
+  const r = await fetch(BASE+'/apipresupuestogestion/lote/'+CTX_GEN.lote+'/recalcular-activacion', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ ambito, modo:'valor', valor, anio, mes }) });
+  const j = await r.json();
+  if (!j.ok) { alert(j.error||'Error'); return; }
+  if (j.sinCambios) { alert(j.mensaje); return; }
+  const detalleTxt = (j.detalle||[]).map(d => d.aplicado
+    ? `Suplidor ${d.cat3}/Categoría ${d.cat1}: producto ${d.productoId} +${d.unidadesAgregadas} u. (${d.clientesFaltantesPar} clientes)`
+    : `Suplidor ${d.cat3}/Categoría ${d.cat1}: ${d.motivo}`).join('\n');
+  alert(`Recalculado${anio?` (solo ${mes}/${anio})`:''}: ${j.clientesActuales} → objetivo ${Math.round(j.clientesObjetivo)} (+${j.clientesFaltantes} clientes, ${j.clientesAplicados} aplicados)\n\n${detalleTxt}`);
+  await cargarComparativo();
+  await cargarLote(CTX_GEN, CTX_GEN.lote);
+};
+
+function renderTodasLasCadenas(){
+  if (!compFilas.length) return;
+  const m = METRICAS[compMetrica];
+  const tot = sumaGrupo(compFilas);
+  const cMes = pctCrecimiento(tot[m.sugerido], tot[m.comparar]);
+  const cProm = pctCrecimiento(tot[m.sugerido], tot[m.promedio]);
+  // "Sugerido" y "Ventas Promedio" SIEMPRE son promedio mensual (se dividen
+  // entre nMesesDestino/mesesBase sin importar el modo de comparación). El
+  // comparativo en cambio SOLO se promedia cuando es "Mismo período" (suma
+  // los N meses destino ya publicados) — si se comparó contra un "Mes
+  // específico", ese número YA es el real de UN solo mes, no un promedio.
+  const { anio: fAnio, mes: fMes } = obtenerFiltroMesActual();
+  const etiquetaSug = fAnio ? `Sugerido (${NOMBRES_MES_ES[fMes]} ${fAnio})` : 'Sugerido (promedio mensual)';
+  const etiquetaComp = compEtiquetaMes + (fAnio ? ` (${NOMBRES_MES_ES[fMes]} ${fAnio})` : (document.getElementById('compModoMes').checked ? ' (mes real)' : ' (promedio mensual)'));
+  const ambitoId = registrarAmbito({});
+  document.getElementById('tarjetaGeneral').innerHTML = `
+    <div class="tarjeta"><div class="lbl">${etiquetaComp}</div><div class="val">${fmt(tot[m.comparar])}</div><div class="sub3">${m.lbl}</div></div>
+    <div class="tarjeta"><div class="lbl">Ventas Promedio (base, promedio mensual)</div><div class="val">${fmt(tot[m.promedio])}</div><div class="sub3">${m.lbl}</div></div>
+    <div class="tarjeta"><div class="lbl">${etiquetaSug}</div><div class="val">${fmt(tot[m.sugerido])}</div>
+      <div class="sub3">vs mes: <span class="pct2 ${cMes.cls}">${cMes.txt}</span> · vs promedio: <span class="pct2 ${cProm.cls}">${cProm.txt}</span>
+      <button class="btn-out" style="height:22px;padding:1px 8px;font-size:10.5px;margin-left:8px" onclick="cadenaAjustar('${ambitoId}','toda la Compañía')">🎯 Sugerir para toda la compañía</button></div></div>`;
+  renderNivelCadena('centro'); renderNivelCadena('canal'); renderNivelCadena('suplidor');
+}
+
+// ══════════════════ 4. Rebalancear presupuesto real por Categoría ══════════
+// Pedido explícito del usuario 2026-08-31: reparte el MNTDPROD/UNDDPROD YA
+// PUBLICADO de un Año-Mes entre los productos que cada vendedor REALMENTE
+// vende, dentro de cada Categoría — preserva el total, excluye combos.
+// Escribe DIRECTO a producción (excepción deliberada, ver backend) — por eso
+// exige escribir "CONFIRMAR" antes de habilitar el botón de aplicar.
+let rebalGrupos = [];
+
+document.getElementById('btnRebalPreview').addEventListener('click', async () => {
+  const msg = document.getElementById('msgRebalanceo');
+  msg.textContent = 'Calculando...'; msg.className = 'msg';
+  document.getElementById('panelConfirmarRebal').style.display = 'none';
+  document.getElementById('rebalConfirmTexto').value = '';
+  document.getElementById('btnRebalAplicar').disabled = true;
+  const v = document.getElementById('rebalAnioMes').value;
+  if (!v) { msg.textContent = 'Elige un Año-Mes.'; msg.className = 'msg err'; return; }
+  const [anio, mes] = v.split('-').map(Number);
+  const reps = document.getElementById('rebalReps').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const r = await fetch(BASE+'/apipresupuestogestion/historicos/rebalancear-categoria/preview', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ anio, mes, canales: null, reps: reps.length ? reps : null }) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className = 'msg err'; return; }
+  msg.textContent = '';
+  rebalGrupos = j.grupos;
+  document.getElementById('resumenRebalanceo').innerHTML =
+    `<span>Grupos Rep×Categoría: <b>${j.totalGrupos}</b></span>`+
+    `<span>Con reparto propuesto: <b>${j.totalGrupos - j.anomalias}</b></span>`+
+    `<span>Anomalías (sin venta real, no se tocan): <b>${j.anomalias}</b></span>`;
+  pintarTablaRebalanceo();
+  document.getElementById('panelConfirmarRebal').style.display = (j.totalGrupos - j.anomalias) > 0 ? 'flex' : 'none';
+});
+
+function pintarTablaRebalanceo(){
+  const tbody = document.getElementById('tbodyRebalanceo');
+  tbody.innerHTML = rebalGrupos.map((g, idx) => {
+    const nCambios = g.Cambios.filter(c => !c.EsCombo && Math.abs(c.MontoDespues - c.MontoAntes) > 0.5).length;
+    return `<tr class="clickable" onclick="toggleRebalDetalle(${idx})">
+      <td>${g.RepCodigo} — ${g.RepNombre}</td>
+      <td>${g.Cat1Nombre}</td>
+      <td>${fmt(g.MontoTotal)}</td>
+      <td>${g.Anomalia ? '<span class="badge warn">Sin venta real — revisar</span>' : `${nCambios} producto(s) cambian`}</td>
+      <td>ver detalle</td>
+    </tr>
+    <tr id="rebalDetalle${idx}" style="display:none"><td colspan="5">${detalleRebalHtml(g)}</td></tr>`;
+  }).join('');
+}
+
+function detalleRebalHtml(g){
+  if (g.Anomalia) return '<span class="hint" style="padding:6px 0">Ningún producto de esta categoría tuvo venta real en mayo-julio 2026 — no se toca, revisar a mano.</span>';
+  return `<table class="cfg"><thead><tr><th>Producto</th><th>Combo</th><th>Monto antes</th><th>Monto después</th><th>Unidades antes</th><th>Unidades después</th></tr></thead><tbody>`+
+    g.Cambios.map(c => `<tr><td>${c.ProId} — ${c.ProDescripcion}</td><td>${c.EsCombo?'Sí':''}</td><td>${fmt(c.MontoAntes)}</td><td>${fmt(c.MontoDespues)}</td><td>${fmt(c.UnidadesAntes)}</td><td>${fmt(c.UnidadesDespues)}</td></tr>`).join('')+
+    `</tbody></table>`;
+}
+
+window.toggleRebalDetalle = function(idx){
+  const el = document.getElementById('rebalDetalle'+idx);
+  el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+};
+
+document.getElementById('rebalConfirmTexto').addEventListener('input', (e) => {
+  document.getElementById('btnRebalAplicar').disabled = e.target.value.trim() !== 'CONFIRMAR';
+});
+
+document.getElementById('btnRebalAplicar').addEventListener('click', async () => {
+  const msg = document.getElementById('msgRebalanceo');
+  const v = document.getElementById('rebalAnioMes').value;
+  const [anio, mes] = v.split('-').map(Number);
+  const reps = document.getElementById('rebalReps').value.split(',').map(s=>s.trim()).filter(Boolean);
+  const confirmacion = document.getElementById('rebalConfirmTexto').value.trim();
+  if (!confirm(`¿Aplicar el rebalanceo a PRODUCCIÓN para ${v}? Esto modifica presupuesto real ya publicado (UNDDPROD y MNTDPROD).`)) return;
+  msg.textContent = 'Aplicando...'; msg.className = 'msg';
+  const r = await fetch(BASE+'/apipresupuestogestion/historicos/rebalancear-categoria/aplicar', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ anio, mes, canales: null, confirmacion, reps: reps.length ? reps : null }) });
+  const j = await r.json();
+  if (!j.ok) { msg.textContent = j.error||'Error'; msg.className = 'msg err'; return; }
+  msg.textContent = `Aplicado: ${j.gruposActualizados} grupo(s) ajustado(s), ${j.filasActualizadas} filas actualizadas, ${j.anomalias} anomalía(s) sin tocar.`; msg.className = 'msg ok';
+  document.getElementById('rebalConfirmTexto').value = '';
+  document.getElementById('btnRebalAplicar').disabled = true;
+});
+</script>
+</body>
+</html>

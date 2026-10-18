@@ -1,0 +1,194 @@
+@page
+@model ADEnterprise.Pages.Finanzas.ReportesModel
+@{ ViewData["Title"] = "Reportes Financieros"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-file-earmark-bar-graph"></i> Reportes Financieros</div>
+        <div class="page-subtitle">Análisis de movimientos de caja agrupados por categoría y período</div>
+    </div>
+    <div class="text-end">
+        <div class="text-muted small">Balance general</div>
+        <div class="fs-4 fw-bold @(Model.BalanceGeneral >= 0 ? "text-success" : "text-danger")">
+            RD$ @Model.BalanceGeneral.ToString("N2")
+        </div>
+    </div>
+</div>
+
+@* ── Filtros ────────────────────────────────────────────────────────────────── *@
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-funnel"></i> Filtros
+    </div>
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Desde</label>
+                <input type="date" name="Desde" value="@Model.Desde?.ToString("yyyy-MM-dd")" class="form-control"/>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Hasta</label>
+                <input type="date" name="Hasta" value="@Model.Hasta?.ToString("yyyy-MM-dd")" class="form-control"/>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Categoría</label>
+                <select name="Categoria" class="form-select">
+                    <option value="">Todas</option>
+                    @foreach (var cat in ADEnterprise.Pages.Finanzas.ReportesModel.Categorias)
+                    {
+                        <option value="@cat" selected="@(Model.Categoria == cat)">
+                            @ADEnterprise.Pages.Finanzas.ReportesModel.LabelCategoria(cat)
+                        </option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Tipo Mov.</label>
+                <select name="TipoMov" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="CREDITO" selected="@(Model.TipoMov == "CREDITO")">CRÉDITO (Ingresos)</option>
+                    <option value="DEBITO"  selected="@(Model.TipoMov == "DEBITO")">DÉBITO (Egresos)</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <a href="/Finanzas/Reportes" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* ── KPI Cards ─────────────────────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="text-success fs-4 fw-bold">RD$ @Model.TotalCreditos.ToString("N2")</div>
+            <div class="text-muted">Total Ingresos (filtrado)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="text-danger fs-4 fw-bold">RD$ @Model.TotalDebitos.ToString("N2")</div>
+            <div class="text-muted">Total Egresos (filtrado)</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        @{ var neto = Model.TotalCreditos - Model.TotalDebitos; }
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="@(neto >= 0 ? "text-success" : "text-danger") fs-4 fw-bold">RD$ @neto.ToString("N2")</div>
+            <div class="text-muted">Neto</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="text-secondary fs-4 fw-bold">@Model.Movimientos.Count</div>
+            <div class="text-muted">Movimientos</div>
+        </div>
+    </div>
+</div>
+
+@* ── Resumen por Categoría ─────────────────────────────────────────────────── *@
+@if (Model.ResumenCategorias.Any())
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+            <i class="bi bi-pie-chart"></i> Resumen por Categoría
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-app mb-0">
+                <thead>
+                    <tr>
+                        <th>Categoría</th>
+                        <th class="text-end">Ingresos (CRÉDITO)</th>
+                        <th class="text-end">Egresos (DÉBITO)</th>
+                        <th class="text-end">Neto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var kv in Model.ResumenCategorias.OrderByDescending(k => k.Value.Credito + k.Value.Debito))
+                {
+                    var netoCat = kv.Value.Credito - kv.Value.Debito;
+                    <tr>
+                        <td class="fw-bold">@ADEnterprise.Pages.Finanzas.ReportesModel.LabelCategoria(kv.Key)</td>
+                        <td class="text-end text-success">@(kv.Value.Credito > 0 ? $"RD$ {kv.Value.Credito:N2}" : "—")</td>
+                        <td class="text-end text-danger">@(kv.Value.Debito > 0 ? $"RD$ {kv.Value.Debito:N2}" : "—")</td>
+                        <td class="text-end fw-bold @(netoCat >= 0 ? "text-success" : "text-danger")">RD$ @netoCat.ToString("N2")</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@* ── Detalle de Movimientos ─────────────────────────────────────────────────── *@
+<div class="card shadow-sm">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-list-columns-reverse"></i> Detalle de Movimientos
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Movimientos.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1"></i><br>
+                No hay movimientos con los filtros seleccionados.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-app table-hover mb-0 align-middle small">
+                    <thead>
+                        <tr>
+                            <th>Secuencia</th>
+                            <th>Cuadre</th>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Categoría</th>
+                            <th>Concepto</th>
+                            <th>Empresa</th>
+                            <th class="text-end">Monto</th>
+                            <th>Ref. Doc.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var m in Model.Movimientos)
+                    {
+                        <tr>
+                            <td><code>@m.SeqMovCaja</code></td>
+                            <td><code class="text-muted">@m.SeqCuadre</code></td>
+                            <td>@m.FechaMovimiento.ToString("dd/MM/yy HH:mm")</td>
+                            <td>
+                                <span class="badge @(m.TipoMov == "CREDITO" ? "bg-success" : "bg-danger")">
+                                    @m.TipoMov
+                                </span>
+                            </td>
+                            <td>@ADEnterprise.Pages.Finanzas.ReportesModel.LabelCategoria(m.Categoria)</td>
+                            <td>@m.Concepto</td>
+                            <td>@m.EmpresaNombre</td>
+                            <td class="text-end fw-bold @(m.TipoMov == "CREDITO" ? "text-success" : "text-danger")">
+                                RD$ @m.Monto.ToString("N2")
+                            </td>
+                            <td><code class="text-muted small">@m.RefDocumento</code></td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot class="fw-bold table-light">
+                        <tr>
+                            <td colspan="7">TOTALES</td>
+                            <td class="text-end">
+                                <span class="text-success">+@Model.TotalCreditos.ToString("N2")</span><br>
+                                <span class="text-danger">-@Model.TotalDebitos.ToString("N2")</span>
+                            </td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>

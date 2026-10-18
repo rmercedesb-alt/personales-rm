@@ -1,0 +1,18 @@
+@model PorfiAcademy.Controllers.ManageHubViewModel
+@{
+    ViewData["Title"] = "Administración";
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Administración</h1>
+    <div class="stats">
+        <a class="stat" asp-action="Requests"><b>@Model.NewRequests</b><span>Solicitudes nuevas</span></a>
+        <a class="stat" asp-action="Subscriptions"><b>@Model.ActiveMembers</b><span>Suscriptores activos</span></a>
+        <a class="stat" asp-action="Subscriptions"><b>@Model.ExpiringSoon</b><span>Vencen en 7 días</span></a>
+        <a class="stat" asp-action="Pins"><b>@Model.AvailablePins</b><span>PINs disponibles</span></a>
+        <a class="stat" asp-action="Slides"><b>@Model.ActiveSlides</b><span>Promociones activas</span></a>
+    </div>
+    <p class="hint">Flujo típico: llega una solicitud → la contactas → recibes el pago → generas un PIN (o aprobas la solicitud) → el acceso se activa y vence solo en la fecha del plan.</p>
+</section>

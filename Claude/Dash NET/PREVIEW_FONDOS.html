@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Preview - Opciones de Fondo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#1a1a1a;color:#fff;padding:20px}
+h1{text-align:center;font-size:18px;color:#aaa;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+.subtitle{text-align:center;font-size:12px;color:#666;margin-bottom:20px}
+.tabs{display:flex;justify-content:center;gap:8px;margin-bottom:20px}
+.tab{padding:10px 28px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;border:2px solid transparent;transition:all .2s}
+.tab.t1{background:#0d2240;color:#58a6ff;border-color:#1a3a5c}
+.tab.t2{background:#0d1f18;color:#43a047;border-color:#1a3528}
+.tab.t3{background:#161b26;color:#8b949e;border-color:#28304a}
+.tab.active{transform:scale(1.05);box-shadow:0 4px 20px rgba(0,0,0,.5)}
+.tab.t1.active{border-color:#58a6ff;box-shadow:0 4px 20px rgba(88,166,255,.3)}
+.tab.t2.active{border-color:#43a047;box-shadow:0 4px 20px rgba(67,160,71,.3)}
+.tab.t3.active{border-color:#8b949e;box-shadow:0 4px 20px rgba(139,148,158,.3)}
+
+.preview{display:none;border-radius:14px;overflow:hidden;border:2px solid #333}
+.preview.active{display:block}
+
+/* Opcion 1 - Azul Noche */
+.opt1{background:linear-gradient(160deg,#071828 0%,#0d2240 40%,#071520 100%)}
+.opt1 .hdr{background:rgba(7,24,40,.8);border-bottom:1px solid #1a3a5c}
+.opt1 .card{background:#0f2540;border:1px solid #1a3a5c}
+.opt1 .card-val{color:#58a6ff}
+.opt1 .co-name{color:#e6edf3}
+.opt1 .badge-g{background:#1a5c1a;color:#7ee07e}
+.opt1 .badge-y{background:#5a4200;color:#ffd54f}
+.opt1 .badge-r{background:#8b1515;color:#fff}
+.opt1 .tbl{background:#0f2540;border:1px solid #1a3a5c}
+.opt1 .th{background:#0d1f38;color:#8b949e;border-bottom:1px solid #1a3a5c}
+.opt1 .td{border-bottom:1px solid #1a3a5c;color:#e6edf3}
+
+/* Opcion 2 - Bosque Oscuro */
+.opt2{background:linear-gradient(135deg,#071510 0%,#0d1f18 50%,#0a1a14 100%)}
+.opt2 .hdr{background:rgba(7,21,16,.8);border-bottom:1px solid #1a3528}
+.opt2 .card{background:#0f1f18;border:1px solid #1a3528}
+.opt2 .card-val{color:#3fb950}
+.opt2 .co-name{color:#e6edf3}
+.opt2 .badge-g{background:#1a5c1a;color:#7ee07e}
+.opt2 .badge-y{background:#5a4200;color:#ffd54f}
+.opt2 .badge-r{background:#8b1515;color:#fff}
+.opt2 .tbl{background:#0f1f18;border:1px solid #1a3528}
+.opt2 .th{background:#0a180f;color:#8b949e;border-bottom:1px solid #1a3528}
+.opt2 .td{border-bottom:1px solid #1a3528;color:#e6edf3}
+
+/* Opcion 3 - Pizarra Neutra */
+.opt3{background:linear-gradient(135deg,#0f1218 0%,#161b26 100%)}
+.opt3 .hdr{background:rgba(15,18,24,.8);border-bottom:1px solid #28304a}
+.opt3 .card{background:#1c2130;border:1px solid #28304a}
+.opt3 .card-val{color:#58a6ff}
+.opt3 .co-name{color:#e6edf3}
+.opt3 .badge-g{background:#1a5c1a;color:#7ee07e}
+.opt3 .badge-y{background:#5a4200;color:#ffd54f}
+.opt3 .badge-r{background:#8b1515;color:#fff}
+.opt3 .tbl{background:#1c2130;border:1px solid #28304a}
+.opt3 .th{background:#161c2c;color:#8b949e;border-bottom:1px solid #28304a}
+.opt3 .td{border-bottom:1px solid #28304a;color:#e6edf3}
+
+/* Layout comun */
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 20px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo-box{width:52px;height:36px;border-radius:5px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.co-name{font-size:17px;font-weight:800}
+.co-sub{font-size:11px;color:#58a6ff;margin-top:2px}
+.clock{font-family:monospace;font-size:18px;color:#58a6ff;font-weight:700}
+.cards-row{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;padding:12px 20px}
+.card{border-radius:8px;padding:10px 12px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:8px 8px 0 0}
+.cb::before{background:#58a6ff}.cy::before{background:#e3b341}.co::before{background:#f0883e}.cr::before{background:#b71c1c}.cg::before{background:#3fb950}
+.card-lbl{font-size:9px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.card-val{font-size:26px;font-weight:700;line-height:1}
+.card-hint{font-size:9px;color:#8b949e;margin-top:3px}
+.tbl-wrap{margin:0 20px 12px;border-radius:8px;overflow:hidden}
+.tbl-bar{padding:8px 14px;font-size:12px;font-weight:600;border-bottom:1px solid;display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse}
+.th{padding:7px 12px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.td{padding:7px 12px;font-size:12px}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;font-family:monospace}
+
+.label-opt{text-align:center;padding:8px;font-size:11px;color:#666;border-top:1px solid #333}
+
+.dot{width:7px;height:7px;background:#3fb950;border-radius:50%;display:inline-block;margin-right:5px}
+</style>
+</head>
+<body>
+
+<h1>Comparacion de Fondos — Dashboard AM COMERCIAL</h1>
+<p class="subtitle">Haz click en cada opcion para ver como se ve el dashboard</p>
+
+<div class="tabs">
+  <div class="tab t1 active" onclick="show(1)">🌊 Opcion 1<br><small>Azul Noche</small></div>
+  <div class="tab t2"        onclick="show(2)">🌿 Opcion 2<br><small>Bosque Oscuro</small></div>
+  <div class="tab t3"        onclick="show(3)">🪨 Opcion 3<br><small>Pizarra Neutra</small></div>
+</div>
+
+<!-- OPCION 1 -->
+<div class="preview active" id="p1">
+<div class="opt1">
+  <div class="hdr">
+    <div class="brand">
+      <svg width="52" height="36" viewBox="0 0 70 46" xmlns="http://www.w3.org/2000/svg"><rect width="70" height="46" rx="5" fill="#0f1922"/><polygon points="1,0 15,0 25,46 11,46" fill="#2196F3"/><polygon points="19,0 28,0 38,46 29,46" fill="#43A047"/><polygon points="32,0 41,0 51,46 42,46" fill="#43A047"/><polygon points="45,0 54,0 64,46 55,46" fill="#43A047"/><polygon points="58,0 67,0 77,46 68,46" fill="#43A047"/></svg>
+      <div><div class="co-name">AM COMERCIAL</div><div class="co-sub">Dashboard Visitas en Vivo</div></div>
+    </div>
+    <div class="clock">14:35:22</div>
+  </div>
+  <div class="cards-row">
+    <div class="card cb opt1"><div class="card-lbl">Total Reps</div><div class="card-val" style="color:#58a6ff">24</div><div class="card-hint">Activos 30 dias</div></div>
+    <div class="card cy opt1"><div class="card-lbl">1a Visita Tardia</div><div class="card-val" style="color:#e3b341">7</div><div class="card-hint">Despues 8:20 AM</div></div>
+    <div class="card co opt1"><div class="card-lbl">+30 Min Sin Visita</div><div class="card-val" style="color:#f0883e">3</div><div class="card-hint">Sin nueva visita</div></div>
+    <div class="card cg opt1"><div class="card-lbl">Avg Pedidos</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">1er</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">09:12</div></div><div style="width:1px;background:#1a3a5c"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">Ult.</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">13:47</div></div></div></div>
+    <div class="card cb opt1"><div class="card-lbl">Productividad</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#3fb950">Mayor</div><div style="font-size:12px;font-weight:700;color:#58a6ff;font-family:monospace">10-11</div></div><div style="width:1px;background:#1a3a5c"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#f0883e">Menor</div><div style="font-size:12px;font-weight:700;color:#f0883e;font-family:monospace">14-15</div></div></div></div>
+    <div class="card cb opt1"><div class="card-lbl">Tpo Visitas</div><div class="card-val" style="color:#58a6ff;font-size:18px">00:06:30</div><div class="card-hint">Prom 9AM-3PM</div></div>
+    <div class="card cr opt1"><div class="card-lbl">Llamar Urgente</div><div style="font-size:10px;color:#ffaaaa;margin-top:4px"><div>• REP01 · Juan P. <span style="color:#8b949e">(45min)</span></div><div>• REP02 · Maria R. <span style="color:#8b949e">(38min)</span></div><div>• REP05 · Carlos M. <span style="color:#8b949e">(31min)</span></div></div></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl opt1" style="border-radius:8px;overflow:hidden">
+      <div class="tbl-bar" style="border-color:#1a3a5c;color:#e6edf3;background:#0d1f38">Detalle por Representante — Hoy <span style="color:#8b949e;font-size:11px">Actualizacion en 45s</span></div>
+      <table>
+        <thead><tr><td class="th opt1">Supervisor</td><td class="th opt1">Nombre</td><td class="th opt1">1a Visita</td><td class="th opt1">1er Pedido</td><td class="th opt1">Ult. Pedido</td><td class="th opt1">Dur. Visita</td><td class="th opt1">Desde Ult.</td><td class="th opt1">T.Prom</td><td class="th opt1">Menor Prod</td><td class="th opt1">Mayor Prod</td></tr></thead>
+        <tbody>
+          <tr><td class="td opt1">Sup. Norte</td><td class="td opt1">Juan Perez</td><td class="td opt1"><span class="badge badge-g">08:05:12</span></td><td class="td opt1"><span class="badge badge-g">09:14:33</span></td><td class="td opt1"><span class="badge badge-g">13:47:21</span></td><td class="td opt1"><span class="badge badge-g">00:07:14</span></td><td class="td opt1"><span class="badge badge-g">00:08:22</span></td><td class="td opt1"><span class="badge badge-g">00:06:10</span></td><td class="td opt1"><span class="badge badge-r">14:00-15:00</span></td><td class="td opt1"><span class="badge badge-g">10:00-11:00</span></td></tr>
+          <tr><td class="td opt1">Sup. Sur</td><td class="td opt1">Maria Rodriguez</td><td class="td opt1"><span class="badge badge-y">08:22:05</span></td><td class="td opt1"><span class="badge badge-y">09:45:10</span></td><td class="td opt1"><span class="badge badge-y">13:12:44</span></td><td class="td opt1"><span class="badge badge-y">00:04:30</span></td><td class="td opt1"><span class="badge badge-r">00:38:15</span></td><td class="td opt1"><span class="badge badge-y">00:04:30</span></td><td class="td opt1"><span class="badge badge-r">13:00-14:00</span></td><td class="td opt1"><span class="badge badge-g">11:00-12:00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="label-opt">⬆ Opcion 1: Azul Noche — Fondo azul oscuro profundo, acentos en azul #2196F3</div>
+</div>
+
+<!-- OPCION 2 -->
+<div class="preview" id="p2">
+<div class="opt2">
+  <div class="hdr">
+    <div class="brand">
+      <svg width="52" height="36" viewBox="0 0 70 46" xmlns="http://www.w3.org/2000/svg"><rect width="70" height="46" rx="5" fill="#0f1922"/><polygon points="1,0 15,0 25,46 11,46" fill="#2196F3"/><polygon points="19,0 28,0 38,46 29,46" fill="#43A047"/><polygon points="32,0 41,0 51,46 42,46" fill="#43A047"/><polygon points="45,0 54,0 64,46 55,46" fill="#43A047"/><polygon points="58,0 67,0 77,46 68,46" fill="#43A047"/></svg>
+      <div><div class="co-name">AM COMERCIAL</div><div class="co-sub" style="color:#3fb950">Dashboard Visitas en Vivo</div></div>
+    </div>
+    <div class="clock" style="color:#3fb950">14:35:22</div>
+  </div>
+  <div class="cards-row">
+    <div class="card cb opt2"><div class="card-lbl">Total Reps</div><div class="card-val" style="color:#58a6ff">24</div><div class="card-hint">Activos 30 dias</div></div>
+    <div class="card cy opt2"><div class="card-lbl">1a Visita Tardia</div><div class="card-val" style="color:#e3b341">7</div><div class="card-hint">Despues 8:20 AM</div></div>
+    <div class="card co opt2"><div class="card-lbl">+30 Min Sin Visita</div><div class="card-val" style="color:#f0883e">3</div><div class="card-hint">Sin nueva visita</div></div>
+    <div class="card cg opt2"><div class="card-lbl">Avg Pedidos</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">1er</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">09:12</div></div><div style="width:1px;background:#1a3528"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">Ult.</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">13:47</div></div></div></div>
+    <div class="card cb opt2"><div class="card-lbl">Productividad</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#3fb950">Mayor</div><div style="font-size:12px;font-weight:700;color:#58a6ff;font-family:monospace">10-11</div></div><div style="width:1px;background:#1a3528"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#f0883e">Menor</div><div style="font-size:12px;font-weight:700;color:#f0883e;font-family:monospace">14-15</div></div></div></div>
+    <div class="card cb opt2"><div class="card-lbl">Tpo Visitas</div><div class="card-val" style="color:#3fb950;font-size:18px">00:06:30</div><div class="card-hint">Prom 9AM-3PM</div></div>
+    <div class="card cr opt2"><div class="card-lbl">Llamar Urgente</div><div style="font-size:10px;color:#ffaaaa;margin-top:4px"><div>• REP01 · Juan P. <span style="color:#8b949e">(45min)</span></div><div>• REP02 · Maria R. <span style="color:#8b949e">(38min)</span></div><div>• REP05 · Carlos M. <span style="color:#8b949e">(31min)</span></div></div></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl opt2" style="border-radius:8px;overflow:hidden">
+      <div class="tbl-bar" style="border-color:#1a3528;color:#e6edf3;background:#0a180f">Detalle por Representante — Hoy <span style="color:#8b949e;font-size:11px">Actualizacion en 45s</span></div>
+      <table>
+        <thead><tr><td class="th opt2">Supervisor</td><td class="th opt2">Nombre</td><td class="th opt2">1a Visita</td><td class="th opt2">1er Pedido</td><td class="th opt2">Ult. Pedido</td><td class="th opt2">Dur. Visita</td><td class="th opt2">Desde Ult.</td><td class="th opt2">T.Prom</td><td class="th opt2">Menor Prod</td><td class="th opt2">Mayor Prod</td></tr></thead>
+        <tbody>
+          <tr><td class="td opt2">Sup. Norte</td><td class="td opt2">Juan Perez</td><td class="td opt2"><span class="badge badge-g">08:05:12</span></td><td class="td opt2"><span class="badge badge-g">09:14:33</span></td><td class="td opt2"><span class="badge badge-g">13:47:21</span></td><td class="td opt2"><span class="badge badge-g">00:07:14</span></td><td class="td opt2"><span class="badge badge-g">00:08:22</span></td><td class="td opt2"><span class="badge badge-g">00:06:10</span></td><td class="td opt2"><span class="badge badge-r">14:00-15:00</span></td><td class="td opt2"><span class="badge badge-g">10:00-11:00</span></td></tr>
+          <tr><td class="td opt2">Sup. Sur</td><td class="td opt2">Maria Rodriguez</td><td class="td opt2"><span class="badge badge-y">08:22:05</span></td><td class="td opt2"><span class="badge badge-y">09:45:10</span></td><td class="td opt2"><span class="badge badge-y">13:12:44</span></td><td class="td opt2"><span class="badge badge-y">00:04:30</span></td><td class="td opt2"><span class="badge badge-r">00:38:15</span></td><td class="td opt2"><span class="badge badge-y">00:04:30</span></td><td class="td opt2"><span class="badge badge-r">13:00-14:00</span></td><td class="td opt2"><span class="badge badge-g">11:00-12:00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="label-opt">⬆ Opcion 2: Bosque Oscuro — Fondo verde muy oscuro, acentos en verde #43A047</div>
+</div>
+
+<!-- OPCION 3 -->
+<div class="preview" id="p3">
+<div class="opt3">
+  <div class="hdr">
+    <div class="brand">
+      <svg width="52" height="36" viewBox="0 0 70 46" xmlns="http://www.w3.org/2000/svg"><rect width="70" height="46" rx="5" fill="#0f1922"/><polygon points="1,0 15,0 25,46 11,46" fill="#2196F3"/><polygon points="19,0 28,0 38,46 29,46" fill="#43A047"/><polygon points="32,0 41,0 51,46 42,46" fill="#43A047"/><polygon points="45,0 54,0 64,46 55,46" fill="#43A047"/><polygon points="58,0 67,0 77,46 68,46" fill="#43A047"/></svg>
+      <div><div class="co-name">AM COMERCIAL</div><div class="co-sub">Dashboard Visitas en Vivo</div></div>
+    </div>
+    <div class="clock">14:35:22</div>
+  </div>
+  <div class="cards-row">
+    <div class="card cb opt3"><div class="card-lbl">Total Reps</div><div class="card-val" style="color:#58a6ff">24</div><div class="card-hint">Activos 30 dias</div></div>
+    <div class="card cy opt3"><div class="card-lbl">1a Visita Tardia</div><div class="card-val" style="color:#e3b341">7</div><div class="card-hint">Despues 8:20 AM</div></div>
+    <div class="card co opt3"><div class="card-lbl">+30 Min Sin Visita</div><div class="card-val" style="color:#f0883e">3</div><div class="card-hint">Sin nueva visita</div></div>
+    <div class="card cg opt3"><div class="card-lbl">Avg Pedidos</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">1er</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">09:12</div></div><div style="width:1px;background:#28304a"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#8b949e">Ult.</div><div style="font-size:14px;font-weight:700;color:#3fb950;font-family:monospace">13:47</div></div></div></div>
+    <div class="card cb opt3"><div class="card-lbl">Productividad</div><div style="display:flex;gap:4px;margin-top:4px"><div style="flex:1;text-align:center"><div style="font-size:8px;color:#3fb950">Mayor</div><div style="font-size:12px;font-weight:700;color:#58a6ff;font-family:monospace">10-11</div></div><div style="width:1px;background:#28304a"></div><div style="flex:1;text-align:center"><div style="font-size:8px;color:#f0883e">Menor</div><div style="font-size:12px;font-weight:700;color:#f0883e;font-family:monospace">14-15</div></div></div></div>
+    <div class="card cb opt3"><div class="card-lbl">Tpo Visitas</div><div class="card-val" style="color:#58a6ff;font-size:18px">00:06:30</div><div class="card-hint">Prom 9AM-3PM</div></div>
+    <div class="card cr opt3"><div class="card-lbl">Llamar Urgente</div><div style="font-size:10px;color:#ffaaaa;margin-top:4px"><div>• REP01 · Juan P. <span style="color:#8b949e">(45min)</span></div><div>• REP02 · Maria R. <span style="color:#8b949e">(38min)</span></div><div>• REP05 · Carlos M. <span style="color:#8b949e">(31min)</span></div></div></div>
+  </div>
+  <div class="tbl-wrap">
+    <div class="tbl opt3" style="border-radius:8px;overflow:hidden">
+      <div class="tbl-bar" style="border-color:#28304a;color:#e6edf3;background:#161c2c">Detalle por Representante — Hoy <span style="color:#8b949e;font-size:11px">Actualizacion en 45s</span></div>
+      <table>
+        <thead><tr><td class="th opt3">Supervisor</td><td class="th opt3">Nombre</td><td class="th opt3">1a Visita</td><td class="th opt3">1er Pedido</td><td class="th opt3">Ult. Pedido</td><td class="th opt3">Dur. Visita</td><td class="th opt3">Desde Ult.</td><td class="th opt3">T.Prom</td><td class="th opt3">Menor Prod</td><td class="th opt3">Mayor Prod</td></tr></thead>
+        <tbody>
+          <tr><td class="td opt3">Sup. Norte</td><td class="td opt3">Juan Perez</td><td class="td opt3"><span class="badge badge-g">08:05:12</span></td><td class="td opt3"><span class="badge badge-g">09:14:33</span></td><td class="td opt3"><span class="badge badge-g">13:47:21</span></td><td class="td opt3"><span class="badge badge-g">00:07:14</span></td><td class="td opt3"><span class="badge badge-g">00:08:22</span></td><td class="td opt3"><span class="badge badge-g">00:06:10</span></td><td class="td opt3"><span class="badge badge-r">14:00-15:00</span></td><td class="td opt3"><span class="badge badge-g">10:00-11:00</span></td></tr>
+          <tr><td class="td opt3">Sup. Sur</td><td class="td opt3">Maria Rodriguez</td><td class="td opt3"><span class="badge badge-y">08:22:05</span></td><td class="td opt3"><span class="badge badge-y">09:45:10</span></td><td class="td opt3"><span class="badge badge-y">13:12:44</span></td><td class="td opt3"><span class="badge badge-y">00:04:30</span></td><td class="td opt3"><span class="badge badge-r">00:38:15</span></td><td class="td opt3"><span class="badge badge-y">00:04:30</span></td><td class="td opt3"><span class="badge badge-r">13:00-14:00</span></td><td class="td opt3"><span class="badge badge-g">11:00-12:00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="label-opt">⬆ Opcion 3: Pizarra Neutra — Fondo gris oscuro con tinte azul, balance perfecto</div>
+</div>
+
+<script>
+function show(n){
+  document.querySelectorAll('.preview').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('p'+n).classList.add('active');
+  document.querySelectorAll('.tab')[n-1].classList.add('active');
+}
+</script>
+</body>
+</html>

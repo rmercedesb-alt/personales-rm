@@ -1,0 +1,19 @@
+@using Microsoft.EntityFrameworkCore
+@inject PorfiAcademy.Data.ApplicationDbContext Db
+@{
+    var ctrl = ViewContext.RouteData.Values["controller"] as string ?? "";
+    var act = ViewContext.RouteData.Values["action"] as string ?? "";
+    var newRequests = await Db.SubscriptionRequests.CountAsync(r => r.Status == PorfiAcademy.Data.RequestStatus.New);
+    string On(string controller, string action) =>
+        string.Equals(ctrl, controller, StringComparison.OrdinalIgnoreCase) && string.Equals(act, action, StringComparison.OrdinalIgnoreCase) ? "on" : "";
+}
+<nav class="manage-nav" aria-label="Administración">
+    <a class="@On("Manage", "Index")" asp-controller="Manage" asp-action="Index">Resumen</a>
+    <a class="@On("Manage", "Requests")" asp-controller="Manage" asp-action="Requests">Solicitudes@(newRequests > 0 ? Html.Raw($" <span class=\"badge\">{newRequests}</span>") : null)</a>
+    <a class="@On("Manage", "Subscriptions")" asp-controller="Manage" asp-action="Subscriptions">Suscripciones</a>
+    <a class="@On("Manage", "Pins")" asp-controller="Manage" asp-action="Pins">PINs</a>
+    <a class="@On("Manage", "Plans")" asp-controller="Manage" asp-action="Plans">Planes</a>
+    <a class="@On("Manage", "Slides")" asp-controller="Manage" asp-action="Slides">Promociones</a>
+    <a class="@On("Admin", "Index")" asp-controller="Admin" asp-action="Index">Videos y Mux</a>
+    <a class="@On("Manage", "Settings")" asp-controller="Manage" asp-action="Settings">Ajustes</a>
+</nav>

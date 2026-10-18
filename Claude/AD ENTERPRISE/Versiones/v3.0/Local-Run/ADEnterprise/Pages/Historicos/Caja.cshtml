@@ -1,0 +1,59 @@
+@page
+@model ADEnterprise.Pages.Historicos.CajaModel
+@{ ViewData["Title"] = "Caja Histórica"; }
+
+<div class="alert alert-warning border border-warning fw-bold mb-3">
+    <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+    ⚠️ ATENCIÓN: ESTOS DATOS SON HISTÓRICOS. Solo lectura — período anterior al reinicio del sistema.
+</div>
+
+<div class="page-title mb-3"><i class="bi bi-safe2"></i> Caja — Datos Históricos</div>
+
+@{
+    void TablaHistorica(bool existe, string titulo, List<string> encabezados, IList<IList<object>> filas)
+    {
+        <h6 class="fw-bold mt-4 mb-2">@titulo</h6>
+        if (!existe)
+        {
+            <div class="alert alert-info"><i class="bi bi-info-circle"></i> No hay datos históricos disponibles.</div>
+        }
+        else if (!filas.Any())
+        {
+            <div class="alert alert-secondary">La hoja histórica existe pero no contiene registros.</div>
+        }
+        else
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-app table-hover mb-0 table-sm">
+                            <thead>
+                                <tr>
+                                    @foreach (var col in encabezados)
+                                    {
+                                        <th>@col</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var fila in filas)
+                                {
+                                    <tr>
+                                        @for (int i = 0; i < encabezados.Count; i++)
+                                        {
+                                            <td class="small">@(i < fila.Count ? fila[i]?.ToString() : "")</td>
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted small">Total de registros: <strong>@filas.Count</strong></div>
+            </div>
+        }
+    }
+}
+
+@{ TablaHistorica(Model.ExisteCuadre, "Cuadre de Caja", Model.EncabezadosCuadre, Model.FilasCuadre); }
+@{ TablaHistorica(Model.ExisteCaja,   "Movimientos de Caja", Model.EncabezadosCaja,   Model.FilasCaja); }

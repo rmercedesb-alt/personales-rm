@@ -1,0 +1,1132 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Productividad &mdash; AM COMERCIAL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px;min-height:100vh;display:flex;flex-direction:column}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+header{display:flex;align-items:center;gap:12px;padding:9px 16px;border-bottom:1px solid #21262d;flex-wrap:wrap;background:#0d1117}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-name{font-size:16px;font-weight:800}
+.brand-sub{font-size:11px;color:#3fb950;margin-top:2px}
+.hdr-mid{flex:1;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap}
+.date-nav{display:flex;align-items:center;gap:5px}
+.btn-nav{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:4px 9px;cursor:pointer;font-size:13px}
+.btn-nav:hover{border-color:#58a6ff}
+/* Date inputs: borde azul brillante para que se vea claramente el calendario */
+.fecha-inp{background:#1c2128;border:1px solid #388bfd;color:#e6edf3;border-radius:6px;padding:4px 10px;font-size:13px;outline:none;color-scheme:dark;cursor:pointer}
+.fecha-inp:hover,.fecha-inp:focus{border-color:#58a6ff;box-shadow:0 0 0 2px rgba(56,139,253,.2)}
+.date-lbl{font-size:11px;color:#8b949e;white-space:nowrap}
+.btn-ref{background:#238636;border:none;color:#fff;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-ref:hover{background:#2ea043}
+.lbl-last{font-size:11px;color:#484f58}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.user-badge{font-size:11px;color:#8b949e;background:#21262d;padding:3px 10px;border-radius:20px}
+.btn-menu{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:4px 12px;text-decoration:none;font-size:12px;font-weight:600}
+.btn-menu:hover{border-color:#58a6ff;color:#58a6ff}
+.btn-out{background:none;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:4px 10px;text-decoration:none;font-size:12px}
+.btn-out:hover{border-color:#f85149;color:#f85149}
+
+/* ─── Cards ──────────────────────────────────────────────────────────────── */
+.cards-row{display:grid;gap:12px;padding:12px 16px;grid-template-columns:repeat(5,1fr)}
+.cards-row.four-cols{grid-template-columns:repeat(4,1fr)}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:14px;position:relative;overflow:hidden;min-height:110px}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.c1::before{background:linear-gradient(90deg,#58a6ff,#388bfd)}
+.c2::before{background:linear-gradient(90deg,#3fb950,#2ea043)}
+.c3::before{background:linear-gradient(90deg,#e3b341,#d29922)}
+.c4::before{background:linear-gradient(90deg,#3fb950,#2ea043)}
+.c5::before{background:linear-gradient(90deg,#f85149,#da3633)}
+.card-lbl{font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.card-big{font-size:30px;font-weight:800;line-height:1;margin-bottom:8px}
+.card-big.cvg{color:#3fb950}.card-big.cvy{color:#e3b341}.card-big.cvr{color:#f85149}.card-big.cvn{color:#8b949e}
+.card-row{display:flex;justify-content:space-between;font-size:11px;color:#8b949e;margin-top:3px}
+.card-row b{color:#c9d1d9}
+.top-item{display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #1c2128}
+.top-item:last-child{border-bottom:none}
+.top-nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;font-size:12px}
+.top-pct{font-weight:700;font-size:12px;margin-left:6px;white-space:nowrap}
+.top-pct.vg{color:#3fb950}.top-pct.vr{color:#f85149}
+.top-empty{color:#484f58;font-size:11px;padding:6px 0}
+
+/* ─── Error box ──────────────────────────────────────────────────────────── */
+#err-box{margin:8px 16px;padding:10px 14px;background:#2d0f0f;border:1px solid #6a1a1a;border-radius:8px;color:#f85149;font-size:13px;display:none}
+
+/* ─── Filtros ────────────────────────────────────────────────────────────── */
+.filter-bar{display:flex;align-items:center;gap:8px;padding:8px 16px;background:#161b22;border-top:1px solid #21262d;border-bottom:1px solid #21262d;flex-wrap:wrap}
+.msel-wrap{position:relative}
+.msel-btn{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.msel-btn:hover{border-color:#3fb950}
+.msel-btn .arr{font-size:10px;color:#8b949e}
+.msel-drop{position:absolute;top:calc(100% + 4px);left:0;min-width:210px;max-width:300px;background:#1c2128;border:1px solid #30363d;border-radius:8px;padding:6px;z-index:200;max-height:300px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.msel-drop label{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:5px;cursor:pointer;font-size:12px}
+.msel-drop label:hover{background:#21262d}
+.msel-drop .sep{height:1px;background:#30363d;margin:4px 0}
+.msel-drop input[type=checkbox]{cursor:pointer;accent-color:#3fb950;flex-shrink:0}
+.vista-wrap{display:flex;align-items:center;gap:4px;margin-left:auto}
+.v-btn{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:5px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap}
+.v-btn.active{background:#238636;border-color:#2ea043;color:#fff}
+.v-sep{width:1px;height:20px;background:#30363d;margin:0 4px}
+.flt-stats{font-size:11px;color:#484f58;padding-left:8px}
+.btn-clear{background:none;border:1px solid #30363d;color:#8b949e;border-radius:6px;
+           padding:4px 10px;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-clear:hover{border-color:#f85149;color:#f85149}
+
+/* ─── Tabla ──────────────────────────────────────────────────────────────── */
+.tbl-wrap{flex:1;overflow:auto;padding:0 16px 16px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{background:#161b22;color:#8b949e;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;padding:8px 10px;text-align:left;border-bottom:2px solid #21262d;position:sticky;top:0;white-space:nowrap}
+th.num,td.num{text-align:right}
+td{padding:7px 10px;border-bottom:1px solid #161b22;font-size:13px;white-space:nowrap}
+tr:hover td{background:#161b22}
+/* ── Subtotal por Centro ── */
+tr.row-subtotal td{background:#1a2030;border-top:1px solid #2a3040;border-bottom:1px solid #2a3040;font-size:12px;color:#c9d1d9}
+tr.row-subtotal:hover td{background:#1a2030}
+/* ── Total general ── */
+tr.row-total td{background:#21262d;border-top:2px solid #388bfd;color:#e6edf3;font-size:13px}
+tr.row-total:hover td{background:#21262d}
+#no-data{text-align:center;padding:48px;color:#484f58;display:none}
+
+/* ─── Badges ─────────────────────────────────────────────────────────────── */
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.vg{background:#0f2d0f;color:#3fb950;border:1px solid #1a6a1a}
+.vy{background:#2d2000;color:#e3b341;border:1px solid #5a4000}
+.vr{background:#2d0f0f;color:#f85149;border:1px solid #6a1a1a}
+.vn{background:#21262d;color:#8b949e;border:1px solid #30363d}
+
+/* ─── Status bar ─────────────────────────────────────────────────────────── */
+.status-bar{padding:5px 16px;font-size:11px;color:#484f58;display:flex;gap:16px;border-top:1px solid #21262d;flex-wrap:wrap}
+.sdot{width:7px;height:7px;border-radius:50%;background:#3fb950;display:inline-block;margin-right:4px;animation:pulse 2s infinite}
+@@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ─── Overlay ────────────────────────────────────────────────────────────── */
+#overlay{position:fixed;inset:0;background:rgba(13,17,23,.75);display:flex;align-items:center;justify-content:center;z-index:999}
+.spin{width:36px;height:36px;border:3px solid #21262d;border-top-color:#3fb950;border-radius:50%;animation:spin .8s linear infinite}
+@@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── Botón imprimir ─────────────────────────────────────────────────────── */
+.btn-print{background:#1c2128;border:1px solid #388bfd;color:#58a6ff;border-radius:6px;
+           padding:4px 12px;font-size:12px;font-weight:600;cursor:pointer}
+.btn-print:hover{background:#21262d;border-color:#58a6ff}
+
+/* ─── Cabecera de impresión (oculta en pantalla) ─────────────────────────── */
+#print-hdr{display:none}
+
+/* ─── Estilos de impresión / PDF ─────────────────────────────────────────── */
+@@media print{
+  /* Ocultar todo lo que no es contenido */
+  #overlay,#err-box,.filter-bar,.status-bar,.hdr-mid,.hdr-right,
+  .cards-row,.btn-print,#btn-print{display:none!important}
+
+  /* Fondo blanco, texto negro */
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;color:#000!important;font-size:10pt}
+
+  /* Header simplificado */
+  header{border-bottom:2px solid #000;padding:6px 0;margin-bottom:10px;
+         justify-content:flex-start;gap:12px}
+  .brand-name{color:#000!important;font-size:13pt}
+  .brand-sub{color:#444!important}
+
+  /* Bloque de metadatos del reporte */
+  #print-hdr{display:block!important;margin-bottom:10px;color:#333;font-size:9.5pt}
+  #print-hdr strong{color:#000}
+  #print-hdr .ph-line{margin:2px 0}
+
+  /* Contenedor de tabla sin scroll */
+  .tbl-wrap{overflow:visible!important;padding:0!important}
+
+  /* Tabla */
+  table{width:100%!important;border-collapse:collapse!important;font-size:8.5pt}
+  th{background:#e8e8e8!important;color:#000!important;
+     border:1px solid #999!important;padding:4px 6px!important;
+     font-size:8.5pt!important;text-transform:uppercase!important}
+  td{border:1px solid #ccc!important;padding:3px 6px!important;
+     font-size:8.5pt!important;white-space:normal!important}
+
+  /* *** Encabezados repetidos en cada página *** */
+  thead{display:table-header-group!important}
+  tfoot{display:table-footer-group!important}
+  tr{page-break-inside:avoid}
+
+  /* Filas especiales */
+  tr.row-subtotal td{background:#eef2fa!important;font-weight:700!important}
+  tr.row-total td{background:#d6e4ff!important;font-weight:700!important;
+                  border-top:2px solid #336!important}
+  tr.row-subtotal:hover td,tr.row-total:hover td{background:inherit!important}
+
+  /* Badges */
+  .badge{background:transparent!important;border:1px solid currentColor!important;
+         padding:1px 4px!important;border-radius:3px!important;font-size:7.5pt!important}
+  .vg{color:#1a7a1a!important}
+  .vy{color:#8a5c00!important}
+  .vr{color:#c00000!important}
+  .vn{color:#666!important}
+
+  /* Página horizontal con márgenes ajustados */
+  @@page{size:landscape;margin:1.2cm 1.5cm}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Overlay ─────────────────────────────────────────────────────────── -->
+<div id="overlay"><div class="spin"></div></div>
+
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header>
+  <div class="brand">
+    <img src="@(Context.Request.PathBase)/api/logo" alt="" style="height:40px;width:auto;border-radius:5px;object-fit:contain"
+         onerror="this.style.display='none'">
+    <div>
+      <div class="brand-name">Dashboard Productividad</div>
+      <div class="brand-sub">@(string.IsNullOrEmpty(ViewBag.EmpNombre as string) ? "AM COMERCIAL" : ViewBag.EmpNombre)</div>
+    </div>
+  </div>
+
+  <div class="hdr-mid">
+    <div class="date-nav">
+      <button class="btn-nav" title="Retroceder rango" onclick="moveRange(-1)">&#8592;</button>
+      <span class="date-lbl">Desde:</span>
+      <input type="date" id="fecha-ini" class="fecha-inp" onchange="onFechaChange()">
+      <span class="date-lbl">Hasta:</span>
+      <input type="date" id="fecha-fin" class="fecha-inp" onchange="onFechaChange()">
+      <button class="btn-nav" title="Avanzar rango" onclick="moveRange(1)">&#8594;</button>
+    </div>
+    <button class="btn-ref" onclick="fetchAll()">&#8635; Actualizar</button>
+    <span class="lbl-last" id="lbl-last"></span>
+  </div>
+
+  <div class="hdr-right">
+    <span class="user-badge" id="user-name"></span>
+    <button id="btn-print" class="btn-print" onclick="printReport()" title="Imprimir / Exportar PDF">&#128438; Imprimir</button>
+    <a id="btn-menu" href="#" class="btn-menu">&#8962; Men&uacute;</a>
+    <a href="@(Context.Request.PathBase)/account/logout" class="btn-out">Salir</a>
+  </div>
+</header>
+
+<!-- ── Error ────────────────────────────────────────────────────────────── -->
+<div id="err-box"></div>
+
+<!-- ── Cabecera visible solo al imprimir ─────────────────────────────────── -->
+<div id="print-hdr">
+  <div class="ph-line"><strong>Reporte de Productividad &mdash; @(string.IsNullOrEmpty(ViewBag.EmpNombre as string) ? "AM COMERCIAL" : ViewBag.EmpNombre)</strong></div>
+  <div class="ph-line" id="ph-periodo"></div>
+  <div class="ph-line" id="ph-vista"></div>
+  <div class="ph-line" id="ph-filtros"></div>
+  <div class="ph-line" id="ph-resumen"></div>
+</div>
+
+<!-- ── Cards ────────────────────────────────────────────────────────────── -->
+<div class="cards-row" id="cards-row">
+
+  <div class="card c1">
+    <div class="card-lbl">&#9679; Cumplimiento Ruta</div>
+    <div class="card-big cvn" id="c1-pct">&#8212;</div>
+    <div class="card-row"><span>A Visitar:</span><b id="c1-v1">&#8212;</b></div>
+    <div class="card-row"><span>Visitados:</span><b id="c1-v2">&#8212;</b></div>
+  </div>
+
+  <div class="card c2">
+    <div class="card-lbl">&#9679; Efectividad Visita</div>
+    <div class="card-big cvn" id="c2-pct">&#8212;</div>
+    <div class="card-row"><span>Ctes. Efectivos:</span><b id="c2-v1">&#8212;</b></div>
+    <div class="card-row"><span>Ctes. Visitados:</span><b id="c2-v2">&#8212;</b></div>
+  </div>
+
+  <!-- Card 3: solo visible cuando es HOY fecha única -->
+  <div class="card c3" id="card-c3">
+    <div class="card-lbl">&#9679; Efectividad al Momento</div>
+    <div class="card-big cvn" id="c3-pct">&#8212;</div>
+    <div class="card-row"><span>Ctes. Efectivos:</span><b id="c3-v1">&#8212;</b></div>
+    <div class="card-row"><span>Ped. Req. Momento:</span><b id="c3-v2">&#8212;</b></div>
+  </div>
+
+  <div class="card c4">
+    <div class="card-lbl" id="lbl-c4">&#127942; Top 3 Mejor Efectividad</div>
+    <div id="top3-mejor"><div class="top-empty">Sin datos</div></div>
+  </div>
+
+  <div class="card c5">
+    <div class="card-lbl" id="lbl-c5">&#9888; Top 3 Menor Efectividad</div>
+    <div id="top3-menor"><div class="top-empty">Sin datos</div></div>
+  </div>
+
+</div>
+
+<!-- ── Filtros ───────────────────────────────────────────────────────────── -->
+<div class="filter-bar">
+
+  <div class="msel-wrap" id="w-centros">
+    <button class="msel-btn" onclick="mselToggle('centros')">
+      <span class="lbl">Centro (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-centros" style="display:none">
+      <label><input type="checkbox" id="chk-centros-all" onchange="mselAll('centros',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-centros"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-supervisores">
+    <button class="msel-btn" onclick="mselToggle('supervisores')">
+      <span class="lbl">Supervisor (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-supervisores" style="display:none">
+      <label><input type="checkbox" id="chk-supervisores-all" onchange="mselAll('supervisores',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-supervisores"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-suplidores">
+    <button class="msel-btn" onclick="mselToggle('suplidores')">
+      <span class="lbl">Suplidor (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-suplidores" style="display:none">
+      <label><input type="checkbox" id="chk-suplidores-all" onchange="mselAll('suplidores',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-suplidores"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-lineas">
+    <button class="msel-btn" onclick="mselToggle('lineas')">
+      <span class="lbl">L&iacute;nea (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-lineas" style="display:none">
+      <label><input type="checkbox" id="chk-lineas-all" onchange="mselAll('lineas',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-lineas"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-divisiones">
+    <button class="msel-btn" onclick="mselToggle('divisiones')">
+      <span class="lbl">Divisi&oacute;n (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-divisiones" style="display:none">
+      <label><input type="checkbox" id="chk-divisiones-all" onchange="mselAll('divisiones',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-divisiones"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-canales">
+    <button class="msel-btn" onclick="mselToggle('canales')">
+      <span class="lbl">Canal de Ventas (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-canales" style="display:none">
+      <label><input type="checkbox" id="chk-canales-all" onchange="mselAll('canales',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-canales"></div>
+    </div>
+  </div>
+
+  <div class="msel-wrap" id="w-tamanos">
+    <button class="msel-btn" onclick="mselToggle('tamanos')">
+      <span class="lbl">Tama&ntilde;o Cte. (Todos)</span><span class="arr">&#9660;</span>
+    </button>
+    <div class="msel-drop" id="drop-tamanos" style="display:none">
+      <label><input type="checkbox" id="chk-tamanos-all" onchange="mselAll('tamanos',this.checked)"><b>Todos</b></label>
+      <div class="sep"></div>
+      <div id="items-tamanos"></div>
+    </div>
+  </div>
+
+  <button class="btn-clear" onclick="clearFilters()" title="Quitar todos los filtros">&#10005; Limpiar filtros</button>
+
+  <div class="vista-wrap">
+    <button class="v-btn active" id="v-rep" onclick="setModo('rep')">Por Representante</button>
+    <button class="v-btn"        id="v-sup" onclick="setModo('suplidor')">Por Suplidor</button>
+    <button class="v-btn"        id="v-tam" onclick="setModo('tamano')">Por Tama&ntilde;o</button>
+    <div class="v-sep"></div>
+    <div id="toggle-vista" style="display:flex;gap:4px">
+      <button class="v-btn active" id="v-det" onclick="setVista('detallado')">Detallado</button>
+      <button class="v-btn"        id="v-res" onclick="setVista('resumido')">Resumido</button>
+    </div>
+  </div>
+
+  <span class="flt-stats" id="flt-stats"></span>
+</div>
+
+<!-- ── Tabla ─────────────────────────────────────────────────────────────── -->
+<div class="tbl-wrap">
+  <div id="no-data">No hay datos para el rango de fechas y filtros seleccionados.</div>
+  <table id="main-tbl" style="display:none">
+    <thead id="thead"></thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<!-- ── Status bar ────────────────────────────────────────────────────────── -->
+<div class="status-bar">
+  <span><span class="sdot"></span>En vivo</span>
+  <span id="sb-vend"></span>
+  <span id="sb-cumpl"></span>
+  <span id="sb-efect"></span>
+  <span id="sb-efmom"></span>
+</div>
+
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+// ─── Estado global ────────────────────────────────────────────────────────
+let allReps = [], allSuplidor = [], allTamano = [];
+let vista = 'detallado', modoVista = 'rep';
+let openDrop = null, fetchTimer = null;
+let fechaIni = toDateStr(new Date());
+let fechaFin  = toDateStr(new Date());
+
+const mselState = {
+  centros:      {sel: new Set(), data: []},
+  supervisores: {sel: new Set(), data: []},
+  suplidores:   {sel: new Set(), data: []},
+  lineas:       {sel: new Set(), data: []},
+  divisiones:   {sel: new Set(), data: []},
+  canales:      {sel: new Set(), data: []},
+  tamanos:      {sel: new Set(), data: []}
+};
+const mselLabels = {
+  centros:'Centro', supervisores:'Supervisor',
+  suplidores:'Suplidor', lineas:'Línea', divisiones:'División',
+  canales:'Canal', tamanos:'Tamaño Cte.'
+};
+
+// ─── Fecha ────────────────────────────────────────────────────────────────
+function toDateStr(d) { return d.toISOString().slice(0,10); }
+
+function moveRange(n) {
+  const di = new Date(fechaIni + 'T00:00:00');
+  const df = new Date(fechaFin  + 'T00:00:00');
+  di.setDate(di.getDate() + n);
+  df.setDate(df.getDate() + n);
+  const hoy = new Date(); hoy.setHours(23,59,59,999);
+  if (df > hoy) return;
+  fechaIni = toDateStr(di);
+  fechaFin  = toDateStr(df);
+  document.getElementById('fecha-ini').value = fechaIni;
+  document.getElementById('fecha-fin').value  = fechaFin;
+  fetchAll();
+}
+
+function onFechaChange() {
+  const ni = document.getElementById('fecha-ini').value;
+  const nf = document.getElementById('fecha-fin').value;
+  if (!ni || !nf) return;
+  fechaIni = ni;
+  fechaFin  = nf < ni ? ni : nf;
+  document.getElementById('fecha-fin').value = fechaFin;
+  fetchAll();
+}
+
+// Las columnas "al momento" solo tienen sentido cuando es HOY y fecha única
+function showMomentoCol() {
+  return fechaIni === fechaFin && fechaIni === toDateStr(new Date());
+}
+
+// Ajusta el grid de cards según si se muestran 4 o 5 tarjetas
+function updateCardsLayout() {
+  const mom  = showMomentoCol();
+  const row  = document.getElementById('cards-row');
+  const c3   = document.getElementById('card-c3');
+  row.classList.toggle('four-cols', !mom);
+  c3.style.display = mom ? '' : 'none';
+}
+
+// ─── Modo vista (Representante / Suplidor / Tamaño) ──────────────────────
+async function setModo(m) {
+  modoVista = m;
+  document.getElementById('v-rep').classList.toggle('active', m === 'rep');
+  document.getElementById('v-sup').classList.toggle('active', m === 'suplidor');
+  document.getElementById('v-tam').classList.toggle('active', m === 'tamano');
+  // El toggle Detallado/Resumido solo aplica al modo Representante
+  document.getElementById('toggle-vista').style.display = m === 'rep' ? 'flex' : 'none';
+
+  if (m === 'suplidor') {
+    if (allSuplidor.length === 0) {
+      overlay(true);
+      try { await fetchSuplidorCore(); } finally { overlay(false); }
+    } else {
+      buildSuplidorTable(allSuplidor);
+      updateTop3();
+    }
+  } else if (m === 'tamano') {
+    if (allTamano.length === 0) {
+      overlay(true);
+      try { await fetchTamanoCore(); } finally { overlay(false); }
+    } else {
+      buildTamanoTable(allTamano);
+      updateTop3();
+    }
+  } else {
+    buildRepTable(allReps);
+    updateTop3();
+  }
+}
+
+// ─── Vista tabla (Detallado / Resumido) ───────────────────────────────────
+function setVista(v) {
+  vista = v;
+  document.getElementById('v-det').classList.toggle('active', v === 'detallado');
+  document.getElementById('v-res').classList.toggle('active', v === 'resumido');
+  buildRepTable(allReps);
+  updateTop3();   // Top 3 cambia al pasar de Detallado a Resumido
+}
+
+// ─── Multiselect ──────────────────────────────────────────────────────────
+function mselToggle(k) {
+  if (openDrop && openDrop !== k)
+    document.getElementById('drop-' + openDrop).style.display = 'none';
+  const el   = document.getElementById('drop-' + k);
+  const open = el.style.display === 'none';
+  el.style.display = open ? 'block' : 'none';
+  openDrop = open ? k : null;
+}
+function mselAll(k, checked) {
+  const st = mselState[k];
+  st.sel.clear();
+  if (checked) st.data.forEach(d => st.sel.add(d.valor));
+  mselSync(k); mselLabel(k); scheduleFetch();
+}
+function mselItem(k, v, checked) {
+  if (checked) mselState[k].sel.add(v);
+  else         mselState[k].sel.delete(v);
+  mselSync(k); mselLabel(k); scheduleFetch();
+}
+function mselSync(k) {
+  const st    = mselState[k];
+  const allEl = document.getElementById('chk-' + k + '-all');
+  if (allEl) allEl.checked = st.data.length > 0 && st.sel.size === st.data.length;
+  st.data.forEach(d => {
+    const el = document.getElementById('chk-' + k + '-' + d.valor.replace(/[^a-zA-Z0-9]/g,'_'));
+    if (el) el.checked = st.sel.has(d.valor);
+  });
+}
+function mselLabel(k) {
+  const st  = mselState[k];
+  const btn = document.querySelector('#w-' + k + ' .msel-btn .lbl');
+  if (!btn) return;
+  const base = mselLabels[k];
+  if (st.sel.size === 0 || st.sel.size === st.data.length)
+    btn.textContent = base + ' (Todos)';
+  else if (st.sel.size === 1) {
+    const s = st.data.find(d => st.sel.has(d.valor));
+    btn.textContent = base + ': ' + (s ? s.nombre : '');
+  } else {
+    btn.textContent = base + ': ' + st.sel.size + ' sel.';
+  }
+}
+function mselPopulate(k, items) {
+  const st = mselState[k];
+  st.data = items; st.sel.clear();
+  const cont = document.getElementById('items-' + k);
+  if (!cont) return;
+  cont.innerHTML = items.map(d => {
+    const safeId  = 'chk-' + k + '-' + d.valor.replace(/[^a-zA-Z0-9]/g,'_');
+    const safeVal = d.valor.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return `<label><input type="checkbox" id="${safeId}"
+      onchange="mselItem('${k}','${safeVal}',this.checked)">
+      ${esc(d.nombre)}</label>`;
+  }).join('');
+  const allEl = document.getElementById('chk-' + k + '-all');
+  if (allEl) allEl.checked = false;
+  mselLabel(k);
+}
+function mselGetCsv(k) {
+  const st = mselState[k];
+  if (st.sel.size === 0 || st.sel.size === st.data.length) return '';
+  return [...st.sel].join(',');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.msel-wrap') && openDrop) {
+    document.getElementById('drop-' + openDrop).style.display = 'none';
+    openDrop = null;
+  }
+});
+
+// ─── Helpers ──────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pct(n,d)   { return (!d||d<=0) ? 0 : Math.round(n/d*1000)/10; }
+function fp(p)       { return p.toFixed(1)+'%'; }
+function clsC(p)     { return p>95?'vg':p>=85?'vy':'vr'; }
+function clsE(p)     { return p>55?'vg':p>=45?'vy':'vr'; }
+function clsM(p)     { return p>85?'vg':p>=75?'vy':'vr'; }
+function bdg(p,fn)   { return `<span class="badge ${fn(p)}">${fp(p)}</span>`; }
+function setTxt(id,v){ const e=document.getElementById(id); if(e) e.textContent=v; }
+
+function buildParams() {
+  const p  = new URLSearchParams({ fechaIni, fechaFin });
+  const c  = mselGetCsv('centros'),      s  = mselGetCsv('supervisores'),
+        sp = mselGetCsv('suplidores'),   l  = mselGetCsv('lineas'),
+        dv = mselGetCsv('divisiones'),   cn = mselGetCsv('canales'),
+        ta = mselGetCsv('tamanos');
+  if (c)  p.set('centros',      c);
+  if (s)  p.set('supervisores', s);
+  if (sp) p.set('suplidores',   sp);
+  if (l)  p.set('lineas',       l);
+  if (dv) p.set('reptype',      dv);
+  if (cn) p.set('canales',      cn);
+  if (ta) p.set('tamanos',      ta);
+  return p;
+}
+
+// ─── Fetch filtros ─────────────────────────────────────────────────────────
+async function fetchFiltros() {
+  try {
+    const r = await fetch(BASE+'/api/filtros?' + new URLSearchParams({ fechaIni, fechaFin }));
+    if (!r.ok) return;
+    const j = await r.json();
+    if (!j.ok) return;
+    mselPopulate('centros',      j.centros      || []);
+    mselPopulate('supervisores', j.supervisores || []);
+    mselPopulate('suplidores',   j.suplidores   || []);
+    mselPopulate('lineas',       j.lineas       || []);
+    mselPopulate('divisiones',   j.divisiones   || []);
+    mselPopulate('canales',      j.canales      || []);
+    mselPopulate('tamanos',      j.tamanos      || []);
+  } catch(ex) { console.warn('filtros:', ex); }
+}
+
+// ─── Fetch /api/data ──────────────────────────────────────────────────────
+async function fetchDataCore() {
+  hideErr();
+  try {
+    const r = await fetch(BASE+'/api/data?' + buildParams());
+    let j;
+    try { j = await r.json(); } catch { j = {ok:false, error:'Respuesta invalida del servidor'}; }
+    if (!j.ok) { showErr(j.error || 'Error'); return; }
+
+    allReps = j.reps || [];
+    setTxt('user-name', j.usuario || '');
+    setTxt('lbl-last', 'Actualizado: ' +
+      new Date().toLocaleTimeString('es', {hour:'2-digit', minute:'2-digit'}));
+
+    updateCardsLayout();
+    updateCards(allReps);
+    updateStatus(allReps);
+    if (modoVista === 'rep') buildRepTable(allReps);
+  } catch(ex) {
+    showErr('Error de conexion: ' + ex.message);
+  }
+}
+
+// ─── Fetch /api/data-tamano ───────────────────────────────────────────────
+async function fetchTamanoCore() {
+  hideErr();
+  try {
+    const r = await fetch(BASE+'/api/data-tamano?' + buildParams());
+    let j;
+    try { j = await r.json(); } catch { j = {ok:false, error:'Respuesta invalida del servidor'}; }
+    if (!j.ok) { showErr(j.error || 'Error'); return; }
+    allTamano = j.rows || [];
+    if (modoVista === 'tamano') {
+      buildTamanoTable(allTamano);
+      updateTop3();
+    }
+  } catch(ex) { showErr('Error de conexion: ' + ex.message); }
+}
+
+// ─── Fetch /api/data-suplidor ─────────────────────────────────────────────
+async function fetchSuplidorCore() {
+  hideErr();
+  try {
+    const r = await fetch(BASE+'/api/data-suplidor?' + buildParams());
+    let j;
+    try { j = await r.json(); } catch { j = {ok:false, error:'Respuesta invalida del servidor'}; }
+    if (!j.ok) { showErr(j.error || 'Error'); return; }
+
+    allSuplidor = j.rows || [];
+    if (modoVista === 'suplidor') {
+      buildSuplidorTable(allSuplidor);
+      updateTop3();
+    }
+  } catch(ex) {
+    showErr('Error de conexion: ' + ex.message);
+  }
+}
+
+// ─── Limpiar todos los filtros ────────────────────────────────────────────
+function clearFilters() {
+  Object.keys(mselState).forEach(k => {
+    mselState[k].sel.clear();
+    mselSync(k);
+    mselLabel(k);
+  });
+  if (openDrop) {
+    document.getElementById('drop-' + openDrop).style.display = 'none';
+    openDrop = null;
+  }
+  scheduleFetch();
+}
+
+function scheduleFetch() {
+  clearTimeout(fetchTimer);
+  fetchTimer = setTimeout(async () => {
+    overlay(true);
+    try {
+      await fetchDataCore();
+      if (modoVista === 'suplidor') await fetchSuplidorCore();
+      if (modoVista === 'tamano')   await fetchTamanoCore();
+    } finally { overlay(false); }
+  }, 300);
+}
+
+async function fetchAll() {
+  overlay(true);
+  allSuplidor = [];
+  allTamano   = [];
+  try {
+    await fetchFiltros();
+    await fetchDataCore();
+    if (modoVista === 'suplidor') await fetchSuplidorCore();
+    if (modoVista === 'tamano')   await fetchTamanoCore();
+  } finally { overlay(false); }
+}
+
+// ─── Cards ────────────────────────────────────────────────────────────────
+function updateCards(reps) {
+  const tv  = reps.reduce((a,r)=>a+r.TotalVisitas,0);
+  const tvd = reps.reduce((a,r)=>a+r.TotalVisitados,0);
+  const tp  = reps.reduce((a,r)=>a+r.PedidosRealizados,0);
+  const tr  = reps.reduce((a,r)=>a+r.PedReqalMomento,0);
+  const n   = reps.length;
+  const pC  = pct(tvd,tv), pE = pct(tp,tvd), pM = pct(tp,tr);
+
+  const c1 = document.getElementById('c1-pct');
+  c1.textContent = n ? fp(pC) : '—';
+  c1.className = 'card-big ' + (n ? clsC(pC) : 'cvn');
+  setTxt('c1-v1', tv.toLocaleString()); setTxt('c1-v2', tvd.toLocaleString());
+
+  const c2 = document.getElementById('c2-pct');
+  c2.textContent = n ? fp(pE) : '—';
+  c2.className = 'card-big ' + (n ? clsE(pE) : 'cvn');
+  setTxt('c2-v1', tp.toLocaleString()); setTxt('c2-v2', tvd.toLocaleString());
+
+  const c3 = document.getElementById('c3-pct');
+  c3.textContent = (n && tr > 0) ? fp(pM) : '—';
+  c3.className = 'card-big ' + ((n && tr > 0) ? clsM(pM) : 'cvn');
+  setTxt('c3-v1', tp.toLocaleString()); setTxt('c3-v2', tr.toLocaleString());
+
+  updateTop3();   // Top 3 se construye según modo/vista actual
+}
+
+// ─── Obtiene el ranking para Top 3 según modo/vista ──────────────────────
+function getTop3Ranked() {
+  // ── Por Tamaño → rank por efectividad (Pedidos / AVisitar)
+  if (modoVista === 'tamano' && allTamano.length > 0) {
+    return allTamano
+      .filter(r => r.AVisitar > 0)
+      .map(r => ({ nm: r.TamanoCliente, p: pct(r.Pedidos, r.AVisitar) }));
+  }
+  // ── Por Suplidor → rank suplidores por cobertura (% de reps que pidieron)
+  if (modoVista === 'suplidor' && allSuplidor.length > 0) {
+    const totalReps = allReps.length || 1;
+    const supMap = new Map();
+    allSuplidor.forEach(r => {
+      if (!supMap.has(r.SuplidorID))
+        supMap.set(r.SuplidorID, { nm: r.Suplidor, pedidos: 0, nroReps: 0 });
+      const g = supMap.get(r.SuplidorID);
+      g.pedidos += r.Pedidos;
+      if (r.NroReps > g.nroReps) g.nroReps = r.NroReps; // max por suplidor
+    });
+    return [...supMap.values()]
+      .filter(g => g.nroReps > 0)
+      .map(g => ({ nm: g.nm, p: pct(g.nroReps, totalReps) }));
+  }
+  // ── Resumido → rank por supervisor
+  if (modoVista === 'rep' && vista === 'resumido') {
+    const supMap = new Map();
+    allReps.forEach(r => {
+      const k = r.SupervisorCodigo || r.Supervisor || '~';
+      if (!supMap.has(k)) supMap.set(k, { nm: r.Supervisor, tvd:0, tp:0 });
+      const g = supMap.get(k);
+      g.tvd += r.TotalVisitados;
+      g.tp  += r.PedidosRealizados;
+    });
+    return [...supMap.values()]
+      .filter(g => g.tvd > 0)
+      .map(g => ({ nm: g.nm, p: pct(g.tp, g.tvd) }));
+  }
+  // ── Detallado → rank por vendedor
+  return allReps
+    .filter(r => r.TotalVisitados > 0)
+    .map(r => ({ nm: r.Vendedor, p: pct(r.PedidosRealizados, r.TotalVisitados) }));
+}
+
+// ─── Redibujar tarjetas Top 3 (se llama al cambiar modo, vista o datos) ──
+function updateTop3() {
+  const isSup  = modoVista === 'suplidor';
+  const isTam  = modoVista === 'tamano';
+  const isRes  = modoVista === 'rep' && vista === 'resumido';
+  const ranked = getTop3Ranked();
+  const medals = ['&#127945;','&#129352;','&#129353;'];
+
+  // Actualizar etiquetas según contexto
+  const sufMejor = isSup ? 'Suplidor — Mayor Cobertura'
+                 : isTam ? 'Tama&ntilde;o — Mejor Efect.'
+                 : isRes ? 'Supervisor — Mejor Efect.'
+                         : 'Mejor Efectividad';
+  const sufMenor = isSup ? 'Suplidor — Menor Cobertura'
+                 : isTam ? 'Tama&ntilde;o — Menor Efect.'
+                 : isRes ? 'Supervisor — Menor Efect.'
+                         : 'Menor Efectividad';
+  const lbl4 = document.getElementById('lbl-c4');
+  const lbl5 = document.getElementById('lbl-c5');
+  if (lbl4) lbl4.innerHTML = '&#127942; Top 3 ' + sufMejor;
+  if (lbl5) lbl5.innerHTML = '&#9888; Top 3 '   + sufMenor;
+
+  const mejor = [...ranked].sort((a,b)=>b.p-a.p).slice(0,3);
+  const menor = [...ranked].sort((a,b)=>a.p-b.p).slice(0,3);
+
+  document.getElementById('top3-mejor').innerHTML = mejor.length
+    ? mejor.map((r,i)=>`
+        <div class="top-item">
+          <span class="top-nm">${medals[i]} ${esc(r.nm)}</span>
+          <span class="top-pct vg">${fp(r.p)}</span>
+        </div>`).join('')
+    : '<div class="top-empty">Sin datos suficientes</div>';
+
+  document.getElementById('top3-menor').innerHTML = menor.length
+    ? menor.map(r=>`
+        <div class="top-item">
+          <span class="top-nm">&#9888; ${esc(r.nm)}</span>
+          <span class="top-pct vr">${fp(r.p)}</span>
+        </div>`).join('')
+    : '<div class="top-empty">Sin datos suficientes</div>';
+}
+
+// ─── Tabla Representantes ─────────────────────────────────────────────────
+function buildRepTable(reps) {
+  const noData = document.getElementById('no-data');
+  const tbl    = document.getElementById('main-tbl');
+  noData.style.display = reps.length ? 'none'  : 'block';
+  tbl.style.display    = reps.length ? 'table' : 'none';
+  setTxt('flt-stats', reps.length
+    ? reps.length + ' vendedor' + (reps.length !== 1 ? 'es' : '') : '');
+
+  if (vista === 'detallado') buildDetallado(reps);
+  else                       buildResumido(reps);
+}
+
+// ── Detallado ─────────────────────────────────────────────────────────────
+function buildDetallado(reps) {
+  const mom = showMomentoCol();
+  document.getElementById('thead').innerHTML = `<tr>
+    <th>Centro</th><th>Supervisor</th><th>Vendedor</th><th>Canal</th>
+    <th class="num">A Visitar</th><th class="num">Visitados</th>
+    ${mom ? '<th class="num">Ped.Req.Momento</th>' : ''}
+    <th class="num">Pedidos</th><th>Cumplimiento</th><th>Efectividad</th>
+    ${mom ? '<th>Efect. Momento</th>' : ''}
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML = reps.map(r => {
+    const pC = pct(r.TotalVisitados,    r.TotalVisitas);
+    const pE = pct(r.PedidosRealizados, r.TotalVisitados);
+    const pM = pct(r.PedidosRealizados, r.PedReqalMomento);
+    return `<tr>
+      <td>${esc(r.CentroNombre)}</td>
+      <td>${esc(r.Supervisor)}</td>
+      <td><b>${esc(r.Vendedor)}</b></td>
+      <td>${esc(r.CanalNombre)}</td>
+      <td class="num">${r.TotalVisitas}</td>
+      <td class="num">${r.TotalVisitados}</td>
+      ${mom ? `<td class="num">${r.PedReqalMomento}</td>` : ''}
+      <td class="num">${r.PedidosRealizados}</td>
+      <td>${r.TotalVisitas   > 0 ? bdg(pC,clsC) : '<span class="badge vn">—</span>'}</td>
+      <td>${r.TotalVisitados > 0 ? bdg(pE,clsE) : '<span class="badge vn">—</span>'}</td>
+      ${mom ? `<td>${r.PedReqalMomento > 0 ? bdg(pM,clsM) : '<span class="badge vn">—</span>'}</td>` : ''}
+    </tr>`;
+  }).join('');
+}
+
+// ── Resumido (con subtotal por Centro y total general) ────────────────────
+function buildResumido(reps) {
+  const mom = showMomentoCol();
+
+  document.getElementById('thead').innerHTML = `<tr>
+    <th>Centro</th><th>Supervisor</th><th class="num">Vend.</th>
+    <th class="num">A Visitar</th><th class="num">Visitados</th>
+    ${mom ? '<th class="num">Ped.Req.Momento</th>' : ''}
+    <th class="num">Pedidos</th><th>Cumplimiento</th><th>Efectividad</th>
+    ${mom ? '<th>Efect. Momento</th>' : ''}
+  </tr>`;
+
+  // Agrupar: centroKey → { centroNombre, sups: Map<supKey, grupo> }
+  const centroMap = new Map();
+  reps.forEach(r => {
+    const ck = r.CedCodigo || '~';
+    if (!centroMap.has(ck))
+      centroMap.set(ck, { centro: r.CentroNombre, sups: new Map() });
+    const cd = centroMap.get(ck);
+    const sk = r.SupervisorCodigo || r.Supervisor || '~';
+    if (!cd.sups.has(sk))
+      cd.sups.set(sk, { sup: r.Supervisor, n:0, tv:0, tvd:0, tp:0, tr:0 });
+    const g = cd.sups.get(sk);
+    g.n++; g.tv+=r.TotalVisitas; g.tvd+=r.TotalVisitados;
+    g.tp+=r.PedidosRealizados;   g.tr +=r.PedReqalMomento;
+  });
+
+  let html = '';
+  let gTv=0, gTvd=0, gTp=0, gTr=0, gN=0;
+
+  const cBdg = (v, tv, fn) => tv > 0 ? bdg(pct(v,tv), fn) : '<span class="badge vn">—</span>';
+
+  [...centroMap.entries()]
+    .sort(([,a],[,b]) => a.centro.localeCompare(b.centro))
+    .forEach(([, cd]) => {
+      let cTv=0, cTvd=0, cTp=0, cTr=0, cN=0;
+
+      [...cd.sups.values()]
+        .sort((a,b) => a.sup.localeCompare(b.sup))
+        .forEach(g => {
+          html += `<tr>
+            <td>${esc(cd.centro)}</td>
+            <td><b>${esc(g.sup)}</b></td>
+            <td class="num">${g.n}</td>
+            <td class="num">${g.tv}</td>
+            <td class="num">${g.tvd}</td>
+            ${mom ? `<td class="num">${g.tr}</td>` : ''}
+            <td class="num">${g.tp}</td>
+            <td>${cBdg(g.tvd, g.tv,  clsC)}</td>
+            <td>${cBdg(g.tp,  g.tvd, clsE)}</td>
+            ${mom ? `<td>${cBdg(g.tp, g.tr, clsM)}</td>` : ''}
+          </tr>`;
+          cTv+=g.tv; cTvd+=g.tvd; cTp+=g.tp; cTr+=g.tr; cN+=g.n;
+        });
+
+      // Subtotal por Centro
+      html += `<tr class="row-subtotal">
+        <td>&#931; <b>${esc(cd.centro)}</b></td>
+        <td style="color:#484f58;font-size:11px">${cd.sups.size} supervisor${cd.sups.size!==1?'es':''}</td>
+        <td class="num"><b>${cN}</b></td>
+        <td class="num"><b>${cTv}</b></td>
+        <td class="num"><b>${cTvd}</b></td>
+        ${mom ? `<td class="num"><b>${cTr}</b></td>` : ''}
+        <td class="num"><b>${cTp}</b></td>
+        <td>${cBdg(cTvd, cTv,  clsC)}</td>
+        <td>${cBdg(cTp,  cTvd, clsE)}</td>
+        ${mom ? `<td>${cBdg(cTp, cTr, clsM)}</td>` : ''}
+      </tr>`;
+
+      gTv+=cTv; gTvd+=cTvd; gTp+=cTp; gTr+=cTr; gN+=cN;
+    });
+
+  // Total general compañía
+  html += `<tr class="row-total">
+    <td><b>&#931; TOTAL COMPA&Ntilde;&Iacute;A</b></td>
+    <td></td>
+    <td class="num"><b>${gN}</b></td>
+    <td class="num"><b>${gTv}</b></td>
+    <td class="num"><b>${gTvd}</b></td>
+    ${mom ? `<td class="num"><b>${gTr}</b></td>` : ''}
+    <td class="num"><b>${gTp}</b></td>
+    <td>${cBdg(gTvd, gTv,  clsC)}</td>
+    <td>${cBdg(gTp,  gTvd, clsE)}</td>
+    ${mom ? `<td>${cBdg(gTp, gTr, clsM)}</td>` : ''}
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML = html;
+}
+
+// ─── Tabla Suplidor ───────────────────────────────────────────────────────
+function buildSuplidorTable(rows) {
+  const noData    = document.getElementById('no-data');
+  const tbl       = document.getElementById('main-tbl');
+  noData.style.display = rows.length ? 'none'  : 'block';
+  tbl.style.display    = rows.length ? 'table' : 'none';
+  setTxt('flt-stats', rows.length ? rows.length + ' registros' : '');
+
+  // Totales de reps para calcular cobertura y efectividad general
+  const totalReps = allReps.length || 1;
+  const tv  = allReps.reduce((a,r)=>a+r.TotalVisitas, 0);   // visitas programadas
+  const tvd = allReps.reduce((a,r)=>a+r.TotalVisitados, 0); // visitados
+  const tp  = allReps.reduce((a,r)=>a+r.PedidosRealizados, 0);
+
+  const cBdg = (v, d, fn) => d > 0 ? bdg(pct(v,d), fn) : '<span class="badge vn">—</span>';
+
+  document.getElementById('thead').innerHTML = `<tr>
+    <th>Suplidor</th>
+    <th>Categor&iacute;a</th>
+    <th class="num">Pedidos</th>
+    <th class="num"># Representantes</th>
+    <th class="num">Cobertura Reps</th>
+  </tr>`;
+
+  // Filas de datos
+  let html = rows.map(r => `<tr>
+    <td><b>${esc(r.Suplidor)}</b></td>
+    <td>${esc(r.Categoria)}</td>
+    <td class="num">${r.Pedidos.toLocaleString()}</td>
+    <td class="num">${r.NroReps}</td>
+    <td class="num">${cBdg(r.NroReps, totalReps, clsE)}</td>
+  </tr>`).join('');
+
+  // Fila total: visitas programadas + efectividad general
+  html += `<tr class="row-total">
+    <td colspan="2"><b>&#931; TOTALES COMPA&Ntilde;&Iacute;A</b>
+      <span style="font-size:10px;font-weight:400;color:#8b949e;margin-left:12px">
+        Vis. Programadas: <b style="color:#c9d1d9">${tv.toLocaleString()}</b>
+        &bull; Visitados: <b style="color:#c9d1d9">${tvd.toLocaleString()}</b>
+        &bull; Cumplimiento: ${cBdg(tvd, tv, clsC)}
+      </span>
+    </td>
+    <td class="num"><b>${tp.toLocaleString()}</b></td>
+    <td class="num"><b>${totalReps}</b></td>
+    <td class="num">${cBdg(tp, tvd, clsE)}</td>
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML = html;
+}
+
+// ─── Tabla Por Tamaño Cliente ─────────────────────────────────────────────
+function buildTamanoTable(rows) {
+  const noData = document.getElementById('no-data');
+  const tbl    = document.getElementById('main-tbl');
+  noData.style.display = rows.length ? 'none'  : 'block';
+  tbl.style.display    = rows.length ? 'table' : 'none';
+  setTxt('flt-stats', rows.length ? rows.length + ' segmento' + (rows.length !== 1 ? 's' : '') : '');
+
+  const cBdg = (v, d, fn) => d > 0 ? bdg(pct(v,d), fn) : '<span class="badge vn">—</span>';
+
+  document.getElementById('thead').innerHTML = `<tr>
+    <th>Tama&ntilde;o Cliente</th>
+    <th class="num">A Visitar</th>
+    <th class="num">Pedidos</th>
+    <th>Efectividad</th>
+  </tr>`;
+
+  let gAv = 0, gPed = 0;
+  let html = rows.map(r => {
+    gAv  += r.AVisitar;
+    gPed += r.Pedidos;
+    const pE = pct(r.Pedidos, r.AVisitar);
+    return `<tr>
+      <td><b>${esc(r.TamanoCliente)}</b></td>
+      <td class="num">${r.AVisitar.toLocaleString()}</td>
+      <td class="num">${r.Pedidos.toLocaleString()}</td>
+      <td>${cBdg(r.Pedidos, r.AVisitar, clsE)}</td>
+    </tr>`;
+  }).join('');
+
+  // Totales de reps (para referencia de visitas globales)
+  const tv  = allReps.reduce((a,r) => a + r.TotalVisitas, 0);
+  const tvd = allReps.reduce((a,r) => a + r.TotalVisitados, 0);
+
+  html += `<tr class="row-total">
+    <td><b>&#931; TOTAL</b>
+      <span style="font-size:10px;font-weight:400;color:#8b949e;margin-left:12px">
+        Vis. Programadas: <b style="color:#c9d1d9">${tv.toLocaleString()}</b>
+        &bull; Visitados: <b style="color:#c9d1d9">${tvd.toLocaleString()}</b>
+        &bull; Cumplimiento: ${cBdg(tvd, tv, clsC)}
+      </span>
+    </td>
+    <td class="num"><b>${gAv.toLocaleString()}</b></td>
+    <td class="num"><b>${gPed.toLocaleString()}</b></td>
+    <td>${cBdg(gPed, gAv, clsE)}</td>
+  </tr>`;
+
+  document.getElementById('tbody').innerHTML = html;
+}
+
+// ─── Status bar ───────────────────────────────────────────────────────────
+function updateStatus(reps) {
+  const tv  = reps.reduce((a,r)=>a+r.TotalVisitas,0);
+  const tvd = reps.reduce((a,r)=>a+r.TotalVisitados,0);
+  const tp  = reps.reduce((a,r)=>a+r.PedidosRealizados,0);
+  const tr  = reps.reduce((a,r)=>a+r.PedReqalMomento,0);
+  setTxt('sb-vend',  reps.length + ' vendedores');
+  setTxt('sb-cumpl', 'Cumpl: '        + fp(pct(tvd,tv)));
+  setTxt('sb-efect', 'Efect.Visita: ' + fp(pct(tp,tvd)));
+  setTxt('sb-efmom', tr > 0 ? 'Efect.Momento: ' + fp(pct(tp,tr)) : '');
+}
+
+// ─── UI ───────────────────────────────────────────────────────────────────
+function overlay(on) { document.getElementById('overlay').style.display = on?'flex':'none'; }
+function showErr(m) {
+  const e = document.getElementById('err-box');
+  e.textContent = '⚠ ' + m; e.style.display = 'block';
+}
+function hideErr() { document.getElementById('err-box').style.display = 'none'; }
+
+// ─── Imprimir / Exportar PDF ──────────────────────────────────────────────
+function printReport() {
+  // Período
+  const mismo = fechaIni === fechaFin;
+  document.getElementById('ph-periodo').innerHTML =
+    '<strong>Período:</strong> ' + (mismo ? fechaIni : fechaIni + ' al ' + fechaFin);
+
+  // Vista activa
+  const vistaTxt = modoVista === 'suplidor' ? 'Por Suplidor'
+    : modoVista === 'tamano' ? 'Por Tamaño Cliente'
+    : (vista === 'resumido' ? 'Resumido' : 'Detallado');
+  document.getElementById('ph-vista').innerHTML =
+    '<strong>Vista:</strong> ' + vistaTxt;
+
+  // Filtros activos
+  const partes = [];
+  Object.keys(mselState).forEach(k => {
+    const st = mselState[k];
+    if (st.sel.size > 0 && st.sel.size < st.data.length) {
+      const noms = [...st.sel].map(v => {
+        const d = st.data.find(x => x.valor === v);
+        return d ? d.nombre : v;
+      });
+      partes.push('<strong>' + mselLabels[k] + ':</strong> ' + esc(noms.join(', ')));
+    }
+  });
+  document.getElementById('ph-filtros').innerHTML =
+    partes.length ? partes.join(' &nbsp;|&nbsp; ') : '';
+
+  // Resumen de KPIs (siempre de reps)
+  const tv  = allReps.reduce((a,r)=>a+r.TotalVisitas,0);
+  const tvd = allReps.reduce((a,r)=>a+r.TotalVisitados,0);
+  const tp  = allReps.reduce((a,r)=>a+r.PedidosRealizados,0);
+  const tr  = allReps.reduce((a,r)=>a+r.PedReqalMomento,0);
+  const resPartes = [
+    allReps.length + ' vendedor' + (allReps.length !== 1 ? 'es' : ''),
+    'A Visitar: <strong>' + tv  + '</strong>',
+    'Visitados: <strong>' + tvd + '</strong>',
+    'Pedidos: <strong>'   + tp  + '</strong>',
+    'Cumplimiento: <strong>' + fp(pct(tvd,tv)) + '</strong>',
+    'Efectividad: <strong>'  + fp(pct(tp,tvd))  + '</strong>'
+  ];
+  if (tr > 0 && showMomentoCol())
+    resPartes.push('Efect.Momento: <strong>' + fp(pct(tp,tr)) + '</strong>');
+  document.getElementById('ph-resumen').innerHTML = resPartes.join(' &nbsp;&bull;&nbsp; ');
+
+  // Timestamp de generación
+  const ts = new Date().toLocaleString('es', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+  document.getElementById('ph-periodo').innerHTML +=
+    ' &nbsp;&mdash;&nbsp; <span style="color:#666;font-size:8.5pt">Generado: ' + ts + '</span>';
+
+  window.print();
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────
+(async () => {
+  document.getElementById('fecha-ini').value = fechaIni;
+  document.getElementById('fecha-fin').value  = fechaFin;
+  document.getElementById('btn-menu').style.display='none';
+  updateCardsLayout();
+  await fetchAll();
+  setInterval(async () => {
+    await fetchDataCore();
+    if (modoVista === 'suplidor') await fetchSuplidorCore();
+    if (modoVista === 'tamano')   await fetchTamanoCore();
+  }, 5 * 60 * 1000);
+})();
+</script>
+</body>
+</html>

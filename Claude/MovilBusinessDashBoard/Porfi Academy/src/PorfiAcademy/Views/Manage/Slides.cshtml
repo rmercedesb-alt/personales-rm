@@ -1,0 +1,70 @@
+@model List<PorfiAcademy.Data.PromoSlide>
+@using PorfiAcademy.Data
+@{
+    ViewData["Title"] = "Promociones";
+    string D(DateTime? d, int addDays = 0) => d is DateTime v ? v.ToLocalTime().AddDays(addDays).ToString("yyyy-MM-dd") : "";
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Promociones de la portada</h1>
+    <p class="hint">Estas diapositivas rotan solas cada 10 segundos en la portada de la página y de la app. Cada una termina en un botón que lleva a suscribirse (o al enlace que tú pongas). Si no hay ninguna activa, se muestran 3 de ejemplo.</p>
+    <p class="hint">Para agregar un <strong>corte de video</strong>: súbelo en <a asp-controller="Admin" asp-action="Index">Videos y Mux</a> como «Corte promocional» y pulsa «Usar en carrusel».</p>
+
+    @foreach (var s in Model)
+    {
+        <div class="slide-admin">
+            @if (s.ImageFile is not null) { <img src="/media/promo/@s.ImageFile" alt="" /> }
+            else if (s.Kind == SlideKind.Video) { <div class="noimg">▶ Corte de video</div> }
+            else { <div class="noimg">Sin imagen<br />(fondo de color)</div> }
+            <div class="info">
+                <strong>@s.Title</strong> <span class="pill-status @(s.IsActive ? "s-Activo" : "s-Cancelado")">@(s.IsActive ? "Activa" : "Oculta")</span>
+                <p class="hint">@s.Subtitle<br />👁 @s.Views vistas · 👆 @s.Clicks clics@(s.Views > 0 ? $" ({(s.Clicks * 100.0 / s.Views):0.#}%)" : "")</p>
+                <details>
+                    <summary>Editar</summary>
+                    <form asp-action="SaveSlide" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="Id" value="@s.Id" />
+                        <label>Título</label><input name="Title" value="@s.Title" maxlength="120" required />
+                        <label>Texto breve</label><input name="Subtitle" value="@s.Subtitle" maxlength="300" />
+                        <label>Texto del botón</label><input name="CtaText" value="@s.CtaText" maxlength="100" placeholder="Suscríbete" />
+                        <label>Enlace del botón (vacío = ir a suscribirse)</label><input name="CtaUrl" value="@s.CtaUrl" maxlength="300" placeholder="/Subscribe" />
+                        @if (s.Kind == SlideKind.Image)
+                        {
+                            <label>Reemplazar imagen (JPG, PNG o WebP, máx. 5 MB)</label><input type="file" name="Image" accept="image/jpeg,image/png,image/webp" />
+                        }
+                        <div class="row-form">
+                            <div><label>Orden</label><input name="SortOrder" type="number" value="@s.SortOrder" /></div>
+                            <div><label>Desde (opcional)</label><input name="StartsAt" type="date" value="@D(s.StartsAt)" /></div>
+                            <div><label>Hasta (opcional)</label><input name="EndsAt" type="date" value="@D(s.EndsAt, -1)" /></div>
+                            <div style="flex:none"><label class="check"><input type="checkbox" name="IsActive" value="true" @(s.IsActive ? "checked" : "") /> Activa</label></div>
+                        </div>
+                        <button class="btn mini" type="submit">Guardar</button>
+                    </form>
+                    <form asp-action="DeleteSlide" method="post" class="inline" onsubmit="return confirm('¿Eliminar esta diapositiva?');">
+                        <input type="hidden" name="id" value="@s.Id" />
+                        <button type="submit" class="linkbtn">Eliminar</button>
+                    </form>
+                </details>
+            </div>
+        </div>
+    }
+    @if (Model.Count == 0) { <p class="hint">Todavía no has creado promociones propias.</p> }
+
+    <h2>Nueva diapositiva con imagen</h2>
+    <form asp-action="SaveSlide" method="post" enctype="multipart/form-data" class="req">
+        <input type="hidden" name="Id" value="0" />
+        <label>Título</label><input name="Title" maxlength="120" required />
+        <label>Texto breve</label><input name="Subtitle" maxlength="300" />
+        <label>Texto del botón</label><input name="CtaText" maxlength="100" placeholder="Suscríbete" />
+        <label>Enlace del botón (vacío = ir a suscribirse)</label><input name="CtaUrl" maxlength="300" placeholder="/Subscribe" />
+        <label>Imagen (JPG, PNG o WebP, máx. 5 MB; recomendado 1600×800)</label><input type="file" name="Image" accept="image/jpeg,image/png,image/webp" />
+        <div class="row-form">
+            <div><label>Orden</label><input name="SortOrder" type="number" value="10" /></div>
+            <div><label>Desde (opcional)</label><input name="StartsAt" type="date" /></div>
+            <div><label>Hasta (opcional)</label><input name="EndsAt" type="date" /></div>
+            <div style="flex:none"><label class="check"><input type="checkbox" name="IsActive" value="true" checked /> Activa</label></div>
+        </div>
+        <button class="btn" type="submit">Crear diapositiva</button>
+    </form>
+</section>

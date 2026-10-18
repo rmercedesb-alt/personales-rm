@@ -1,0 +1,316 @@
+<!-- ═══════════ INVENTARIOS FÍSICOS (pedido explícito 2026-10-09; primera pestaña de la ampliación P2) ═══════════
+     Bloque autocontenido: HTML + estilos + JS. Reutiliza las utilidades globales de Index.cshtml ($, BASE, multiselect,
+     multiselectCliente, prDepend, prFiltros, AOPT, overlay, fmtN, card, ncFechaFmt, ensureXLSX, histExportarPDF, dateF, EMP).
+     Se inicializa desde ivfInit() (llamada en el init de Index). Todas las clases/ids/funciones llevan prefijo "ivf" para no
+     chocar con el CSS global compartido de Index.cshtml. -->
+<style>
+tr.ivf-ent td{background:var(--panel2);font-weight:800;border-top:2px solid var(--border)}
+tr.ivf-ven td{background:#F6F9F6;font-weight:700;border-top:1px solid var(--border)}
+tr.ivf-det td{font-size:11.5px;background:#FCFDFC}
+tr.ivf-cero td.l{color:var(--muted)}
+tr.ivf-click{cursor:pointer}tr.ivf-click:hover td{background:#EEF3FF}
+th.ivf-sortable{cursor:pointer;user-select:none}th.ivf-sortable:hover{color:var(--accent2);text-decoration:underline}
+.ivf-caret{cursor:pointer;display:inline-block;width:16px;color:var(--muted);user-select:none}
+.ivf-ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px;font-size:12px}
+.ivf-ctl label{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--muted)}
+.ivf-bar{display:inline-block;width:64px;height:7px;background:var(--panel2);border-radius:4px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.ivf-bar i{display:block;height:100%;background:var(--accent2);border-radius:4px}
+.ivf-chips{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px}
+.ivf-chip{border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:6px 12px;cursor:pointer;font-size:12px;line-height:1.35}
+.ivf-chip.on{border-color:var(--accent2);background:#EEF3FF;box-shadow:0 0 0 2px rgba(40,48,120,.12)}
+.ivf-chip small{display:block;color:var(--muted);font-size:10px}
+#ivf-crumbs:empty{display:none}
+@@media print{#t-invfis .filtros,#t-invfis .hist-toolbar,#t-invfis .ivf-ctl{display:none}}
+</style>
+
+<div class="wrap hide" id="t-invfis">
+  <div class="hist-toolbar" style="justify-content:space-between">
+    <div class="seg" id="ivf-vista-seg">
+      <button class="on" id="ivf-v-representantes" onclick="ivfVista('representantes')">Representantes</button>
+      <button id="ivf-v-detalle" onclick="ivfVista('detalle')">Suplidor › Categoría › Producto</button>
+      <button id="ivf-v-clientes" onclick="ivfVista('clientes')">Clientes</button>
+    </div>
+  </div>
+  <div class="filtros">
+    <div class="fld"><span class="lbl">Desde</span><input type="date" id="ivf-ini"></div>
+    <div class="fld"><span class="lbl">Hasta</span><input type="date" id="ivf-fin"></div>
+    <div><span class="lbl">Centro</span><div id="ivfms-centro"></div></div>
+    <div><span class="lbl">Supervisor</span><div id="ivfms-sup"></div></div>
+    <div><span class="lbl">Vendedor</span><div id="ivfms-ven"></div></div>
+    <div><span class="lbl">División</span><div id="ivfms-div"></div></div>
+    <div><span class="lbl">Suplidor</span><div id="ivfms-suplidor"></div></div>
+    <div><span class="lbl">Categoría</span><div id="ivfms-categoria"></div></div>
+    <div><span class="lbl">Producto</span><div id="ivfms-producto"></div></div>
+    <div><span class="lbl">Cliente</span><div id="ivfms-cliente"></div></div>
+    <button class="btn btn-go" onclick="generarIVF()">Generar</button>
+    <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn" onclick="excelIVF()">📥 Excel</button>
+    <button class="btn" id="ivf-btn-pdf" onclick="pdfIVF()">⬇ PDF</button>
+  </div>
+  <div id="ivf-print-head"></div>
+  <div class="cards" id="ivf-cards"></div>
+  <div class="crumbs" id="ivf-crumbs"></div>
+  <div class="ivf-ctl hide" id="ivf-ctl">
+    <button class="btn" onclick="ivfColapsar(true)">⊟ Contraer todo</button>
+    <button class="btn" onclick="ivfColapsar(false)">⊞ Expandir todo</button>
+    <label id="ivf-ceros-wrap"><input type="checkbox" id="ivf-ceros" checked onchange="ivfRenderActual()"> Incluir vendedores activos sin inventarios (para ver quién falta)</label>
+  </div>
+  <div style="overflow:auto;max-height:62vh"><div id="ivf-tabla"><div class="hint">Elige el rango y presiona <b>Generar</b>.</div></div></div>
+</div>
+
+<script>
+const ivfEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let IVF_VISTA='representantes', IVFMS={}, IVFDATA=null, IVF_QS='', IVF_SORT=null, IVF_COLAPSO=new Set(), IVF_ALLCOL=null, IVF_DRILL=null;
+const ivfPct=v=>(v==null?'—':v.toLocaleString('es-DO',{minimumFractionDigits:1,maximumFractionDigits:1})+'%');
+const ivfNomVista=()=>({representantes:'Por Representante',detalle:'Suplidor › Categoría › Producto',clientes:'Clientes'}[IVF_VISTA]);
+
+function ivfInit(j,centros,divis){
+  const mk=(id,label,opts,cb)=>{ const h=$('#'+id); return h?multiselect(h,label,opts,cb):null; };
+  IVFMS.centro=mk('ivfms-centro','Centro',centros,()=>prDepend('ivfms',IVFMS));
+  IVFMS.sup=mk('ivfms-sup','Supervisor',[],()=>prDepend('ivfms',IVFMS));
+  IVFMS.ven=mk('ivfms-ven','Vendedor',[]);
+  IVFMS.div=mk('ivfms-div','División',divis);
+  IVFMS.suplidor=mk('ivfms-suplidor','Suplidor',AOPT.suplidor);
+  IVFMS.categoria=mk('ivfms-categoria','Categoría',AOPT.categoria);
+  IVFMS.producto=mk('ivfms-producto','Producto',AOPT.producto);
+  IVFMS.cliente=multiselectCliente($('#ivfms-cliente'),'Cliente');
+  prDepend('ivfms',IVFMS);
+  const hoy=new Date(); $('#ivf-ini').value=dateF(new Date(hoy.getFullYear(),hoy.getMonth(),1)); $('#ivf-fin').value=dateF(hoy);
+}
+
+/* ── Vista ── */
+function ivfVista(v){
+  IVF_VISTA=v; IVFDATA=null; IVF_SORT=null; IVF_DRILL=null; IVF_COLAPSO=new Set(); IVF_ALLCOL=null;
+  ['representantes','detalle','clientes'].forEach(k=>$('#ivf-v-'+k).classList.toggle('on',k===v));
+  ivfLimpiar();
+}
+function ivfLimpiar(){
+  $('#ivf-cards').innerHTML=''; $('#ivf-print-head').innerHTML=''; $('#ivf-crumbs').innerHTML=''; $('#ivf-ctl').classList.add('hide');
+  $('#ivf-tabla').innerHTML='<div class="hint">Elige el rango y presiona <b>Generar</b>.</div>';
+}
+
+/* ── Consulta ── */
+function ivfQs(){
+  const p=new URLSearchParams();
+  p.set('vista',IVF_VISTA); p.set('fechaIni',$('#ivf-ini').value); p.set('fechaFin',$('#ivf-fin').value);
+  prFiltros(IVFMS,p);
+  if(IVFMS.cliente&&IVFMS.cliente.values().length) p.set('clientes',IVFMS.cliente.values().join(','));
+  return p;
+}
+function generarIVF(){
+  const p=ivfQs(); IVF_QS=p.toString(); IVF_SORT=null; IVF_DRILL=null; IVF_COLAPSO=new Set(); IVF_ALLCOL=null;
+  overlay(true);
+  fetch(BASE+'/apihist/inventarios?'+IVF_QS).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ $('#ivf-tabla').innerHTML='<div class="hint">Error: '+ivfEsc((j&&j.error)||'sin respuesta')+'</div>'; return; }
+    IVFDATA=j; ivfPrintHead(); ivfRenderActual();
+  }).catch(e=>{ overlay(false); $('#ivf-tabla').innerHTML='<div class="hint">Error de conexión: '+ivfEsc(e)+'</div>'; });
+}
+function ivfPrintHead(){
+  const sel=(ms,t)=>ms&&ms.values().length?'<div><b>'+t+':</b> '+ms.values().length+' seleccionado(s)</div>':'';
+  $('#ivf-print-head').innerHTML='<div id="ivf-print-in" style="display:block;margin-bottom:8px"><div><b>'+ivfEsc(EMP)+' — Inventarios Físicos · '+ivfNomVista()+'</b></div>'+
+    '<div><b>Rango:</b> '+$('#ivf-ini').value+' al '+$('#ivf-fin').value+'</div>'+sel(IVFMS.sup,'Supervisores')+sel(IVFMS.ven,'Vendedores')+sel(IVFMS.suplidor,'Suplidores')+sel(IVFMS.categoria,'Categorías')+sel(IVFMS.producto,'Productos')+
+    '<div style="color:var(--muted)">Generado: '+new Date().toLocaleString('es-DO')+'</div></div>';
+}
+
+/* ── Orden por doble clic ── */
+const IVF_TXT=new Set(['nombre','codigo','ultimo']);
+function ivfSort(key){
+  if(IVF_SORT&&IVF_SORT.key===key) IVF_SORT={key,dir:-IVF_SORT.dir}; else IVF_SORT={key,dir:IVF_TXT.has(key)?1:-1};
+  ivfRenderActual();
+}
+function ivfTh(key,label,cls){
+  const a=IVF_SORT&&IVF_SORT.key===key?(IVF_SORT.dir>0?' ▲':' ▼'):'';
+  return '<th class="'+(cls||'')+' ivf-sortable" ondblclick="ivfSort(\''+key+'\')" title="Doble clic para ordenar">'+label+a+'</th>';
+}
+function ivfOrdenar(arr,get,def){
+  const k=IVF_SORT&&get[IVF_SORT.key]?IVF_SORT:def; if(!k) return arr.slice();
+  const g=get[k.key], d=k.dir;
+  return arr.slice().sort((a,b)=>{ const x=g(a), y=g(b);
+    if(typeof x==='number'&&typeof y==='number') return (x-y)*d;
+    return String(x==null?'':x).localeCompare(String(y==null?'':y),'es',{numeric:true,sensitivity:'base'})*d; });
+}
+const ivfHintOrden='<div class="hint" style="margin-top:8px">💡 Doble clic en el encabezado de una columna para ordenar por ella (otro doble clic invierte el orden).</div>';
+
+/* ── Expandir / contraer ── */
+function ivfToggle(k){ if(IVF_COLAPSO.has(k)) IVF_COLAPSO.delete(k); else IVF_COLAPSO.add(k); ivfRenderActual(); }
+function ivfColapsar(c){ IVF_COLAPSO=c?new Set(IVF_ALLCOL||[]):new Set(); ivfRenderActual(); }
+const ivfCaret=(k,abierto)=>'<span class="ivf-caret" onclick="event.stopPropagation();ivfToggle(\''+k+'\')">'+(abierto?'▾':'▸')+'</span>';
+
+function ivfRenderActual(){
+  if(!IVFDATA) return;
+  $('#ivf-crumbs').innerHTML='';
+  $('#ivf-ceros-wrap').style.display=IVF_VISTA==='representantes'?'':'none';
+  if(IVF_DRILL){ ivfRenderCliente(); return; }
+  $('#ivf-ctl').classList.remove('hide');
+  if(IVF_VISTA==='representantes') ivfRenderReps();
+  else if(IVF_VISTA==='detalle') ivfRenderDetalle();
+  else ivfRenderClientes();
+}
+
+/* ── 1. Representantes: Supervisor › Vendedor ── */
+function ivfRenderReps(){
+  const filas=IVFDATA.filas||[]; const conCeros=$('#ivf-ceros').checked;
+  const sups=[]; let total=null, sup=null;
+  filas.forEach(r=>{ if(r.Nivel==='supervisor'){ sup={r,v:[]}; sups.push(sup); } else if(r.Nivel==='vendedor'){ sup.v.push(r); } else total=r; });
+  const vend=filas.filter(r=>r.Nivel==='vendedor');
+  $('#ivf-cards').innerHTML=card('Inventarios generados',fmtN(total.Inventarios),'cabeceras de inventario físico')+
+    card('Clientes distintos',fmtN(total.Clientes),'con al menos un inventario')+
+    card('Vendedores con inventarios',fmtN(vend.filter(r=>r.Inventarios>0).length),'de '+fmtN(vend.length)+' (los demás: '+fmtN(vend.filter(r=>r.Inventarios===0).length)+' sin ninguno)')+
+    card('Productos distintos',fmtN(total.Productos),'contados en los inventarios')+card('Unidades contadas',fmtN(total.Unidades),'suma de cantidades');
+  IVF_ALLCOL=new Set(sups.map(s=>'s|'+s.r.SupCod));
+  const get={nombre:r=>r.Vendedor||r.Supervisor,inv:r=>r.Inventarios,cli:r=>r.Clientes,asig:r=>r.Asignados,cob:r=>r.CoberturaPct==null?-1:r.CoberturaPct,prod:r=>r.Productos,uni:r=>r.Unidades};
+  const supGet={nombre:r=>r.Supervisor,inv:r=>r.Inventarios,cli:r=>r.Clientes,asig:r=>r.Asignados,cob:r=>r.CoberturaPct==null?-1:r.CoberturaPct,prod:r=>r.Productos,uni:r=>r.Unidades};
+  const ordSup=ivfOrdenar(sups.map(s=>s.r),supGet,null).map(r=>sups.find(s=>s.r===r));
+  const fila=(r,cls,nom)=>'<td>'+fmtN(r.Inventarios)+'</td><td>'+fmtN(r.Clientes)+'</td><td>'+fmtN(r.Asignados)+'</td><td>'+(r.CoberturaPct==null?'—':ivfPct(r.CoberturaPct)+'<span class="ivf-bar"><i style="width:'+Math.min(100,r.CoberturaPct)+'%"></i></span>')+'</td><td>'+fmtN(r.Productos)+'</td><td>'+fmtN(r.Unidades)+'</td>';
+  let h='<table><thead><tr>'+ivfTh('nombre','Supervisor / Vendedor','l')+ivfTh('inv','Inventarios')+ivfTh('cli','Clientes distintos')+ivfTh('asig','Clientes en su cartera')+ivfTh('cob','% de su cartera con inventario')+ivfTh('prod','Productos')+ivfTh('uni','Unidades')+'</tr></thead><tbody>';
+  ordSup.forEach(s=>{
+    const k='s|'+s.r.SupCod, abierto=!IVF_COLAPSO.has(k);
+    h+='<tr class="ivf-ent"><td class="l">'+ivfCaret(k,abierto)+ivfEsc(s.r.Supervisor)+'</td>'+fila(s.r)+'</tr>';
+    if(abierto) ivfOrdenar(s.v.filter(v=>conCeros||v.Inventarios>0),get,{key:'inv',dir:-1}).forEach(v=>{
+      h+='<tr class="ivf-det'+(v.Inventarios===0?' ivf-cero':'')+'"><td class="l" style="padding-left:34px">'+ivfEsc(v.Vendedor)+' <span class="mini">('+ivfEsc(v.RepCodigo)+')</span></td>'+fila(v)+'</tr>'; });
+  });
+  h+='<tr class="totals"><td class="l">TOTAL</td>'+fila(total)+'</tr></tbody></table>'+
+     '<div class="hint" style="margin-top:8px">«Clientes distintos» cuenta cada cliente una sola vez aunque tenga varios inventarios en el rango. «Clientes en su cartera» = clientes de su ruta (RutaVisitas); el % es cuántos de ellos tienen inventario en el rango. Los supervisores muestran clientes distintos de todo su equipo (no la suma de los vendedores).</div>'+ivfHintOrden;
+  $('#ivf-tabla').innerHTML=h;
+}
+
+/* ── 2. Suplidor › Categoría › Producto ── */
+function ivfRenderDetalle(){
+  const filas=IVFDATA.filas||[]; const sups=[]; let total=null, sup=null, cat=null;
+  filas.forEach(r=>{
+    if(r.Nivel==='suplidor'){ sup={r,cats:[]}; sups.push(sup); }
+    else if(r.Nivel==='categoria'){ cat={r,pros:[]}; sup.cats.push(cat); }
+    else if(r.Nivel==='producto'){ cat.pros.push(r); } else total=r; });
+  if(!sups.length){ $('#ivf-cards').innerHTML=''; $('#ivf-tabla').innerHTML='<div class="hint">No hay inventarios con productos en ese rango y filtros.</div>'; return; }
+  const ncat=sups.reduce((a,s)=>a+s.cats.length,0);
+  $('#ivf-cards').innerHTML=card('Inventarios',fmtN(total.Inventarios),'con productos contados')+card('Clientes distintos',fmtN(total.Clientes),'')+
+    card('Suplidores',fmtN(sups.length),fmtN(ncat)+' categorías')+card('Productos distintos',fmtN(total.Productos),'')+card('Unidades contadas',fmtN(total.Unidades),'');
+  IVF_ALLCOL=new Set(); sups.forEach(s=>{ IVF_ALLCOL.add('p|'+s.r.SupId); s.cats.forEach(c=>IVF_ALLCOL.add('c|'+s.r.SupId+'|'+c.r.CatId)); });
+  const get={nombre:r=>r.Producto||r.Categoria||r.Suplidor,codigo:r=>r.Codigo||'',inv:r=>r.Inventarios,cli:r=>r.Clientes,prod:r=>r.Productos,uni:r=>r.Unidades};
+  const nom=r=>r.Nivel==='suplidor'?r.Suplidor:r.Nivel==='categoria'?r.Categoria:r.Producto;
+  const supOrd=ivfOrdenar(sups.map(s=>s.r),{nombre:r=>r.Suplidor,inv:r=>r.Inventarios,cli:r=>r.Clientes,prod:r=>r.Productos,uni:r=>r.Unidades},null).map(r=>sups.find(s=>s.r===r));
+  const cols=r=>'<td>'+fmtN(r.Inventarios)+'</td><td>'+fmtN(r.Clientes)+'</td><td>'+(r.Nivel==='producto'?'':fmtN(r.Productos))+'</td><td>'+fmtN(r.Unidades)+'</td>';
+  let h='<table><thead><tr>'+ivfTh('nombre','Suplidor / Categoría / Producto','l')+ivfTh('codigo','Código','l')+ivfTh('inv','Inventarios')+ivfTh('cli','Clientes distintos')+ivfTh('prod','Productos')+ivfTh('uni','Unidades')+'</tr></thead><tbody>';
+  supOrd.forEach(s=>{
+    const kp='p|'+s.r.SupId, ap=!IVF_COLAPSO.has(kp);
+    h+='<tr class="ivf-ent"><td class="l">'+ivfCaret(kp,ap)+ivfEsc(s.r.Suplidor)+'</td><td></td>'+cols(s.r)+'</tr>';
+    if(!ap) return;
+    ivfOrdenar(s.cats.map(c=>c.r),{nombre:r=>r.Categoria,inv:r=>r.Inventarios,cli:r=>r.Clientes,prod:r=>r.Productos,uni:r=>r.Unidades},{key:'uni',dir:-1}).forEach(cr=>{
+      const c=s.cats.find(x=>x.r===cr), kc='c|'+s.r.SupId+'|'+cr.CatId, ac=!IVF_COLAPSO.has(kc);
+      h+='<tr class="ivf-ven"><td class="l" style="padding-left:26px">'+ivfCaret(kc,ac)+ivfEsc(cr.Categoria)+'</td><td></td>'+cols(cr)+'</tr>';
+      if(ac) ivfOrdenar(c.pros,get,{key:'uni',dir:-1}).forEach(p=>{ h+='<tr class="ivf-det"><td class="l" style="padding-left:58px;white-space:normal">'+ivfEsc(p.Producto)+'</td><td class="l">'+ivfEsc(p.Codigo)+'</td>'+cols(p)+'</tr>'; });
+    });
+  });
+  h+='<tr class="totals"><td class="l">TOTAL</td><td></td>'+cols(total)+'</tr></tbody></table>'+
+     '<div class="hint" style="margin-top:8px">«Unidades» = suma de la cantidad contada de cada producto en los inventarios del rango. «Clientes distintos» = clientes con ese suplidor/categoría/producto en algún inventario.</div>'+ivfHintOrden;
+  $('#ivf-tabla').innerHTML=h;
+}
+
+/* ── 3. Clientes: Supervisor › Vendedor › Cliente (clic en el cliente → su detalle) ── */
+function ivfRenderClientes(){
+  const filas=IVFDATA.filas||[]; const sups=[]; let total=null, sup=null, ven=null;
+  filas.forEach(r=>{
+    if(r.Nivel==='supervisor'){ sup={r,v:[]}; sups.push(sup); }
+    else if(r.Nivel==='vendedor'){ ven={r,c:[]}; sup.v.push(ven); }
+    else if(r.Nivel==='cliente'){ ven.c.push(r); } else total=r; });
+  if(!sups.length){ $('#ivf-cards').innerHTML=''; $('#ivf-tabla').innerHTML='<div class="hint">No hay clientes con inventario en ese rango y filtros.</div>'; return; }
+  $('#ivf-cards').innerHTML=card('Clientes con inventario',fmtN(total.Clientes),'distintos')+card('Inventarios',fmtN(total.Inventarios),'')+
+    card('Supervisores',fmtN(sups.length),'')+card('Vendedores',fmtN(sups.reduce((a,s)=>a+s.v.length,0)),'')+card('Unidades contadas',fmtN(total.Unidades),'');
+  IVF_ALLCOL=new Set(); sups.forEach(s=>{ IVF_ALLCOL.add('s|'+s.r.SupCod); s.v.forEach(v=>IVF_ALLCOL.add('v|'+v.r.RepCodigo)); });
+  const gc={nombre:r=>r.Cliente,codigo:r=>r.CliCodigo,inv:r=>r.Inventarios,ultimo:r=>r.Ultimo,prod:r=>r.Productos,uni:r=>r.Unidades};
+  const gv={nombre:r=>r.Vendedor||r.Supervisor,inv:r=>r.Inventarios,cli:r=>r.Clientes,ultimo:r=>r.Ultimo,prod:r=>r.Productos,uni:r=>r.Unidades};
+  const cols=r=>'<td>'+(r.Nivel==='cliente'?'':fmtN(r.Clientes))+'</td><td>'+fmtN(r.Inventarios)+'</td><td class="l">'+(r.Ultimo?ncFechaFmt(r.Ultimo.slice(0,10))+' '+r.Ultimo.slice(11):'—')+'</td><td>'+fmtN(r.Productos)+'</td><td>'+fmtN(r.Unidades)+'</td>';
+  let h='<table><thead><tr>'+ivfTh('nombre','Supervisor / Vendedor / Cliente','l')+ivfTh('codigo','Código','l')+ivfTh('cli','Clientes')+ivfTh('inv','Inventarios')+ivfTh('ultimo','Último inventario','l')+ivfTh('prod','Productos')+ivfTh('uni','Unidades')+'</tr></thead><tbody>';
+  ivfOrdenar(sups.map(s=>s.r),gv,null).forEach(sr=>{
+    const s=sups.find(x=>x.r===sr), ks='s|'+sr.SupCod, as=!IVF_COLAPSO.has(ks);
+    h+='<tr class="ivf-ent"><td class="l">'+ivfCaret(ks,as)+ivfEsc(sr.Supervisor)+'</td><td></td>'+cols(sr)+'</tr>';
+    if(!as) return;
+    ivfOrdenar(s.v.map(v=>v.r),gv,{key:'cli',dir:-1}).forEach(vr=>{
+      const v=s.v.find(x=>x.r===vr), kv='v|'+vr.RepCodigo, av=!IVF_COLAPSO.has(kv);
+      h+='<tr class="ivf-ven"><td class="l" style="padding-left:26px">'+ivfCaret(kv,av)+ivfEsc(vr.Vendedor)+' <span class="mini">('+ivfEsc(vr.RepCodigo)+')</span></td><td></td>'+cols(vr)+'</tr>';
+      if(av) ivfOrdenar(v.c,gc,{key:'nombre',dir:1}).forEach(c=>{
+        h+='<tr class="ivf-det ivf-click" onclick="ivfDrill('+c.CliID+')" title="Clic para ver los suplidores, categorías y productos de su inventario"><td class="l" style="padding-left:58px;white-space:normal">'+ivfEsc(c.Cliente)+'</td><td class="l">'+ivfEsc(c.CliCodigo)+'</td>'+cols(c)+'</tr>'; });
+    });
+  });
+  h+='<tr class="totals"><td class="l">TOTAL</td><td></td>'+cols(total)+'</tr></tbody></table>'+
+     '<div class="hint" style="margin-top:8px">👆 Clic en un cliente para ver qué suplidores, categorías y productos se guardaron en su inventario.</div>'+ivfHintOrden;
+  $('#ivf-tabla').innerHTML=h;
+}
+
+/* ── 4. Cliente (drill): sus inventarios + Suplidor › Categoría › Producto del inventario elegido ── */
+function ivfDrill(cliId){
+  const p=new URLSearchParams(IVF_QS); p.set('vista','cliente'); p.set('cliente',cliId);
+  overlay(true);
+  fetch(BASE+'/apihist/inventarios?'+p.toString()).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ alert('Error: '+((j&&j.error)||'sin respuesta')); return; }
+    const invs=j.inventarios||[];
+    IVF_DRILL={j,sel:invs.length?invs[0].Rep+'|'+invs[0].Sec:null}; IVF_COLAPSO=new Set(); IVF_SORT=null; ivfRenderActual();
+  }).catch(e=>{ overlay(false); alert('Error de conexión: '+e); });
+}
+function ivfSelInv(k){ IVF_DRILL.sel=k; ivfRenderActual(); }
+function ivfVolver(){ IVF_DRILL=null; IVF_COLAPSO=new Set(); IVF_SORT=null; ivfRenderActual(); }
+function ivfRenderCliente(){
+  const d=IVF_DRILL.j, c=d.cliente, invs=d.inventarios||[];
+  $('#ivf-ctl').classList.remove('hide'); $('#ivf-ceros-wrap').style.display='none';
+  $('#ivf-crumbs').innerHTML='<span class="crumb" onclick="ivfVolver()">‹ Volver a Clientes</span> › <span class="crumb cur">'+ivfEsc(c.Nombre)+' <span class="mini">('+ivfEsc(c.Codigo)+')</span></span>';
+  const sel=IVF_DRILL.sel, inv=invs.find(i=>i.Rep+'|'+i.Sec===sel);
+  if(!inv){ $('#ivf-cards').innerHTML=''; $('#ivf-tabla').innerHTML='<div class="hint">Este cliente no tiene inventarios con productos en el rango.</div>'; return; }
+  const lin=(d.filas||[]).filter(l=>l.Rep+'|'+l.Sec===sel);
+  $('#ivf-cards').innerHTML=card('Cliente',ivfEsc(c.Nombre),ivfEsc(c.Codigo))+card('Inventarios en el rango',fmtN(invs.length),'elige uno abajo')+
+    card('Productos',fmtN(inv.Productos),'en el inventario elegido')+card('Unidades',fmtN(inv.Unidades),'contadas');
+  const chips='<div class="ivf-chips">'+invs.map(i=>{ const k=i.Rep+'|'+i.Sec; return '<div class="ivf-chip'+(k===sel?' on':'')+'" onclick="ivfSelInv(\''+k+'\')"><b>'+ncFechaFmt(i.Fecha.slice(0,10))+' '+i.Fecha.slice(11)+'</b><small>'+ivfEsc(i.Vendedor)+' · '+fmtN(i.Productos)+' productos · '+fmtN(i.Unidades)+' uds</small></div>'; }).join('')+'</div>';
+  // árbol Suplidor › Categoría › Producto del inventario elegido
+  const sups=new Map();
+  lin.forEach(l=>{ if(!sups.has(l.SupId)) sups.set(l.SupId,{id:l.SupId,nom:l.Suplidor,cats:new Map(),uni:0}); const s=sups.get(l.SupId); s.uni+=l.Cantidad;
+    if(!s.cats.has(l.CatId)) s.cats.set(l.CatId,{id:l.CatId,nom:l.Categoria,pros:[],uni:0}); const ct=s.cats.get(l.CatId); ct.uni+=l.Cantidad; ct.pros.push(l); });
+  IVF_ALLCOL=new Set(); sups.forEach(s=>{ IVF_ALLCOL.add('p|'+s.id); s.cats.forEach(ct=>IVF_ALLCOL.add('c|'+s.id+'|'+ct.id)); });
+  let h=chips+'<table><thead><tr>'+ivfTh('nombre','Suplidor / Categoría / Producto','l')+ivfTh('codigo','Código','l')+ivfTh('uni','Cantidad')+'</tr></thead><tbody>';
+  ivfOrdenar([...sups.values()],{nombre:s=>s.nom,uni:s=>s.uni},{key:'uni',dir:-1}).forEach(s=>{
+    const kp='p|'+s.id, ap=!IVF_COLAPSO.has(kp);
+    h+='<tr class="ivf-ent"><td class="l">'+ivfCaret(kp,ap)+ivfEsc(s.nom)+'</td><td></td><td>'+fmtN(s.uni)+'</td></tr>';
+    if(!ap) return;
+    ivfOrdenar([...s.cats.values()],{nombre:c=>c.nom,uni:c=>c.uni},{key:'uni',dir:-1}).forEach(ct=>{
+      const kc='c|'+s.id+'|'+ct.id, ac=!IVF_COLAPSO.has(kc);
+      h+='<tr class="ivf-ven"><td class="l" style="padding-left:26px">'+ivfCaret(kc,ac)+ivfEsc(ct.nom)+'</td><td></td><td>'+fmtN(ct.uni)+'</td></tr>';
+      if(ac) ivfOrdenar(ct.pros,{nombre:p=>p.Producto,codigo:p=>p.Codigo,uni:p=>p.Cantidad},{key:'nombre',dir:1}).forEach(p=>{ h+='<tr class="ivf-det"><td class="l" style="padding-left:58px;white-space:normal">'+ivfEsc(p.Producto)+'</td><td class="l">'+ivfEsc(p.Codigo)+'</td><td>'+fmtN(p.Cantidad)+'</td></tr>'; });
+    });
+  });
+  h+='<tr class="totals"><td class="l">TOTAL del inventario</td><td></td><td>'+fmtN(inv.Unidades)+'</td></tr></tbody></table>'+
+     '<div class="hint" style="margin-top:8px">Muestra lo que se guardó en el inventario elegido (cantidad contada por producto). Si el rango trae varios inventarios del cliente, elígelos arriba. Respeta los filtros de Suplidor/Categoría/Producto.</div>'+ivfHintOrden;
+  $('#ivf-tabla').innerHTML=h;
+}
+
+/* ── Excel / PDF (exportan lo que se está viendo) ── */
+function excelIVF(){
+  if(!IVFDATA){ alert('Genera el informe primero.'); return; }
+  ensureXLSX(()=>{
+    const head=[[EMP+' — Inventarios Físicos · '+ivfNomVista()],['Rango',$('#ivf-ini').value+' a '+$('#ivf-fin').value],['Generado',new Date().toLocaleString('es-DO')],[]];
+    let H, rows, hoja='Inventarios';
+    if(IVF_DRILL){
+      const d=IVF_DRILL.j, inv=(d.inventarios||[]).find(i=>i.Rep+'|'+i.Sec===IVF_DRILL.sel)||{};
+      hoja='Cliente'; head.push(['Cliente',d.cliente.Codigo+' - '+d.cliente.Nombre],['Inventario',(inv.Fecha||'')+' · '+(inv.Vendedor||'')],[]);
+      H=['Suplidor','Categoría','Código','Producto','Cantidad'];
+      rows=(d.filas||[]).filter(l=>l.Rep+'|'+l.Sec===IVF_DRILL.sel).map(l=>[l.Suplidor,l.Categoria,l.Codigo,l.Producto,l.Cantidad]);
+    } else if(IVF_VISTA==='representantes'){
+      hoja='Representantes'; H=['Nivel','Supervisor','Código vendedor','Vendedor','Centro','Inventarios','Clientes distintos','Clientes en cartera','Clientes de cartera con inventario','% de cartera con inventario','Productos','Unidades'];
+      rows=(IVFDATA.filas||[]).map(r=>[r.Nivel,r.Supervisor,r.RepCodigo,r.Vendedor,r.Centro,r.Inventarios,r.Clientes,r.Asignados,r.ConInventario,r.CoberturaPct,r.Productos,r.Unidades]);
+    } else if(IVF_VISTA==='detalle'){
+      hoja='Detalle'; H=['Nivel','Suplidor','Categoría','Código','Producto','Inventarios','Clientes distintos','Productos','Unidades'];
+      rows=(IVFDATA.filas||[]).map(r=>[r.Nivel,r.Suplidor,r.Categoria,r.Codigo,r.Producto,r.Inventarios,r.Clientes,r.Productos,r.Unidades]);
+    } else {
+      hoja='Clientes'; H=['Nivel','Supervisor','Código vendedor','Vendedor','Código cliente','Cliente','Clientes','Inventarios','Último inventario','Productos','Unidades'];
+      rows=(IVFDATA.filas||[]).map(r=>[r.Nivel,r.Supervisor,r.RepCodigo,r.Vendedor,r.CliCodigo,r.Cliente,r.Clientes,r.Inventarios,r.Ultimo,r.Productos,r.Unidades]);
+    }
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(head.concat([H]).concat(rows)),hoja);
+    XLSX.writeFile(wb,'inventarios_fisicos_'+(IVF_DRILL?'cliente':IVF_VISTA)+'_'+$('#ivf-ini').value+'.xlsx');
+  });
+}
+function pdfIVF(){
+  if(!IVFDATA){ alert('Genera el informe primero.'); return; }
+  histExportarPDF({ bandNode:$('#ivf-print-head'), blockNodes:[$('#ivf-cards'),$('#ivf-crumbs'),$('#ivf-tabla')],
+    filename:'inventarios_fisicos_'+(IVF_DRILL?'cliente':IVF_VISTA)+'_'+$('#ivf-ini').value+'.pdf', footerTxt:EMP+' — Inventarios Físicos', botonIds:['ivf-btn-pdf'] });
+}
+</script>

@@ -1,0 +1,486 @@
+<!-- ═══════════ OFERTAS Y DESCUENTOS (pedido explícito 2026-10-04 / ampliado 2026-10-05) ═══════════
+     Bloque autocontenido: HTML + estilos + JS. Reutiliza las utilidades globales de Index.cshtml
+     ($, BASE, multiselect, multiselectCliente, prDepend, prFiltros, AOPT, CANAL_DEF, overlay, fmtN, fmtRD, card,
+     ncFechaFmt, ensureXLSX, histExportarPDF, dateF, EMP). Se inicializa desde ofInit() (llamada en el init de Index).
+     OJO: Index.cshtml comparte CSS global — todas las clases de este bloque llevan prefijo "of-" (una clase ".top"
+     sin prefijo ya rompió el layout una vez). -->
+<style>
+.of-bar{display:inline-block;width:64px;height:7px;background:var(--panel2);border-radius:4px;vertical-align:middle;margin-left:6px;overflow:hidden}
+.of-bar i{display:block;height:100%;background:var(--accent2);border-radius:4px}
+.of-bar.bad i{background:var(--warn)}
+.of-badge{display:inline-block;padding:1px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.of-b-Activa{background:var(--good-bg);color:#1c6b32}.of-b-Programada{background:var(--purple-bg);color:var(--purple)}
+.of-b-Finalizada{background:var(--panel2);color:var(--muted)}.of-b-Fuera{background:var(--warn-bg);color:#8a5d00}
+.of-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px;margin-bottom:14px}
+.of-box{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.of-box h4{font-size:12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.of-box h4 small{font-weight:400;color:var(--muted);font-size:10px}
+.of-box.of-top{border-top:3px solid var(--good)}.of-box.of-last{border-top:3px solid var(--warn)}
+.of-li{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px}
+.of-li:last-child{border-bottom:none}
+.of-li .n{width:18px;height:18px;border-radius:50%;background:var(--panel2);color:var(--muted);font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none}
+.of-box.of-top .of-li .n{background:var(--good-bg);color:#1c6b32}.of-box.of-last .of-li .n{background:var(--warn-bg);color:#8a5d00}
+.of-li .nm{flex:1;min-width:0}.of-li .nm b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.of-li .nm span{font-size:10px;color:var(--muted)}
+.of-li .v{font-weight:800;text-align:right;white-space:nowrap}.of-li .v small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+tr.of-sup td{background:var(--panel2);font-weight:800;border-top:1px solid var(--border)}
+tr.of-promo td{color:var(--muted);font-size:11px;background:#FCFDFC}
+tr.of-promo td.l{padding-left:46px}
+td.l.of-v{padding-left:24px}
+th.of-sortable{cursor:pointer;user-select:none}th.of-sortable:hover{color:var(--accent2);text-decoration:underline}
+tr.of-click{cursor:pointer}tr.of-click:hover td{background:#EEF3FF}
+/* Representantes: bloque por entidad (Centro/Supervisor/Vendedor) con sus promociones debajo */
+tr.of-ent td{background:var(--panel2);font-weight:800;border-top:2px solid var(--border)}
+tr.of-ent td.l a{color:var(--accent);font-weight:800}
+tr.of-pr td{font-size:11.5px;background:#FCFDFC}
+tr.of-pr td.l{padding-left:40px}
+tr.of-pr.of-mas td{background:var(--good-bg)}tr.of-pr.of-menos td{background:var(--warn-bg)}
+tr.of-pr.of-cero td.l{color:var(--muted)}
+.of-caret{cursor:pointer;display:inline-block;width:16px;color:var(--muted);user-select:none}
+.of-tag{display:inline-block;margin-left:6px;padding:0 7px;border-radius:9px;font-size:10px;font-weight:700}
+.of-tag.m{background:var(--good);color:#fff}.of-tag.n{background:var(--warn);color:#fff}
+.of-ctl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:0 0 8px;font-size:12px}
+.of-ctl label{display:flex;align-items:center;gap:5px;cursor:pointer;color:var(--muted)}
+#of-crumbs:empty{display:none}
+@@media print{#t-promos .filtros,#t-promos .hist-toolbar,#t-promos .of-ctl{display:none}}
+</style>
+
+<div class="wrap hide" id="t-promos">
+  <div class="hist-toolbar" style="justify-content:space-between">
+    <div class="nivelbar" style="margin:0">
+      <button class="btn-modo on" id="of-tipo-ofertas" onclick="ofTipo('ofertas')">🎁 Ofertas</button>
+      <button class="btn-modo" id="of-tipo-descuentos" onclick="ofTipo('descuentos')">🏷 Descuentos</button>
+    </div>
+    <div class="seg" id="of-vista-seg">
+      <button class="on" id="of-v-lista" onclick="ofVista('lista')">Lista activas</button>
+      <button id="of-v-dadas" onclick="ofVista('dadas')">Cantidad dadas</button>
+      <button id="of-v-productividad" onclick="ofVista('productividad')">Productividad</button>
+      <button id="of-v-representantes" onclick="ofVista('representantes')">Representantes</button>
+    </div>
+  </div>
+  <div class="filtros">
+    <div class="fld"><span class="lbl">Desde</span><input type="date" id="of-ini"></div>
+    <div class="fld"><span class="lbl">Hasta</span><input type="date" id="of-fin"></div>
+    <div><span class="lbl" id="of-promo-lbl">Oferta(s)</span><div id="ofms-promo"></div></div>
+    <div><span class="lbl">Estado</span><div id="ofms-estado"></div></div>
+    <div class="fld"><span class="lbl">&nbsp;</span><button class="btn" onclick="ofSeleccionarTodas()" title="Selecciona todas las del selector (según el rango y los filtros)">Seleccionar todas</button></div>
+    <div><span class="lbl">Centro</span><div id="ofms-centro"></div></div>
+    <div><span class="lbl">Supervisor</span><div id="ofms-sup"></div></div>
+    <div><span class="lbl">Vendedor</span><div id="ofms-ven"></div></div>
+    <div><span class="lbl">División</span><div id="ofms-div"></div></div>
+    <div><span class="lbl">Canal</span><div id="ofms-canal"></div></div>
+    <div><span class="lbl">Suplidor</span><div id="ofms-suplidor"></div></div>
+    <div><span class="lbl">Categoría</span><div id="ofms-categoria"></div></div>
+    <div><span class="lbl">Grupo Producto</span><div id="ofms-grupo"></div></div>
+    <div><span class="lbl">Producto</span><div id="ofms-producto"></div></div>
+    <div><span class="lbl">Grupo Clientes</span><div id="ofms-grupocli"></div></div>
+    <div><span class="lbl">Tamaño</span><div id="ofms-tam"></div></div>
+    <div><span class="lbl">Cliente</span><div id="ofms-cliente"></div></div>
+    <div><span class="lbl">Estatus pedido</span><div id="ofms-estatus"></div></div>
+    <div class="fld hide" id="of-det-wrap"><span class="lbl">Detalle</span>
+      <select class="sel" id="of-detalle"><option value="">Supervisor › Vendedor</option><option value="promo">Supervisor › Vendedor › Oferta</option></select></div>
+    <button class="btn btn-go" onclick="generarOF()">Generar</button>
+    <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn" onclick="excelOF()">📥 Excel</button>
+    <button class="btn" id="of-btn-pdf" onclick="pdfOF()">⬇ PDF</button>
+  </div>
+  <div id="of-print-head"></div>
+  <div class="cards" id="of-cards"></div>
+  <div id="of-tarjetas"></div>
+  <div class="crumbs" id="of-crumbs"></div>
+  <div class="of-ctl hide" id="of-rep-ctl">
+    <button class="btn" onclick="ofColapsar(true)">⊟ Contraer todo</button>
+    <button class="btn" onclick="ofColapsar(false)">⊞ Expandir todo</button>
+    <label><input type="checkbox" id="of-ceros" checked onchange="ofCeros(this.checked)"> Incluir las no utilizadas (para ver cuál usan menos)</label>
+  </div>
+  <div style="overflow:auto;max-height:62vh"><div id="of-tabla"><div class="hint">Elige el rango y presiona <b>Generar</b>.</div></div></div>
+</div>
+
+<script>
+const ofEsc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let OF_TIPO='ofertas', OF_VISTA='lista', OFMS={}, OFDATA=null, OF_OPT_T=null, OF_OPT_SIG='';
+let OF_SORT=null, OF_QS='', OF_DRILL=null, OF_REPPATH=[], OF_CEROS=true, OF_COLAPSO=null;
+// Textos según el modo (Ofertas / Descuentos)
+const OFT=()=>OF_TIPO==='ofertas'
+  ? {s:'oferta',p:'ofertas',P:'Ofertas',Sing:'Oferta',dadas:'Ofertas dadas',monto:'Monto generado',montoTip:'Dinero vendido de productos que tenían la oferta',extra:'Unidades regaladas',extraKey:'Unidades',extraRD:false,
+     vLista:'Lista activas',vDadas:'Cantidad dadas',vProd:'Productividad',vRep:'Representantes',sel:'Oferta(s)',f:'a'}
+  : {s:'descuento',p:'descuentos',P:'Descuentos',Sing:'Descuento',dadas:'Descuentos dados',monto:'Venta con descuento',montoTip:'Dinero vendido de las líneas que llevaban el descuento',extra:'Monto descontado',extraKey:'MontoPromo',extraRD:true,
+     vLista:'Lista activos',vDadas:'Cantidad dados',vProd:'Productividad',vRep:'Representantes',sel:'Descuento(s)',f:'o'};
+const ofPct=v=>(v==null?0:v).toLocaleString('es-DO',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
+const ofBar=(pct,bad)=>'<span class="of-bar'+(bad?' bad':'')+'"><i style="width:'+Math.max(0,Math.min(100,pct))+'%"></i></span>';
+const ofEstadoCls=e=>'of-b-'+String(e||'').split(' ')[0];
+const ofNomVista=()=>({lista:OFT().vLista,dadas:OFT().vDadas,productividad:OFT().vProd,representantes:OFT().vRep}[OF_VISTA]);
+const ofExtra=(r)=>OFT().extraRD?fmtRD(r[OFT().extraKey]):fmtN(r[OFT().extraKey]);
+
+function ofInit(j,centros,divis){
+  const mk=(id,label,opts,cb)=>{ const h=$('#'+id); return h?multiselect(h,label,opts,cb):null; };
+  OFMS.centro=mk('ofms-centro','Centro',centros,()=>prDepend('ofms',OFMS));
+  OFMS.sup=mk('ofms-sup','Supervisor',[],()=>prDepend('ofms',OFMS));
+  OFMS.ven=mk('ofms-ven','Vendedor',[]);
+  OFMS.div=mk('ofms-div','División',divis);
+  OFMS.canal=mk('ofms-canal','Canal',AOPT.canal); OFMS.canal.select(CANAL_DEF);
+  OFMS.suplidor=mk('ofms-suplidor','Suplidor',AOPT.suplidor);
+  OFMS.categoria=mk('ofms-categoria','Categoría',AOPT.categoria);
+  OFMS.grupo=mk('ofms-grupo','Grupo',AOPT.grupo);
+  OFMS.producto=mk('ofms-producto','Producto',AOPT.producto);
+  OFMS.grupoCliente=mk('ofms-grupocli','Grupo Clientes',AOPT.gruposCliente);
+  OFMS.tam=mk('ofms-tam','Tamaño',AOPT.tam);
+  OFMS.cliente=multiselectCliente($('#ofms-cliente'),'Cliente');
+  OFMS.estatus=multiselect($('#ofms-estatus'),'Estatus',(j.estatusPedido||[]).map(x=>({v:String(x.id),t:x.id+' - '+x.nombre})));
+  OFMS.estatus.select(['2','7','11']);
+  OFMS.estado=mk('ofms-estado','Todos',[{v:'Activa',t:'Activas (vigentes hoy)'},{v:'Finalizada',t:'Finalizadas'},{v:'Programada',t:'Programadas (aún no empiezan)'}],ofCargarOpcionesDebounced);
+  OFMS.promo=mk('ofms-promo','Oferta(s)',[]);
+  prDepend('ofms',OFMS);
+  const hoy=new Date(); $('#of-ini').value=dateF(new Date(hoy.getFullYear(),hoy.getMonth(),1)); $('#of-fin').value=dateF(hoy);
+  ['of-ini','of-fin'].forEach(id=>$('#'+id).addEventListener('change',ofCargarOpcionesDebounced));
+  ofCargarOpciones();
+}
+
+/* ── Modo y vista ── */
+function ofTipo(t){
+  OF_TIPO=t; OFDATA=null; OF_DRILL=null; OF_SORT=null; OF_REPPATH=[];
+  $('#of-tipo-ofertas').classList.toggle('on',t==='ofertas'); $('#of-tipo-descuentos').classList.toggle('on',t==='descuentos');
+  const x=OFT();
+  $('#of-v-lista').textContent=x.vLista; $('#of-v-dadas').textContent=x.vDadas;
+  $('#of-promo-lbl').textContent=x.sel;
+  const bt=$('#ofms-promo .ms-btn span'); if(bt) bt.textContent=x.sel;
+  $('#of-detalle').options[1].textContent='Supervisor › Vendedor › '+x.Sing;
+  OFMS.promo.select([]);
+  ofLimpiar(); ofCargarOpciones();
+}
+function ofSetVistaUI(){
+  ['lista','dadas','productividad','representantes'].forEach(k=>$('#of-v-'+k).classList.toggle('on',k===OF_VISTA));
+  $('#of-det-wrap').classList.toggle('hide',OF_VISTA!=='dadas');
+  $('#of-rep-ctl').classList.toggle('hide',OF_VISTA!=='representantes');
+}
+function ofVista(v){
+  OF_VISTA=v; OFDATA=null; OF_DRILL=null; OF_SORT=null; OF_REPPATH=[]; OF_COLAPSO=null;
+  ofSetVistaUI(); ofLimpiar();
+}
+function ofLimpiar(){
+  $('#of-cards').innerHTML=''; $('#of-tarjetas').innerHTML=''; $('#of-print-head').innerHTML=''; $('#of-crumbs').innerHTML='';
+  const x=OFT();
+  $('#of-tabla').innerHTML='<div class="hint">'+(OF_VISTA==='dadas'?'Elige el rango, selecciona '+(OF_TIPO==='ofertas'?'una o varias ofertas':'uno o varios descuentos')+' en «'+x.sel+'» y presiona <b>Generar</b>.':'Elige el rango y presiona <b>Generar</b>.')+'</div>';
+}
+
+/* ── Consulta ── */
+function ofQs(vista){
+  const p=new URLSearchParams();
+  p.set('tipo',OF_TIPO); p.set('vista',vista||OF_VISTA);
+  p.set('fechaIni',$('#of-ini').value); p.set('fechaFin',$('#of-fin').value);
+  prFiltros(OFMS,p);
+  if(OFMS.cliente&&OFMS.cliente.values().length) p.set('clientes',OFMS.cliente.values().join(','));
+  if(OFMS.estatus&&OFMS.estatus.values().length) p.set('estatus',OFMS.estatus.values().join(','));
+  if(OFMS.estado&&OFMS.estado.values().length) p.set('estados',OFMS.estado.values().join(','));
+  return p;
+}
+// Opciones del selector de ofertas/descuentos: las del rango con los mismos filtros (SIN la selección actual)
+function ofCargarOpciones(){
+  const t=OF_TIPO, qs=ofQs('lista'), sig=qs.toString();
+  return fetch(BASE+'/apihist/promos?'+sig).then(r=>r.json()).then(j=>{
+    if(t!==OF_TIPO||!j||!j.ok) return;
+    OF_OPT_SIG=sig;
+    OFMS.promo.setOptions((j.filas||[]).map(f=>({v:String(f.Id),t:f.Id+' - '+f.Nombre+' ('+(f.Inicio||'').slice(5)+' → '+((f.Fin||'').slice(5)||'…')+')'})));
+  }).catch(()=>{});
+}
+function ofCargarOpcionesDebounced(){ clearTimeout(OF_OPT_T); OF_OPT_T=setTimeout(ofCargarOpciones,400); }
+function ofSeleccionarTodas(){ OFMS.promo.select(OFMS.promo.opts().map(o=>o.v)); }
+
+async function generarOF(){
+  const x=OFT();
+  if(OF_VISTA==='dadas'&&!OFMS.promo.values().length){ alert('Selecciona al menos '+(OF_TIPO==='ofertas'?'una oferta':'un descuento')+' en el filtro «'+x.sel+'».'); return; }
+  if(ofQs('lista').toString()!==OF_OPT_SIG) await ofCargarOpciones();   // filtros cambiaron: refresca el selector (conserva lo que siga existiendo)
+  const p=ofQs(); const ids=OFMS.promo.values();
+  if(ids.length) p.set('ids',ids.join(','));
+  if(OF_VISTA==='dadas') p.set('detalle',$('#of-detalle').value);
+  OF_QS=p.toString(); OF_DRILL=null; OF_SORT=null; OF_REPPATH=[]; OF_COLAPSO=null;
+  overlay(true);
+  fetch(BASE+'/apihist/promos?'+OF_QS).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ $('#of-tabla').innerHTML='<div class="hint">Error: '+ofEsc((j&&j.error)||'sin respuesta')+'</div>'; return; }
+    OFDATA=j; ofPrintHead(); ofRenderActual();
+  }).catch(e=>{ overlay(false); $('#of-tabla').innerHTML='<div class="hint">Error de conexión: '+ofEsc(e)+'</div>'; });
+}
+// Consulta de un drill con los MISMOS parámetros con que se generó el reporte
+function ofDrillFetch(extra){
+  const p=new URLSearchParams(OF_QS); Object.entries(extra).forEach(([k,v])=>p.set(k,v));
+  overlay(true);
+  return fetch(BASE+'/apihist/promos?'+p.toString()).then(r=>r.json()).then(j=>{ overlay(false); if(!j||!j.ok) throw new Error((j&&j.error)||'sin respuesta'); return j; })
+    .catch(e=>{ overlay(false); alert('Error: '+e.message); throw e; });
+}
+function ofPrintHead(){
+  const x=OFT(); let extra='';
+  if(OF_VISTA==='dadas'&&OFDATA&&OFDATA.seleccion) extra='<div><b>'+x.sel+':</b> '+OFDATA.seleccion.map(s=>ofEsc(s.Nombre)).join(' · ')+'</div>';
+  const est=OFMS.estado&&OFMS.estado.values().length?'<div><b>Estado:</b> '+OFMS.estado.values().join(', ')+'</div>':'';
+  $('#of-print-head').innerHTML='<div id="of-print-in" style="display:block;margin-bottom:8px"><div><b>'+ofEsc(EMP)+' — '+x.P+' · '+ofNomVista()+'</b></div>'+
+    '<div><b>Rango:</b> '+$('#of-ini').value+' al '+$('#of-fin').value+'</div>'+est+extra+
+    '<div style="color:var(--muted)">Generado: '+new Date().toLocaleString('es-DO')+'</div></div>';
+}
+
+/* ── Orden por doble clic en el encabezado ── */
+const OF_TXT=new Set(['nombre','centro','estado','suplidor','categoria','canal','promo','cliente','fecha','inicio','fin','pedidos']);
+function ofSort(key){
+  if(OF_SORT&&OF_SORT.key===key) OF_SORT={key,dir:-OF_SORT.dir}; else OF_SORT={key,dir:OF_TXT.has(key)?1:-1};
+  ofRenderActual();
+}
+function ofTh(key,label,cls,title){
+  const a=OF_SORT&&OF_SORT.key===key?(OF_SORT.dir>0?' ▲':' ▼'):'';
+  return '<th class="'+(cls||'')+' of-sortable" ondblclick="ofSort(\''+key+'\')" title="'+ofEsc((title?title+' · ':'')+'Doble clic para ordenar')+'">'+label+a+'</th>';
+}
+// Ordena una copia de arr con el criterio activo (si aplica a esta tabla) o con el por defecto
+function ofOrdenar(arr,get,def){
+  const k=OF_SORT&&get[OF_SORT.key]?OF_SORT:def; if(!k) return arr.slice();
+  const g=get[k.key], d=k.dir;
+  return arr.slice().sort((a,b)=>{ const x=g(a), y=g(b);
+    if(typeof x==='number'&&typeof y==='number') return (x-y)*d;
+    return String(x==null?'':x).localeCompare(String(y==null?'':y),'es',{numeric:true,sensitivity:'base'})*d; });
+}
+const ofHintOrden='<div class="hint" style="margin-top:8px">💡 Doble clic en el encabezado de una columna para ordenar por ella (otro doble clic invierte el orden).</div>';
+function ofRenderActual(){
+  if(!OFDATA) return;
+  if(OF_VISTA==='lista') ofRenderLista(OFDATA);
+  else if(OF_VISTA==='dadas'){ if(OF_DRILL&&OF_DRILL.clientes) ofRenderClientes(); else if(OF_DRILL&&OF_DRILL.dias) ofRenderDias(); else ofRenderDadas(OFDATA); }
+  else if(OF_VISTA==='productividad') ofRenderProd(OFDATA);
+  else ofRenderReps();
+}
+
+/* ── 1. Lista (clic en una fila → Cantidad dadas de esa promoción) ── */
+function ofRenderLista(j){
+  const f=j.filas||[], x=OFT();
+  $('#of-crumbs').innerHTML='';
+  $('#of-cards').innerHTML=card(x.P+' en el rango',fmtN(f.length),'vigentes en alguna fecha del rango')+
+    card('Activas hoy',fmtN(f.filter(r=>r.Estado==='Activa').length),'vigentes en este momento')+
+    card('Finalizadas',fmtN(f.filter(r=>r.Estado==='Finalizada').length),'terminaron dentro del rango')+
+    card('Programadas',fmtN(f.filter(r=>r.Estado==='Programada').length),'empiezan después de hoy');
+  $('#of-tarjetas').innerHTML='';
+  if(!f.length){ $('#of-tabla').innerHTML='<div class="hint">No hay '+x.p+' en ese rango con esos filtros.</div>'; return; }
+  const rows=ofOrdenar(f,{nombre:r=>r.Nombre,inicio:r=>r.Inicio,fin:r=>r.Fin||'9999',estado:r=>r.Estado,suplidor:r=>r.Suplidor,categoria:r=>r.Categoria,canal:r=>r.Canal,centro:r=>r.Centro,vendedores:r=>r.Vendedores},null);
+  let h='<table><thead><tr>'+ofTh('nombre','Nombre','l')+ofTh('inicio','Inicio','l')+ofTh('fin','Fin','l')+ofTh('estado','Estado','l')+ofTh('suplidor','Suplidor','l')+ofTh('categoria','Categoría(s)','l')+ofTh('canal','Canal','l')+ofTh('centro','Centro de distribución','l')+ofTh('vendedores','Vendedores','','Vendedores con cartera a los que aplica')+'</tr></thead><tbody>';
+  rows.forEach(r=>{
+    h+='<tr class="of-click" onclick="ofIrADadas(\''+ofEsc(r.Id)+'\')" title="Clic para ver «Cantidad dadas» de '+x.artS+'"><td class="l" style="white-space:normal;min-width:240px"><b>'+ofEsc(r.Nombre)+'</b><div class="mini">ID '+ofEsc(r.Id)+'</div></td><td class="l">'+(r.Inicio?ncFechaFmt(r.Inicio):'—')+'</td><td class="l">'+(r.Fin?ncFechaFmt(r.Fin):'Sin fecha fin')+'</td>'+
+       '<td class="l"><span class="of-badge '+ofEstadoCls(r.Estado)+'">'+ofEsc(r.Estado)+'</span></td><td class="l" style="white-space:normal">'+ofEsc(r.Suplidor)+'</td><td class="l" style="white-space:normal">'+ofEsc(r.Categoria)+'</td>'+
+       '<td class="l">'+ofEsc(r.Canal)+'</td><td class="l" style="white-space:normal">'+ofEsc(r.Centro)+'</td><td>'+fmtN(r.Vendedores)+'</td></tr>';
+  });
+  $('#of-tabla').innerHTML=h+'</tbody></table><div class="hint" style="margin-top:8px">👆 Clic en una '+x.s+' para ver cuántas se dieron (Supervisor › Vendedor › días › clientes). Suplidor y categoría se derivan de los productos de la '+x.s+'. «Todos» en Canal/Centro = sin restricción configurada. «Vendedores» = los que tienen cartera asignada y a quienes aplica.</div>'+ofHintOrden;
+}
+function ofIrADadas(id){
+  id=String(id);
+  const opts=OFMS.promo.opts(); const f=(OFDATA&&OFDATA.filas||[]).find(r=>String(r.Id)===id);
+  if(!opts.some(o=>o.v===id)&&f) OFMS.promo.setOptions(opts.concat([{v:id,t:id+' - '+f.Nombre}]));
+  OFMS.promo.select([id]);
+  OF_VISTA='dadas'; OFDATA=null; OF_DRILL=null; OF_SORT=null; ofSetVistaUI(); ofLimpiar();
+  generarOF();
+}
+
+/* ── 2. Cantidad dadas: Supervisor › Vendedor › (clic) días › (clic) clientes y promociones del día ── */
+function ofArbolDadas(filas){
+  const sups=[]; let total=null, sup=null, ven=null;
+  filas.forEach(r=>{
+    if(r.Nivel==='supervisor'){ sup={r,vends:[]}; sups.push(sup); }
+    else if(r.Nivel==='vendedor'){ ven={r,promos:[]}; sup.vends.push(ven); }
+    else if(r.Nivel==='promo'){ ven.promos.push(r); }
+    else if(r.Nivel==='total'){ total=r; }
+  });
+  return {sups,total};
+}
+const OF_ACC_DADAS={nombre:r=>r.RepCodigo?r.Vendedor:r.Supervisor,centro:r=>r.Centro||'',dadas:r=>r.Dadas,clientes:r=>r.Clientes,monto:r=>r.Monto,extra:r=>OFT().extraRD?r.MontoPromo:r.Unidades,asignados:r=>r.Asignados,inc:r=>r.IncidenciaPct};
+function ofRenderDadas(j){
+  const x=OFT();
+  $('#of-crumbs').innerHTML='';
+  if(j.mensaje){ $('#of-cards').innerHTML=''; $('#of-tabla').innerHTML='<div class="hint">'+ofEsc(j.mensaje)+'</div>'; return; }
+  const {sups,total:t}=ofArbolDadas(j.filas||[]); const T=t||{};
+  $('#of-cards').innerHTML=card(x.dadas,fmtN(T.Dadas),'veces que se aplicó '+(OF_TIPO==='ofertas'?'una oferta seleccionada':'un descuento seleccionado'))+
+    card('Clientes impactados',fmtN(T.Clientes),'distintos')+card(x.monto,fmtRD(T.Monto),x.montoTip)+
+    card(x.extra,ofExtra(T),'')+card('Clientes asignados',fmtN(T.Asignados),'de los vendedores que aplican')+card('Incidencia',ofPct(T.IncidenciaPct),'impactados vs asignados');
+  $('#of-tarjetas').innerHTML='';
+  let h='<table><thead><tr>'+ofTh('nombre','Supervisor / Vendedor','l')+ofTh('centro','Centro','l')+ofTh('dadas',x.dadas)+ofTh('clientes','Clientes impactados')+ofTh('monto',x.monto,'',x.montoTip)+ofTh('extra',x.extra)+ofTh('asignados','Clientes asignados')+ofTh('inc','Incidencia %')+'</tr></thead><tbody>';
+  const ex=r=>ofExtra(r);
+  ofOrdenar(sups.map(s=>s.r),OF_ACC_DADAS,{key:'dadas',dir:-1}).forEach(sr=>{
+    const s=sups.find(z=>z.r===sr), r=s.r;
+    h+='<tr class="of-sup"><td class="l">'+ofEsc(r.Supervisor)+'</td><td class="l"></td><td>'+fmtN(r.Dadas)+'</td><td>'+fmtN(r.Clientes)+'</td><td>'+fmtRD(r.Monto)+'</td><td>'+ex(r)+'</td><td>'+fmtN(r.Asignados)+'</td><td>'+ofPct(r.IncidenciaPct)+ofBar(r.IncidenciaPct,true)+'</td></tr>';
+    ofOrdenar(s.vends.map(v=>v.r),OF_ACC_DADAS,{key:'dadas',dir:-1}).forEach(vr=>{
+      const v=s.vends.find(z=>z.r===vr), q=v.r;
+      h+='<tr class="of-click" onclick="ofDrillDias(\''+ofEsc(q.RepCodigo)+'\')" title="Clic para ver los días en que dio '+x.p+'"><td class="l of-v">'+ofEsc(q.RepCodigo)+' - '+ofEsc(q.Vendedor)+'</td><td class="l">'+ofEsc(q.Centro)+'</td><td>'+fmtN(q.Dadas)+'</td><td>'+fmtN(q.Clientes)+'</td><td>'+fmtRD(q.Monto)+'</td><td>'+ex(q)+'</td><td>'+fmtN(q.Asignados)+'</td><td>'+ofPct(q.IncidenciaPct)+ofBar(q.IncidenciaPct,true)+'</td></tr>';
+      ofOrdenar(v.promos,{nombre:p=>p.Promo,dadas:p=>p.Dadas,clientes:p=>p.Clientes,monto:p=>p.Monto,extra:OF_ACC_DADAS.extra},{key:'dadas',dir:-1}).forEach(p=>{
+        h+='<tr class="of-promo"><td class="l">↳ '+ofEsc(p.Promo)+'</td><td class="l"></td><td>'+fmtN(p.Dadas)+'</td><td>'+fmtN(p.Clientes)+'</td><td>'+fmtRD(p.Monto)+'</td><td>'+ex(p)+'</td><td></td><td></td></tr>';
+      });
+    });
+  });
+  h+='<tr class="totals"><td class="l">TOTAL GENERAL</td><td class="l"></td><td>'+fmtN(T.Dadas)+'</td><td>'+fmtN(T.Clientes)+'</td><td>'+fmtRD(T.Monto)+'</td><td>'+ex(T)+'</td><td>'+fmtN(T.Asignados)+'</td><td>'+ofPct(T.IncidenciaPct)+'</td></tr>';
+  $('#of-tabla').innerHTML=h+'</tbody></table><div class="hint" style="margin-top:8px">👆 Clic en un vendedor para ver los <b>días</b> en que dio '+x.p+'; clic en un día para ver sus <b>clientes y '+x.p+'</b>. Se listan todos los vendedores a los que aplica (aunque tengan 0). «Clientes impactados» son distintos (en supervisor y total no se repiten). Incidencia = impactados ÷ asignados (RutaVisitas).</div>'+ofHintOrden;
+}
+function ofDrillDias(rep){
+  OF_SORT=null;
+  ofDrillFetch({vista:'dias',rep}).then(j=>{ OF_DRILL={rep,nom:j.vendedor,sup:j.supervisor,dias:j}; ofRenderActual(); }).catch(()=>{});
+}
+function ofDrillClientes(fecha){
+  OF_SORT=null;
+  ofDrillFetch({vista:'clientes',rep:OF_DRILL.rep,fecha}).then(j=>{ OF_DRILL.fecha=fecha; OF_DRILL.clientes=j; ofRenderActual(); }).catch(()=>{});
+}
+function ofDrillVolver(nivel){   // 0 = reporte, 1 = días
+  OF_SORT=null;
+  if(nivel===0) OF_DRILL=null; else { OF_DRILL.clientes=null; OF_DRILL.fecha=null; }
+  ofRenderActual();
+}
+function ofCrumbsDrill(){
+  const d=OF_DRILL; const x=OFT();
+  let c='<span class="crumb" onclick="ofDrillVolver(0)">‹ '+x.dadas+'</span> › ';
+  c+=d.fecha?'<span class="crumb" onclick="ofDrillVolver(1)">'+ofEsc(d.nom)+' · por día</span> › <span class="crumb cur">'+ncFechaFmt(d.fecha)+'</span>':'<span class="crumb cur">'+ofEsc(d.nom)+' · por día</span>';
+  $('#of-crumbs').innerHTML=c+' <span class="mini">· '+ofEsc(d.sup)+'</span>';
+}
+function ofRenderDias(){
+  const x=OFT(), j=OF_DRILL.dias; ofCrumbsDrill(); $('#of-tarjetas').innerHTML='';
+  const T=j.total;
+  $('#of-cards').innerHTML=card(x.dadas,fmtN(T.Dadas),ofEsc(j.vendedor))+card('Días con actividad',fmtN(j.filas.length),'')+card('Clientes impactados',fmtN(T.Clientes),'distintos')+card(x.monto,fmtRD(T.Monto),x.montoTip)+card(x.extra,ofExtra(T),'');
+  if(!j.filas.length){ $('#of-tabla').innerHTML='<div class="hint">Este vendedor no dio '+x.p+' seleccionados en el rango.</div>'; return; }
+  const rows=ofOrdenar(j.filas,{fecha:r=>r.Fecha,dadas:r=>r.Dadas,promos:r=>r.Promos,clientes:r=>r.Clientes,monto:r=>r.Monto,extra:r=>x.extraRD?r.MontoPromo:r.Unidades},{key:'fecha',dir:1});
+  let h='<table><thead><tr>'+ofTh('fecha','Fecha','l')+ofTh('dadas',x.dadas)+ofTh('promos',x.P+' distintas')+ofTh('clientes','Clientes impactados')+ofTh('monto',x.monto)+ofTh('extra',x.extra)+'</tr></thead><tbody>';
+  rows.forEach(r=>{ h+='<tr class="of-click" onclick="ofDrillClientes(\''+r.Fecha+'\')" title="Clic para ver los clientes de ese día"><td class="l"><b>'+ncFechaFmt(r.Fecha)+'</b></td><td>'+fmtN(r.Dadas)+'</td><td>'+fmtN(r.Promos)+'</td><td>'+fmtN(r.Clientes)+'</td><td>'+fmtRD(r.Monto)+'</td><td>'+ofExtra(r)+'</td></tr>'; });
+  h+='<tr class="totals"><td class="l">TOTAL</td><td>'+fmtN(T.Dadas)+'</td><td></td><td>'+fmtN(T.Clientes)+'</td><td>'+fmtRD(T.Monto)+'</td><td>'+ofExtra(T)+'</td></tr>';
+  $('#of-tabla').innerHTML=h+'</tbody></table><div class="hint" style="margin-top:8px">👆 Clic en un día para ver los clientes y '+x.p+' de ese día.</div>'+ofHintOrden;
+}
+function ofRenderClientes(){
+  const x=OFT(), j=OF_DRILL.clientes; ofCrumbsDrill(); $('#of-tarjetas').innerHTML='';
+  const T=j.total;
+  $('#of-cards').innerHTML=card(x.dadas,fmtN(T.Dadas),ncFechaFmt(j.fecha))+card('Clientes',fmtN(T.Clientes),'distintos ese día')+card(x.monto,fmtRD(T.Monto),x.montoTip)+card(x.extra,ofExtra(T),'');
+  const rows=ofOrdenar(j.filas,{cliente:r=>r.CliNombre,promo:r=>r.Promo,dadas:r=>r.Dadas,monto:r=>r.Monto,extra:r=>x.extraRD?r.MontoPromo:r.Unidades,pedidos:r=>r.Pedidos},{key:'cliente',dir:1});
+  let h='<table><thead><tr>'+ofTh('cliente','Cliente','l')+ofTh('promo',x.Sing,'l')+ofTh('dadas',x.dadas)+ofTh('monto',x.monto)+ofTh('extra',x.extra)+ofTh('pedidos','Pedido(s)','l')+'</tr></thead><tbody>';
+  rows.forEach(r=>{ h+='<tr><td class="l"><b>'+ofEsc(r.CliCodigo)+'</b> — '+ofEsc(r.CliNombre||'(sin nombre)')+'</td><td class="l" style="white-space:normal">'+ofEsc(r.Promo)+'</td><td>'+fmtN(r.Dadas)+'</td><td>'+fmtRD(r.Monto)+'</td><td>'+ofExtra(r)+'</td><td class="l">'+ofEsc(r.Pedidos)+'</td></tr>'; });
+  h+='<tr class="totals"><td class="l">TOTAL</td><td class="l"></td><td>'+fmtN(T.Dadas)+'</td><td>'+fmtRD(T.Monto)+'</td><td>'+ofExtra(T)+'</td><td class="l"></td></tr>';
+  $('#of-tabla').innerHTML=h+'</tbody></table>'+ofHintOrden;
+}
+
+/* ── 3. Productividad ── */
+function ofRenderProd(j){
+  const x=OFT(), r=j.resumen||{}, t=j.tarjetas||{}, pr=j.promos||[];
+  $('#of-crumbs').innerHTML='';
+  $('#of-cards').innerHTML=card(x.P+' vigentes',fmtN(r.PromosVigentes),'en el rango')+card('Con uso',fmtN(r.PromosConUso),'se aplicaron al menos 1 vez')+
+    card(x.dadas,fmtN(r.Dadas),'total en el rango')+card('Clientes impactados',fmtN(r.Clientes),'distintos')+
+    card(x.monto,fmtRD(r.Monto),x.montoTip)+(OF_TIPO==='descuentos'?card('Monto descontado',fmtRD(r.MontoPromo),'rebajado en precio'):'')+
+    card('Vendedores que dieron',fmtN(r.VendedoresQueDieron),'al menos 1 '+x.s);
+  const li=(arr,fnNom,fnSub,fnVal,fnVal2)=>arr.length?arr.map((a,i)=>'<div class="of-li"><span class="n">'+(i+1)+'</span><span class="nm"><b title="'+ofEsc(fnNom(a))+'">'+ofEsc(fnNom(a))+'</b><span>'+ofEsc(fnSub(a))+'</span></span><span class="v">'+fnVal(a)+'<small>'+fnVal2(a)+'</small></span></div>').join(''):'<div class="mini" style="padding:6px 0">Sin datos en el rango.</div>';
+  const vN=a=>a.RepCodigo+' - '+a.Vendedor, vS=a=>a.Supervisor+(a.Centro?' · '+a.Centro:''), vV=a=>fmtN(a.Dadas)+' '+(a.Dadas===1?x.s:x.p), vV2=a=>fmtN(a.Clientes)+' clientes · '+fmtRD(a.Monto);
+  const pN=a=>a.Nombre, pS=a=>(a.Estado||'')+(a.Inicio?' · '+a.Inicio.slice(5)+' → '+(a.Fin?a.Fin.slice(5):'…'):''), pV=a=>fmtN(a.Dadas)+' veces', pV2=a=>fmtN(a.Clientes)+' clientes · '+fmtRD(a.Monto);
+  $('#of-tarjetas').innerHTML='<div class="of-grid">'+
+    '<div class="of-box of-top"><h4>🏆 Top 5 vendedores <small>más '+x.p+' dad'+(OF_TIPO==='ofertas'?'as':'os')+'</small></h4>'+li(t.topVendedores||[],vN,vS,vV,vV2)+'</div>'+
+    '<div class="of-box of-last"><h4>⚠ Last 5 vendedores <small>menos '+x.p+' · con pedidos en el rango</small></h4>'+li(t.lastVendedores||[],vN,vS,vV,a=>fmtN(a.Pedidos)+' pedidos · '+fmtN(a.Clientes)+' clientes')+'</div>'+
+    '<div class="of-box of-top"><h4>🏆 Top 3 '+x.p+' <small>más activad'+(OF_TIPO==='ofertas'?'as':'os')+'</small></h4>'+li(t.topPromos||[],pN,pS,pV,pV2)+'</div>'+
+    '<div class="of-box of-last"><h4>⚠ Last 3 '+x.p+' <small>menos activad'+(OF_TIPO==='ofertas'?'as':'os')+' (vigentes)</small></h4>'+li(t.lastPromos||[],pN,pS,pV,pV2)+'</div></div>';
+  if(!pr.length){ $('#of-tabla').innerHTML='<div class="hint">No hay '+x.p+' en ese rango con esos filtros.</div>'; return; }
+  const mx=Math.max(1,...pr.map(p=>p.Dadas));
+  const rows=ofOrdenar(pr,{nombre:p=>p.Nombre,inicio:p=>p.Inicio||'',suplidor:p=>p.Suplidor,dadas:p=>p.Dadas,clientes:p=>p.Clientes,monto:p=>p.Monto,extra:p=>x.extraRD?p.MontoPromo:p.Unidades,vend:p=>p.VendedoresQueDieron,cob:p=>p.CoberturaPct},{key:'dadas',dir:-1});
+  let h='<table><thead><tr><th>#</th>'+ofTh('nombre',x.Sing,'l')+ofTh('inicio','Vigencia','l')+ofTh('suplidor','Suplidor','l')+ofTh('dadas',x.dadas)+ofTh('clientes','Clientes impactados')+ofTh('monto',x.monto,'',x.montoTip)+ofTh('extra',x.extra)+ofTh('vend','Vendedores que la dieron')+ofTh('cob','Cobertura %')+'</tr></thead><tbody>';
+  rows.forEach((p,i)=>{
+    h+='<tr class="of-click" onclick="ofIrADadas(\''+ofEsc(p.Id)+'\')" title="Clic para ver «Cantidad dadas» de '+x.artS+'"><td>'+(i+1)+'</td><td class="l" style="white-space:normal;min-width:230px"><b>'+ofEsc(p.Nombre)+'</b><div class="mini"><span class="of-badge '+ofEstadoCls(p.Estado)+'">'+ofEsc(p.Estado)+'</span> ID '+ofEsc(p.Id)+'</div></td>'+
+       '<td class="l">'+(p.Inicio?p.Inicio.slice(5)+' → '+(p.Fin?p.Fin.slice(5):'…'):'—')+'<div class="mini">'+fmtN(p.DiasVigentes)+' días en el rango</div></td><td class="l" style="white-space:normal">'+ofEsc(p.Suplidor)+'</td>'+
+       '<td><b>'+fmtN(p.Dadas)+'</b>'+ofBar(p.Dadas*100/mx)+'</td><td>'+fmtN(p.Clientes)+'</td><td>'+fmtRD(p.Monto)+'</td><td>'+ofExtra(p)+'</td>'+
+       '<td>'+fmtN(p.VendedoresQueDieron)+' de '+fmtN(p.Elegibles)+'</td><td>'+ofPct(p.CoberturaPct)+ofBar(p.CoberturaPct,true)+'</td></tr>';
+  });
+  $('#of-tabla').innerHTML=h+'</tbody></table><div class="hint" style="margin-top:8px">Cobertura = vendedores que la dieron ÷ vendedores (con cartera) a quienes aplica. «Last 5 vendedores» considera solo vendedores a los que aplica alguna promoción y que tuvieron pedidos en el rango. 👆 Clic en una fila para ver su «Cantidad dadas».</div>'+ofHintOrden;
+}
+
+/* ── 4. Representantes: Centro › Supervisor › Vendedor, y debajo de cada uno TODAS las promociones que le aplican ── */
+function ofRepNivel(){
+  let lista=OFDATA.centros||[], nivel='centro'; const padres=[];
+  for(const p of OF_REPPATH){
+    const n=lista.find(z=>z.Clave===p.clave); if(!n) break; padres.push(n);
+    if(nivel==='centro'){ lista=n.Hijos; nivel='supervisor'; } else if(nivel==='supervisor'){ lista=n.Hijos; nivel='vendedor'; } else { lista=[n]; nivel='hoja'; }
+  }
+  return {lista,nivel,padres};
+}
+function ofRepDrill(clave,nombre){ OF_REPPATH.push({clave,nombre}); OF_SORT=null; OF_COLAPSO=null; ofRenderActual(); }
+function ofRepIr(i){ OF_REPPATH=OF_REPPATH.slice(0,i); OF_SORT=null; OF_COLAPSO=null; ofRenderActual(); }
+function ofColapsar(si){ OF_COLAPSO=si?new Set(ofRepNivel().lista.map(e=>e.Clave)):new Set(); ofRenderActual(); }
+function ofCeros(v){ OF_CEROS=v; ofRenderActual(); }
+function ofToggleBloque(clave){ if(!OF_COLAPSO) OF_COLAPSO=new Set(); OF_COLAPSO.has(clave)?OF_COLAPSO.delete(clave):OF_COLAPSO.add(clave); ofRenderActual(); }
+function ofRenderReps(){
+  const x=OFT(); const {lista,nivel,padres}=ofRepNivel();
+  const nombreNivel={centro:'Centro de distribución',supervisor:'Supervisor',vendedor:'Vendedor',hoja:'Vendedor'}[nivel];
+  let c=OF_REPPATH.length?'<span class="crumb" onclick="ofRepIr(0)">‹ Todos los centros</span>':'<span class="crumb cur">Todos los centros</span>';
+  padres.forEach((p,i)=>{ c+=' › '+(i===padres.length-1?'<span class="crumb cur">'+ofEsc(p.Nombre)+'</span>':'<span class="crumb" onclick="ofRepIr('+(i+1)+')">'+ofEsc(p.Nombre)+'</span>'); });
+  $('#of-crumbs').innerHTML=c;
+  $('#of-tarjetas').innerHTML='';
+  const tot=lista.reduce((a,e)=>{ a.d+=e.Dadas; a.m+=e.Monto; a.u+=e.Unidades; a.md+=e.MontoPromo; a.v+=e.Vendedores; return a; },{d:0,m:0,u:0,md:0,v:0});
+  const cli=lista.reduce((a,e)=>a+e.Clientes,0);   // referencia (suma por entidad; un cliente puede repetirse entre entidades)
+  $('#of-cards').innerHTML=card(nombreNivel+(lista.length===1?'':'s'),fmtN(lista.length),OF_REPPATH.length?'dentro de '+ofEsc(padres[padres.length-1].Nombre):'en alcance')+
+    card(x.dadas,fmtN(tot.d),'suma de lo listado')+card('Clientes impactados',fmtN(cli),'suma por '+nombreNivel.toLowerCase())+card(x.monto,fmtRD(tot.m),x.montoTip)+
+    card(x.extra,x.extraRD?fmtRD(tot.md):fmtN(tot.u),'')+card(x.P+' en alcance',fmtN(OFDATA.promosEnAlcance),'según los filtros');
+  if(!lista.length){ $('#of-tabla').innerHTML='<div class="hint">Sin datos con esos filtros.</div>'; return; }
+  // por defecto: todo desplegado salvo que haya demasiadas filas (se arranca contraído y se expande lo que se quiera ver)
+  if(OF_COLAPSO===null){ const filas=lista.reduce((a,e)=>a+e.Promos.length,0); OF_COLAPSO=filas>250?new Set(lista.map(e=>e.Clave)):new Set(); }
+  const accE={nombre:e=>e.Nombre,vendedores:e=>e.Vendedores,aplican:e=>e.PromosAplican,dadas:e=>e.Dadas,clientes:e=>e.Clientes,monto:e=>e.Monto,extra:e=>x.extraRD?e.MontoPromo:e.Unidades};
+  const accP={nombre:p=>p.Promo,dadas:p=>p.Dadas,clientes:p=>p.Clientes,monto:p=>p.Monto,extra:p=>x.extraRD?p.MontoPromo:p.Unidades};
+  let h='<table><thead><tr>'+ofTh('nombre',nombreNivel+' / '+x.Sing,'l')+ofTh('vendedores','Vendedores')+ofTh('aplican',x.P+' que aplican')+ofTh('dadas',x.dadas)+ofTh('clientes','Clientes impactados')+ofTh('monto',x.monto,'',x.montoTip)+ofTh('extra',x.extra)+'</tr></thead><tbody>';
+  ofOrdenar(lista,accE,{key:'dadas',dir:-1}).forEach(e=>{
+    const col=OF_COLAPSO.has(e.Clave);
+    const drill=nivel!=='hoja';
+    h+='<tr class="of-ent"><td class="l"><span class="of-caret" onclick="ofToggleBloque(\''+ofEsc(e.Clave).replace(/\\/g,'\\\\')+'\')" title="Contraer/expandir">'+(col?'▸':'▾')+'</span>'+
+       (drill?'<a onclick="ofRepDrill(\''+ofEsc(e.Clave).replace(/\\/g,'\\\\')+'\',\''+ofEsc(e.Nombre).replace(/\\/g,'\\\\')+'\')" title="Clic para bajar un nivel">'+ofEsc(e.Nombre)+' ›</a>':ofEsc(e.Nombre))+
+       (e.Sub?'<span class="mini"> · '+ofEsc(e.Sub)+'</span>':'')+'</td><td>'+fmtN(e.Vendedores)+'</td><td>'+fmtN(e.PromosUsadas)+' usadas de '+fmtN(e.PromosAplican)+'</td><td>'+fmtN(e.Dadas)+'</td><td>'+fmtN(e.Clientes)+'</td><td>'+fmtRD(e.Monto)+'</td><td>'+(x.extraRD?fmtRD(e.MontoPromo):fmtN(e.Unidades))+'</td></tr>';
+    if(col) return;
+    let ps=e.Promos; const maxD=ps.length?Math.max(...ps.map(p=>p.Dadas)):0, minD=ps.length?Math.min(...ps.map(p=>p.Dadas)):0;
+    if(!OF_CEROS) ps=ps.filter(p=>p.Dadas>0);
+    ofOrdenar(ps,accP,{key:'dadas',dir:-1}).forEach(p=>{
+      const mas=maxD>0&&p.Dadas===maxD&&minD<maxD, menos=minD<maxD&&p.Dadas===minD;
+      h+='<tr class="of-pr'+(mas?' of-mas':menos?' of-menos':'')+(p.Dadas===0?' of-cero':'')+'"><td class="l">'+ofEsc(p.Promo)+(mas?'<span class="of-tag m">▲ más usada</span>':menos?'<span class="of-tag n">▼ menos usada</span>':'')+' <span class="of-badge '+ofEstadoCls(p.Estado)+'" style="font-size:9px">'+ofEsc(p.Estado)+'</span></td><td></td><td></td><td>'+fmtN(p.Dadas)+ofBar(maxD?p.Dadas*100/maxD:0)+'</td><td>'+fmtN(p.Clientes)+'</td><td>'+fmtRD(p.Monto)+'</td><td>'+(x.extraRD?fmtRD(p.MontoPromo):fmtN(p.Unidades))+'</td></tr>';
+    });
+  });
+  $('#of-tabla').innerHTML=h+'</tbody></table><div class="hint" style="margin-top:8px">'+(nivel==='hoja'?'':'👆 Clic en el nombre para bajar de nivel ('+(nivel==='centro'?'supervisores':nivel==='supervisor'?'vendedores':'detalle del vendedor')+'). ')+'Bajo cada uno se listan <b>todas</b> las '+x.p+' que le aplican (ordenadas de la más a la menos usada; verde = la más usada, ámbar = la menos usada). ▾/▸ contrae o expande el bloque.</div>'+ofHintOrden;
+}
+
+/* ── Excel / PDF (exportan lo que se está viendo) ── */
+function excelOF(){
+  if(!OFDATA){ alert('Genera el informe primero.'); return; }
+  const x=OFT(), j=OFDATA;
+  ensureXLSX(()=>{
+    const titulo=EMP+' — '+x.P+' · '+ofNomVista();
+    const head=[[titulo],['Rango',$('#of-ini').value+' a '+$('#of-fin').value],['Generado',new Date().toLocaleString('es-DO')],[]];
+    let H, rows, hoja='Detalle', extraHojas=[];
+    if(OF_VISTA==='lista'){
+      H=['ID','Nombre','Inicio','Fin','Estado','Suplidor','Categoría(s)','Canal','Centro de distribución','Vendedores que aplican'];
+      rows=ofOrdenar(j.filas||[],{nombre:r=>r.Nombre,inicio:r=>r.Inicio,fin:r=>r.Fin||'9999',estado:r=>r.Estado,suplidor:r=>r.Suplidor,categoria:r=>r.Categoria,canal:r=>r.Canal,centro:r=>r.Centro,vendedores:r=>r.Vendedores},null)
+        .map(r=>[r.Id,r.Nombre,r.Inicio,r.Fin,r.Estado,r.Suplidor,r.Categoria,r.Canal,r.Centro,r.Vendedores]);
+    } else if(OF_VISTA==='dadas' && OF_DRILL && OF_DRILL.clientes){
+      const d=OF_DRILL.clientes; hoja='Clientes del día';
+      head.push(['Vendedor',OF_DRILL.nom],['Fecha',d.fecha],[]);
+      H=['Código cliente','Cliente',x.Sing,x.dadas,x.monto,x.extra,'Pedido(s)'];
+      rows=d.filas.map(r=>[r.CliCodigo,r.CliNombre,r.Promo,r.Dadas,r.Monto,x.extraRD?r.MontoPromo:r.Unidades,r.Pedidos]);
+    } else if(OF_VISTA==='dadas' && OF_DRILL && OF_DRILL.dias){
+      const d=OF_DRILL.dias; hoja='Por día';
+      head.push(['Vendedor',OF_DRILL.nom],[]);
+      H=['Fecha',x.dadas,x.P+' distintas','Clientes impactados',x.monto,x.extra];
+      rows=d.filas.map(r=>[r.Fecha,r.Dadas,r.Promos,r.Clientes,r.Monto,x.extraRD?r.MontoPromo:r.Unidades]);
+    } else if(OF_VISTA==='dadas'){
+      H=['Nivel','Supervisor','Código vendedor','Vendedor','Centro',x.Sing,x.dadas,'Clientes impactados',x.monto,x.extra,'Clientes asignados','Incidencia %'];
+      rows=(j.filas||[]).map(r=>[r.Nivel,r.Supervisor,r.RepCodigo,r.Vendedor,r.Centro,r.Promo,r.Dadas,r.Clientes,r.Monto,x.extraRD?r.MontoPromo:r.Unidades,r.Asignados,r.IncidenciaPct]);
+    } else if(OF_VISTA==='productividad'){
+      H=['#','ID',x.Sing,'Inicio','Fin','Estado','Suplidor','Días vigente en rango',x.dadas,'Clientes impactados',x.monto,x.extra,'Vendedores que la dieron','Vendedores a quienes aplica','Cobertura %'];
+      rows=(j.promos||[]).map((p,i)=>[i+1,p.Id,p.Nombre,p.Inicio,p.Fin,p.Estado,p.Suplidor,p.DiasVigentes,p.Dadas,p.Clientes,p.Monto,x.extraRD?p.MontoPromo:p.Unidades,p.VendedoresQueDieron,p.Elegibles,p.CoberturaPct]);
+      if(j.tarjetas){
+        const T=j.tarjetas, vend=a=>[a.RepCodigo,a.Vendedor,a.Supervisor,a.Centro,a.Dadas,a.Clientes,a.Monto,a.Pedidos];
+        extraHojas.push(['Top y Last',[['TOP 5 VENDEDORES'],['Código','Vendedor','Supervisor','Centro','Dadas','Clientes','Monto','Pedidos']].concat((T.topVendedores||[]).map(vend))
+          .concat([[],['LAST 5 VENDEDORES (con pedidos en el rango)'],['Código','Vendedor','Supervisor','Centro','Dadas','Clientes','Monto','Pedidos']]).concat((T.lastVendedores||[]).map(vend))
+          .concat([[],['TOP 3 '+x.P.toUpperCase()],['ID','Nombre','Dadas','Clientes','Monto']]).concat((T.topPromos||[]).map(p=>[p.Id,p.Nombre,p.Dadas,p.Clientes,p.Monto]))
+          .concat([[],['LAST 3 '+x.P.toUpperCase()],['ID','Nombre','Dadas','Clientes','Monto']]).concat((T.lastPromos||[]).map(p=>[p.Id,p.Nombre,p.Dadas,p.Clientes,p.Monto]))]);
+      }
+    } else {
+      const {lista,nivel}=ofRepNivel(); hoja='Representantes'; rows=[];
+      head.push(['Ruta',['Todos'].concat(OF_REPPATH.map(p=>p.nombre)).join(' › ')],[]);
+      H=[{centro:'Centro',supervisor:'Supervisor',vendedor:'Vendedor',hoja:'Vendedor'}[nivel],'Fila',x.Sing,'Estado',x.dadas,'Clientes impactados',x.monto,x.extra,'Vendedores',x.P+' que aplican'];
+      lista.forEach(e=>{
+        rows.push([e.Nombre,'TOTAL','','',e.Dadas,e.Clientes,e.Monto,x.extraRD?e.MontoPromo:e.Unidades,e.Vendedores,e.PromosAplican]);
+        e.Promos.forEach(p=>rows.push([e.Nombre,x.Sing,p.Promo,p.Estado,p.Dadas,p.Clientes,p.Monto,x.extraRD?p.MontoPromo:p.Unidades,'','']));
+      });
+    }
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(head.concat([H]).concat(rows)),hoja);
+    extraHojas.forEach(([n,aoa])=>XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(aoa),n));
+    XLSX.writeFile(wb,x.p+'_'+OF_VISTA+'_'+$('#of-ini').value+'.xlsx');
+  });
+}
+function pdfOF(){
+  if(!OFDATA){ alert('Genera el informe primero.'); return; }
+  histExportarPDF({ bandNode:$('#of-print-head'), blockNodes:[$('#of-cards'),$('#of-tarjetas'),$('#of-crumbs'),$('#of-tabla')],
+    filename:OFT().p+'_'+OF_VISTA+'_'+$('#of-ini').value+'.pdf', footerTxt:EMP+' — '+OFT().P, botonIds:['of-btn-pdf'] });
+}
+</script>

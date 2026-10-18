@@ -1,0 +1,88 @@
+================================================================
+   INSTALACIÓN DEL SISTEMA DE INMUEBLES  (v5)
+   Guía paso a paso para una computadora nueva
+================================================================
+
+Este paquete instala TODO: base de datos, sistema web y el módulo
+"En línea con mis clientes" (WhatsApp).
+
+----------------------------------------------------------------
+QUÉ COPIAR A LA PC NUEVA
+----------------------------------------------------------------
+Copia la carpeta COMPLETA "Sistema de Condominios" a la PC nueva.
+Recomendado pegarla en:   C:\Sistema de Condominios
+(Dentro va este INSTALADOR, web-app-v5 y en-linea-con-mis-clientes.)
+
+================================================================
+  PASO 1 — INSTALAR LOS 3 REQUISITOS (una sola vez)
+================================================================
+El sistema necesita 3 programas base. Tienes dos opciones:
+
+  OPCIÓN A (automática, recomendada para Node y .NET):
+     Haz clic derecho en  REQUISITOS_AUTO.bat  →  "Ejecutar como
+     administrador".  Instala Node.js y .NET 8 SDK solos.
+
+  OPCIÓN B (manual): descarga e instala:
+     1) PostgreSQL 18      -> https://www.postgresql.org/download/windows/
+     2) .NET 8 SDK         -> https://dotnet.microsoft.com/download/dotnet/8.0
+     3) Node.js LTS        -> https://nodejs.org/  (versión LTS)
+
+>>> POSTGRESQL SE INSTALA SIEMPRE A MANO (por la contraseña) <<<
+   Al instalar PostgreSQL, MUY IMPORTANTE usar EXACTAMENTE:
+        • Contraseña del usuario "postgres":   kina5468
+        • Puerto:                              5432
+   (Si pones otra contraseña, el sistema no conectará.)
+   El resto de opciones: siguiente, siguiente, finalizar.
+
+================================================================
+  PASO 2 — INSTALAR EL SISTEMA (automático)
+================================================================
+Con los 3 requisitos ya instalados:
+
+   Haz clic derecho en  INSTALAR.bat  →  "Ejecutar como administrador".
+
+Este instalador hace TODO solo:
+   • Crea la base de datos "inmuebles_rd" y restaura todos los datos.
+   • Instala las dependencias del sistema y del módulo de WhatsApp.
+   • Compila/publica la API.
+   • Crea 2 accesos directos en el Escritorio.
+
+Puede tardar varios minutos (descarga componentes). Ten paciencia.
+
+================================================================
+  PASO 3 — USAR EL SISTEMA
+================================================================
+En el Escritorio quedarán 2 íconos:
+
+   • "Sistema Inmuebles V5"        -> abre el sistema (web).
+        Usuario y contraseña: los mismos de siempre.
+        Se abre en el navegador en http://localhost:5175
+
+   • "En Linea con mis clientes"   -> abre el módulo de WhatsApp.
+        La 1ra vez escanea el código QR con el teléfono dedicado.
+
+   Deja abiertas las ventanas negras mientras uses el sistema.
+
+================================================================
+  ACCESO REMOTO (2-3 personas)
+================================================================
+   • En la MISMA red/oficina: las otras PC entran por el navegador a
+        http://IP-DEL-SERVIDOR:5175   (averigua la IP con "ipconfig")
+   • Desde FUERA: instala Tailscale en el servidor y en las PC remotas
+        (gratis) y úsalo para conectarse de forma segura.
+
+================================================================
+  RESPALDOS
+================================================================
+   • Para sacar un respaldo nuevo de los datos en cualquier momento,
+     ejecuta  CREAR_RESPALDO.bat  (genera respaldo_bd.backup).
+   • Guarda ese archivo en un lugar seguro / nube periódicamente.
+
+================================================================
+  NOTAS
+================================================================
+   • La PC servidor debe quedar ENCENDIDA para que:
+        - El proceso nocturno (1:00 AM) genere CxC y recalcule mora.
+        - Los recordatorios de WhatsApp salgan en su día/hora.
+   • Plan de energía: "Alto rendimiento", sin suspensión.
+================================================================

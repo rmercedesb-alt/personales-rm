@@ -1,0 +1,231 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.BackupModel
+@{ ViewData["Title"] = "Backup y Restauración"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-shield-check"></i> Backup y Restauración</div>
+        <div class="page-subtitle">Gestione copias de seguridad de toda la data del sistema</div>
+    </div>
+</div>
+
+<!-- ── ACCIONES RÁPIDAS ──────────────────────────────────────────────── -->
+<div class="row g-3 mb-4">
+
+    <!-- Crear Backup -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100" style="border-left:4px solid #198754">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-cloud-arrow-up fs-1 text-success"></i>
+                <h5 class="mt-2 fw-bold">Crear Backup</h5>
+                <p class="text-muted small">Guarda una copia de seguridad de toda la data actual del sistema.</p>
+                <form method="post" asp-page-handler="CrearBackup">
+                    <button type="submit" class="btn btn-success w-100"
+                            onclick="return confirmarAccion('¿Crear un backup de la data actual?')">
+                        <i class="bi bi-save"></i> Crear Backup Ahora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exportar Excel Completo -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100" style="border-left:4px solid #0a2463">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-file-earmark-excel fs-1" style="color:#0a2463"></i>
+                <h5 class="mt-2 fw-bold">Exportar Data Completa</h5>
+                <p class="text-muted small">Descarga un Excel con las 9 tablas del sistema: Facturas, Pagos, Compañías, Clientes, Caja, Cuadre de Caja, Egresos e Ingresos de Capital.</p>
+                <a href="?handler=ExportarExcel" class="btn btn-primary-app w-100">
+                    <i class="bi bi-download"></i> Descargar Excel Completo
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info -->
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100" style="border-left:4px solid #fd7e14">
+            <div class="card-body py-4">
+                <i class="bi bi-info-circle fs-1 text-warning"></i>
+                <h5 class="mt-2 fw-bold">¿Cómo funciona?</h5>
+                <ul class="small text-muted ps-3">
+                    <li>Los backups se guardan en el servidor local</li>
+                    <li>Cada backup incluye las 9 tablas: Facturas, Pagos, Compañías, Clientes, Caja, Cuadre de Caja, Egresos e Ingresos de Capital</li>
+                    <li>Al restaurar, se crea un backup de seguridad automático</li>
+                    <li>Los usuarios <strong>NO</strong> se restauran (por seguridad)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MANTENIMIENTO BASE DE DATOS ───────────────────────────────────── -->
+<div class="card shadow-sm mb-4" style="border-left:4px solid #6610f2">
+    <div class="card-header fw-bold" style="background:#6610f2;color:white">
+        <i class="bi bi-database-gear"></i> Mantenimiento de Base de Datos (Google Sheets)
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-8">
+                <h6 class="fw-bold mb-1">Corregir Encabezados y Formato de Tablas</h6>
+                <p class="text-muted small mb-0">
+                    Actualiza los encabezados de todas las hojas del sistema con sus nombres correctos
+                    (incluyendo columnas añadidas en v1.1) y aplica formato profesional:
+                    <strong>encabezado en negrita con color</strong>, <strong>fila fija</strong>,
+                    <strong>filtros automáticos</strong> y <strong>filas alternas</strong> en color.
+                    Es seguro ejecutarlo múltiples veces.
+                </p>
+                <div class="mt-2">
+                    <span class="badge bg-light text-dark border me-1">PAGOS (18 cols)</span>
+                    <span class="badge bg-light text-dark border me-1">FACTURAS (17 cols)</span>
+                    <span class="badge bg-light text-dark border me-1">COMPANIAS (8 cols)</span>
+                    <span class="badge bg-light text-dark border me-1">CLIENTES (6 cols)</span>
+                    <span class="badge bg-light text-dark border">USUARIOS (8 cols)</span>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex align-items-center">
+                <form method="post" asp-page-handler="FormatearHojas" class="w-100">
+                    <button type="submit" class="btn w-100"
+                            style="background:#6610f2;color:white;border:none"
+                            onclick="return confirm('¿Aplicar formato de tabla a todas las hojas de Google Sheets?\n\nEsto corregirá los encabezados y aplicará colores y filtros.')">
+                        <i class="bi bi-table"></i> Formatear Tablas Ahora
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── LISTA DE BACKUPS ──────────────────────────────────────────────── -->
+<div class="card shadow-sm">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white;">
+        <i class="bi bi-archive"></i> Backups Disponibles
+        <span class="badge bg-light text-dark ms-2">@Model.Backups.Count archivos</span>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Backups.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-archive fs-1 opacity-25"></i>
+                <p class="mt-2">No hay backups todavía. Cree el primero ahora.</p>
+            </div>
+        }
+        else
+        {
+            <table class="table table-app table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Fecha y Hora</th>
+                        <th>Tamaño</th>
+                        <th>Tipo</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var b in Model.Backups)
+                {
+                    <tr>
+                        <td>
+                            <i class="bi bi-file-earmark-zip text-primary me-1"></i>
+                            <strong>@b.NombreLegible</strong>
+                            <br/><small class="text-muted">@b.NombreArchivo</small>
+                        </td>
+                        <td>@b.FechaFormateada</td>
+                        <td>@b.TamanoKB KB</td>
+                        <td>
+                            @if (b.EsAutoSeguridad)
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-shield-lock"></i> Auto-Seguridad
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success">
+                                    <i class="bi bi-person-check"></i> Manual
+                                </span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <!-- Descargar como Excel -->
+                            <a href="?handler=DescargarBackup&archivo=@b.NombreArchivo"
+                               class="btn btn-sm btn-outline-primary" title="Descargar como Excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </a>
+
+                            <!-- Restaurar -->
+                            <button class="btn btn-sm btn-outline-warning"
+                                    title="Restaurar este backup"
+                                    onclick="confirmarRestauracion('@b.NombreArchivo', '@b.FechaFormateada')">
+                                <i class="bi bi-arrow-counterclockwise"></i>
+                            </button>
+
+                            <!-- Eliminar -->
+                            <form method="post" asp-page-handler="Eliminar" class="d-inline">
+                                <input type="hidden" name="archivo" value="@b.NombreArchivo"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        title="Eliminar backup"
+                                        onclick="return confirmarAccion('¿Eliminar este backup? Esta acción no se puede deshacer.')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<!-- ── MODAL DE RESTAURACIÓN ─────────────────────────────────────────── -->
+<div class="modal fade" id="modalRestaurar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill"></i> ¡Advertencia de Restauración!
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <strong>⚠️ ATENCIÓN:</strong> Está a punto de restaurar el sistema al estado del backup:
+                    <br/><strong id="info-backup-fecha" class="fs-6"></strong>
+                </div>
+                <p>Al restaurar:</p>
+                <ul>
+                    <li>Todos los datos actuales de <strong>Facturas, Pagos, Compañías y Clientes</strong> serán reemplazados.</li>
+                    <li>Los datos ingresados <strong>después de ese backup se perderán</strong>.</li>
+                    <li class="text-success"><strong>✅ El sistema creará un backup de seguridad automático</strong> antes de restaurar.</li>
+                    <li>Los <strong>Usuarios</strong> NO serán afectados.</li>
+                </ul>
+                <div class="alert alert-info mt-2">
+                    <i class="bi bi-shield-check"></i> Si algo sale mal, podrá restaurar el backup de seguridad automático.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <form method="post" asp-page-handler="Restaurar" id="formRestaurar">
+                    <input type="hidden" id="input-archivo-restaurar" name="archivo" value=""/>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-arrow-counterclockwise"></i> Sí, Restaurar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function confirmarRestauracion(archivo, fecha) {
+    document.getElementById('input-archivo-restaurar').value = archivo;
+    document.getElementById('info-backup-fecha').textContent = fecha;
+    new bootstrap.Modal(document.getElementById('modalRestaurar')).show();
+}
+</script>
+}

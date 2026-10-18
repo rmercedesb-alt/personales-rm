@@ -1,0 +1,67 @@
+@model List<PorfiAcademy.Controllers.SubscriberRow>
+@using PorfiAcademy.Data
+@{
+    ViewData["Title"] = "Suscripciones";
+    var plans = (List<Plan>)ViewBag.Plans;
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Suscripciones</h1>
+
+    <h2>Dar acceso manualmente</h2>
+    <p class="hint">Suma días de acceso a un usuario que ya creó su cuenta. Si tiene acceso vigente, los días se agregan al final.</p>
+    <form asp-action="Grant" method="post" class="row-form">
+        <div><label for="gemail">Correo del usuario</label><input id="gemail" name="email" type="email" required /></div>
+        <div>
+            <label for="gplan">Plan</label>
+            <select id="gplan" name="planId">
+                @foreach (var p in plans) { <option value="@p.Id">@p.Name (@p.DurationDays d)</option> }
+            </select>
+        </div>
+        <div><label for="gdays">Días (opcional)</label><input id="gdays" name="days" type="number" min="1" max="3650" placeholder="los del plan" /></div>
+        <div><label for="gnote">Nota</label><input id="gnote" name="note" maxlength="300" /></div>
+        <div style="flex:none"><button class="btn mini" type="submit">Activar acceso</button></div>
+    </form>
+
+    <h2>Usuarios</h2>
+    <form method="get" class="row-form">
+        <div><input name="q" value="@ViewBag.Query" placeholder="Buscar por correo" /></div>
+        <div style="flex:none"><button class="btn ghost mini" type="submit">Buscar</button></div>
+    </form>
+
+    @if (Model.Count == 0)
+    {
+        <p class="hint">No hay usuarios todavía.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Correo</th><th>Tipo</th><th>Estado</th><th>Plan</th><th>Acceso hasta</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td>@r.Email</td>
+                    <td>@if (r.IsAdmin) { <span class="tag paid">Administrador</span> } else { <span class="tag">Cliente</span> }</td>
+                    <td>@(r.IsAdmin ? "Acceso total" : "")@if (!r.IsAdmin) { <span class="pill-status s-@r.Status">@r.Status</span> }</td>
+                    <td>@(r.PlanName ?? "—")</td>
+                    <td>@(r.PaidUntil is DateTime d ? d.ToLocalTime().ToString("dd/MM/yyyy") : "—")</td>
+                    <td class="actions">
+                        @if (r.Status == "Activo")
+                        {
+                            <form asp-action="Revoke" method="post" class="inline" onsubmit="return confirm('¿Suspender el acceso de pago de @r.Email?');">
+                                <input type="hidden" name="userId" value="@r.UserId" />
+                                <button type="submit" class="linkbtn">Suspender</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</section>

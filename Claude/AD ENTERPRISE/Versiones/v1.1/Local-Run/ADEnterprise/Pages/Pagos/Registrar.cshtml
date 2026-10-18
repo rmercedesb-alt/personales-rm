@@ -1,0 +1,531 @@
+@page
+@model ADEnterprise.Pages.Pagos.RegistrarModel
+@{ ViewData["Title"] = "Registrar Recibo de Pago"; }
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <div class="page-title mb-0"><i class="bi bi-receipt-cutoff"></i> Registrar Recibo de Pago</div>
+    <span class="badge bg-primary ms-2">v1.1</span>
+</div>
+<p class="page-subtitle">Ingrese el instrumento de pago, agregue facturas y/o abonos a cuenta. El total aplicado debe cuadrar con el monto del instrumento.</p>
+
+<form method="post" id="frmRecibo">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Input.DetalleJson" id="hDetalleJson" />
+
+<!-- ═══════════════════════════════════════════════════════
+     ENCABEZADO DEL RECIBO
+═══════════════════════════════════════════════════════════ -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-journal-check"></i> Encabezado del Instrumento de Pago
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Fecha <span class="text-danger">*</span></label>
+                <input asp-for="Input.FechaPago" type="date" class="form-control form-control-sm"
+                       onchange="calcularTotales()" />
+                <span asp-validation-for="Input.FechaPago" class="text-danger small"></span>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Forma de Pago <span class="text-danger">*</span></label>
+                <select asp-for="Input.FormaPago" id="selFormaPago"
+                        class="form-select form-select-sm" onchange="toggleRef()">
+                    <option value="Cheque">Cheque</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Deposito">Depósito</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Abono">Abono</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Monto Total del Instrumento (RD$) <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">RD$</span>
+                    <input asp-for="Input.MontoInstrumento" id="inpMontoInstrumento"
+                           type="number" step="0.01" min="0.01"
+                           class="form-control fw-bold"
+                           placeholder="0.00" onchange="calcularTotales()" oninput="calcularTotales()" />
+                </div>
+                <span asp-validation-for="Input.MontoInstrumento" class="text-danger small"></span>
+            </div>
+            <div class="col-md-2" id="campoRef">
+                <label class="form-label fw-semibold small">N° Cheque / Referencia</label>
+                <input asp-for="Input.NumChequeReferencia" id="inpNumCheque"
+                       class="form-control form-control-sm" placeholder="Núm. cheque o ref. bancaria" />
+                <span asp-validation-for="Input.NumChequeReferencia" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small">Notas del Recibo</label>
+                <input asp-for="Input.Notas" class="form-control form-control-sm"
+                       placeholder="Observaciones generales del pago..." />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYOUT DOS COLUMNAS
+═══════════════════════════════════════════════════════════ -->
+<div class="row g-3 mb-3">
+
+<!-- ── COL IZQ: Facturas disponibles ───────────────────────── -->
+<div class="col-lg-6">
+<div class="card shadow-sm h-100">
+    <div class="card-header d-flex align-items-center justify-content-between"
+         style="background:#e8f0fe;color:var(--azul-marino)">
+        <span class="fw-bold"><i class="bi bi-list-check"></i> Facturas Pendientes</span>
+        <span class="badge bg-secondary" id="lblContFact">0</span>
+    </div>
+    <div class="card-body p-2">
+        <input type="text" id="buscarFact" class="form-control form-control-sm mb-2"
+               placeholder="🔍 Buscar por ticket, empresa, cliente..."/>
+        <div style="max-height:380px;overflow-y:auto">
+        <table class="table table-sm table-hover mb-0" id="tablaFact" style="font-size:.8rem">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th>#Ticket</th><th>Empresa</th><th>Cliente</th>
+                    <th class="text-end">Saldo</th><th>Estado</th><th></th>
+                </tr>
+            </thead>
+            <tbody id="tbodyFact"></tbody>
+        </table>
+        <div id="sinFacturas" class="text-center text-muted py-3 small" style="display:none">
+            No hay facturas pendientes disponibles
+        </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ── COL DER: Detalle del Recibo ─────────────────────────── -->
+<div class="col-lg-6">
+<div class="card shadow-sm h-100">
+    <div class="card-header d-flex align-items-center justify-content-between fw-bold"
+         style="background:var(--azul-marino);color:white">
+        <span><i class="bi bi-receipt"></i> Detalle del Recibo</span>
+        <button type="button" class="btn btn-warning btn-sm py-0 px-2" onclick="agregarFilaAbono()"
+                title="Agregar abono a cuenta de cliente">
+            <i class="bi bi-piggy-bank"></i> + Abono a Cuenta
+        </button>
+    </div>
+    <div class="card-body p-0">
+        <div style="max-height:320px;overflow-y:auto">
+        <table class="table table-sm mb-0" id="tablaDetalle" style="font-size:.8rem">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th style="width:30px">#</th>
+                    <th>Ticket / Tipo</th>
+                    <th>Empresa / Cliente</th>
+                    <th class="text-end" style="width:110px">Aplicado</th>
+                    <th style="width:30px"></th>
+                </tr>
+            </thead>
+            <tbody id="tbodyDetalle"></tbody>
+        </table>
+        <div id="sinDetalle" class="text-center text-muted py-3 small">
+            Agregue facturas desde la tabla de la izquierda o un abono a cuenta
+        </div>
+        </div>
+
+        <!-- Totales -->
+        <div class="border-top px-3 py-2" style="background:#f8f9fa">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">Monto del instrumento:</span>
+                <strong id="lblInstrumento" class="text-primary">RD$ 0.00</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">Total aplicado:</span>
+                <strong id="lblAplicado" class="text-success">RD$ 0.00</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Balance disponible:</span>
+                <strong id="lblBalance" class="fs-6 fw-bold">RD$ 0.00</strong>
+            </div>
+            <div id="alertaBalance" class="alert alert-warning py-1 px-2 mt-1 small mb-0" style="display:none">
+                <i class="bi bi-exclamation-triangle"></i>
+                El total aplicado no cuadra con el instrumento. Ajuste los montos o agregue un abono a cuenta.
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+</div><!-- /row -->
+
+<!-- ═══════════════════════════════════════════════════════
+     ACCIONES
+═══════════════════════════════════════════════════════════ -->
+<div class="d-flex gap-2 justify-content-end">
+    <a href="/Pagos/Consulta" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i> Cancelar
+    </a>
+    <button type="button" class="btn btn-success btn-lg px-4" onclick="confirmarRecibo()">
+        <i class="bi bi-check-circle-fill"></i> Confirmar Recibo
+    </button>
+</div>
+
+</form>
+
+@section Scripts {
+<script>
+// ─── Datos del servidor ───────────────────────────────────────────────────────
+const facturasDisp  = @Html.Raw(Model.FacturasPendientesJson);
+const companiasData = @Html.Raw(Model.CompaniasJson);
+const clientesData  = @Html.Raw(Model.ClientesJson);
+
+// ─── Estado del recibo ────────────────────────────────────────────────────────
+// Cada item: { tipo:'factura'|'abono', numTransaccion, numTicket,
+//              montoAplicado, saldoOriginal, empresaNombre, clienteNombre,
+//              idCompania, idCliente, _uid }
+let detalleItems = [];
+let uidCounter   = 0;
+
+// Pre-cargar si vienen datos (ticket pre-seleccionado)
+try {
+    const preloaded = JSON.parse(document.getElementById('hDetalleJson').value || '[]');
+    if (preloaded.length > 0) {
+        detalleItems = preloaded.map(d => ({ ...d, _uid: ++uidCounter }));
+    }
+} catch(e) {}
+
+// ─── Inicializar ─────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    toggleRef();
+    renderTablaDisponibles();
+    renderTablaDetalle();
+    calcularTotales();
+    document.getElementById('buscarFact').addEventListener('input', function() {
+        filtrarDisponibles(this.value.toLowerCase());
+    });
+});
+
+// ─── Tabla de disponibles ─────────────────────────────────────────────────────
+function renderTablaDisponibles() {
+    filtrarDisponibles(document.getElementById('buscarFact')?.value?.toLowerCase() ?? '');
+}
+
+function filtrarDisponibles(txt) {
+    const tbody = document.getElementById('tbodyFact');
+    // IDs ya en el detalle (solo facturas, no abonos)
+    const idsEnDetalle = new Set(
+        detalleItems.filter(d => d.tipo === 'factura').map(d => d.numTransaccion)
+    );
+    const rows = facturasDisp.filter(f =>
+        !idsEnDetalle.has(f.numTransaccion) && (
+            txt === '' ||
+            String(f.numTicket).includes(txt) ||
+            (f.empresaNombre||'').toLowerCase().includes(txt) ||
+            (f.clienteNombre||'').toLowerCase().includes(txt)
+        )
+    );
+    document.getElementById('lblContFact').textContent = rows.length;
+    if (rows.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('sinFacturas').style.display = '';
+        return;
+    }
+    document.getElementById('sinFacturas').style.display = 'none';
+    tbody.innerHTML = rows.map(f => {
+        const estadoBadge = f.estado === 'Vencida' ? 'bg-danger' :
+                            f.estado === 'PagadoParcial' ? 'bg-warning text-dark' : 'bg-secondary';
+        return `<tr>
+            <td class="fw-bold">#${f.numTicket}</td>
+            <td class="text-truncate" style="max-width:90px" title="${f.empresaNombre}">${f.empresaNombre}</td>
+            <td class="text-truncate" style="max-width:80px" title="${f.clienteNombre}">${f.clienteNombre}</td>
+            <td class="text-end text-danger fw-bold">${fmt(f.saldoPendiente)}</td>
+            <td><span class="badge ${estadoBadge}" style="font-size:.65rem">${f.estado}</span></td>
+            <td>
+                <button type="button" class="btn btn-xs btn-success py-0 px-1"
+                        style="font-size:.7rem" onclick="agregarFactura('${f.numTransaccion}')">
+                    <i class="bi bi-plus-lg"></i> Agregar
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ─── Agregar factura al recibo ────────────────────────────────────────────────
+function agregarFactura(numTransaccion) {
+    const fac = facturasDisp.find(f => f.numTransaccion === numTransaccion);
+    if (!fac) return;
+    if (detalleItems.some(d => d.tipo === 'factura' && d.numTransaccion === numTransaccion)) return;
+
+    detalleItems.push({
+        tipo:           'factura',
+        _uid:           ++uidCounter,
+        numTransaccion: fac.numTransaccion,
+        numTicket:      fac.numTicket,
+        montoAplicado:  fac.saldoPendiente,
+        saldoOriginal:  fac.saldoPendiente,
+        empresaNombre:  fac.empresaNombre,
+        clienteNombre:  fac.clienteNombre,
+        idCompania:     fac.idCompania,
+        idCliente:      fac.idCliente
+    });
+
+    renderTablaDetalle();
+    renderTablaDisponibles();
+    calcularTotales();
+}
+
+// ─── Agregar fila de abono ────────────────────────────────────────────────────
+function agregarFilaAbono() {
+    const instrumento = parseFloat(document.getElementById('inpMontoInstrumento').value) || 0;
+    const aplicado    = detalleItems.reduce((s, d) => s + (d.montoAplicado || 0), 0);
+    const balance     = Math.max(0, instrumento - aplicado);
+
+    detalleItems.push({
+        tipo:           'abono',
+        _uid:           ++uidCounter,
+        numTransaccion: '',
+        numTicket:      0,
+        montoAplicado:  balance > 0 ? balance : 0,
+        saldoOriginal:  0,
+        empresaNombre:  '',
+        clienteNombre:  '',
+        idCompania:     '',
+        idCliente:      ''
+    });
+
+    renderTablaDetalle();
+    calcularTotales();
+}
+
+// ─── Quitar item del recibo ───────────────────────────────────────────────────
+function quitarItem(uid) {
+    const item = detalleItems.find(d => d._uid === uid);
+    detalleItems = detalleItems.filter(d => d._uid !== uid);
+    renderTablaDetalle();
+    if (item && item.tipo === 'factura') renderTablaDisponibles();
+    calcularTotales();
+}
+
+// ─── Cambiar monto aplicado ──────────────────────────────────────────────────
+function cambiarMonto(uid, val) {
+    const item = detalleItems.find(d => d._uid === uid);
+    if (!item) return;
+    const v = parseFloat(val) || 0;
+    item.montoAplicado = Math.max(0, v);  // sin cap — permite cualquier monto
+    calcularTotales();
+}
+
+// ─── Cambiar ticket en abono ──────────────────────────────────────────────────
+function cambiarTicketAbono(uid, val) {
+    const item = detalleItems.find(d => d._uid === uid);
+    if (!item) return;
+    item.numTicket = parseInt(val) || 0;
+}
+
+// ─── Cambiar compañía en abono ────────────────────────────────────────────────
+function cambiarComp(uid, idComp) {
+    const item = detalleItems.find(d => d._uid === uid);
+    if (!item) return;
+    item.idCompania    = idComp;
+    item.empresaNombre = companiasData.find(c => c.id === idComp)?.nombre ?? '';
+}
+
+// ─── Cambiar cliente en abono ─────────────────────────────────────────────────
+function cambiarCli(uid, idCli) {
+    const item = detalleItems.find(d => d._uid === uid);
+    if (!item) return;
+    item.idCliente    = idCli;
+    item.clienteNombre = clientesData.find(c => c.id === idCli)?.nombre ?? '';
+}
+
+// ─── Render tabla detalle ─────────────────────────────────────────────────────
+function renderTablaDetalle() {
+    const tbody  = document.getElementById('tbodyDetalle');
+    const noData = document.getElementById('sinDetalle');
+
+    if (detalleItems.length === 0) {
+        tbody.innerHTML  = '';
+        noData.style.display = '';
+        return;
+    }
+    noData.style.display = 'none';
+
+    tbody.innerHTML = detalleItems.map((d, i) => {
+        if (d.tipo === 'factura') {
+            const diferencia = d.saldoOriginal - d.montoAplicado;
+            const difHtml = diferencia > 0.005
+                ? `<div class="text-warning" style="font-size:.65rem">Pendiente: ${fmt(diferencia)}</div>`
+                : diferencia < -0.005
+                ? `<div class="text-danger" style="font-size:.65rem">Exceso: ${fmt(-diferencia)}</div>`
+                : `<div class="text-success" style="font-size:.65rem"><i class="bi bi-check-circle"></i> Saldo completo</div>`;
+
+            return `<tr style="background:#f0fff4">
+                <td class="text-muted">${i + 1}</td>
+                <td>
+                    <span class="fw-bold text-primary">#${d.numTicket}</span>
+                    <div class="text-muted" style="font-size:.68rem">Factura</div>
+                </td>
+                <td>
+                    <div class="text-truncate" style="max-width:110px;font-size:.78rem" title="${d.empresaNombre}">${d.empresaNombre}</div>
+                    <div class="text-muted text-truncate" style="font-size:.68rem;max-width:110px">${d.clienteNombre}</div>
+                </td>
+                <td class="text-end">
+                    <div class="input-group input-group-sm" style="width:110px;margin-left:auto">
+                        <span class="input-group-text py-0 px-1" style="font-size:.7rem">RD$</span>
+                        <input type="number" step="0.01" min="0.01"
+                               value="${d.montoAplicado.toFixed(2)}"
+                               style="font-size:.78rem"
+                               class="form-control form-control-sm text-end p-1"
+                               onchange="cambiarMonto(${d._uid}, this.value)"
+                               oninput="cambiarMonto(${d._uid}, this.value)" />
+                    </div>
+                    ${difHtml}
+                </td>
+                <td>
+                    <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1"
+                            style="font-size:.7rem" onclick="quitarItem(${d._uid})">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            </tr>`;
+        } else {
+            // Fila abono
+            const compOpts = companiasData.map(c =>
+                `<option value="${c.id}" ${c.id === d.idCompania ? 'selected' : ''}>${c.nombre}</option>`
+            ).join('');
+            const cliOpts = clientesData.map(c =>
+                `<option value="${c.id}" ${c.id === d.idCliente ? 'selected' : ''}>${c.nombre}</option>`
+            ).join('');
+
+            return `<tr style="background:#fffbea">
+                <td class="text-muted">${i + 1}</td>
+                <td>
+                    <span class="badge bg-warning text-dark" style="font-size:.7rem">
+                        <i class="bi bi-piggy-bank"></i> Abono
+                    </span>
+                    <div style="margin-top:3px">
+                        <label style="font-size:.62rem;color:#888;display:block;margin-bottom:1px">N° Ticket</label>
+                        <input type="number" min="1" placeholder="Ticket #"
+                               value="${d.numTicket > 0 ? d.numTicket : ''}"
+                               style="width:80px;font-size:.75rem;height:22px;padding:1px 4px"
+                               class="form-control form-control-sm"
+                               onchange="cambiarTicketAbono(${d._uid}, this.value)"
+                               oninput="cambiarTicketAbono(${d._uid}, this.value)" />
+                    </div>
+                </td>
+                <td>
+                    <select class="form-select form-select-sm mb-1 p-0 ps-1"
+                            style="font-size:.7rem;height:22px"
+                            onchange="cambiarComp(${d._uid}, this.value)">
+                        <option value="">-- Compañía --</option>
+                        ${compOpts}
+                    </select>
+                    <select class="form-select form-select-sm p-0 ps-1"
+                            style="font-size:.7rem;height:22px"
+                            onchange="cambiarCli(${d._uid}, this.value)">
+                        <option value="">-- Cliente --</option>
+                        ${cliOpts}
+                    </select>
+                </td>
+                <td class="text-end">
+                    <div class="input-group input-group-sm" style="width:110px;margin-left:auto">
+                        <span class="input-group-text py-0 px-1" style="font-size:.7rem">RD$</span>
+                        <input type="number" step="0.01" min="0.01"
+                               value="${d.montoAplicado > 0 ? d.montoAplicado.toFixed(2) : ''}"
+                               placeholder="0.00"
+                               style="font-size:.78rem"
+                               class="form-control form-control-sm text-end p-1"
+                               onchange="cambiarMonto(${d._uid}, this.value)"
+                               oninput="cambiarMonto(${d._uid}, this.value)" />
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1"
+                            style="font-size:.7rem" onclick="quitarItem(${d._uid})">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }
+    }).join('');
+}
+
+// ─── Calcular totales ─────────────────────────────────────────────────────────
+function calcularTotales() {
+    const instrumento = parseFloat(document.getElementById('inpMontoInstrumento').value) || 0;
+    const subtotal    = detalleItems.reduce((s, d) => s + (d.montoAplicado || 0), 0);
+    const balance     = instrumento - subtotal;
+
+    document.getElementById('lblAplicado').textContent    = fmt(subtotal);
+    document.getElementById('lblInstrumento').textContent = fmt(instrumento);
+    document.getElementById('lblBalance').textContent     = fmt(balance);
+    document.getElementById('lblBalance').className =
+        balance < -0.01 ? 'fs-6 fw-bold text-danger' :
+        balance >  0.01 ? 'fs-6 fw-bold text-warning' : 'fs-6 fw-bold text-success';
+
+    const alertaEl = document.getElementById('alertaBalance');
+    alertaEl.style.display = (detalleItems.length > 0 && Math.abs(balance) > 0.01) ? '' : 'none';
+}
+
+// ─── Confirmar y enviar ───────────────────────────────────────────────────────
+function confirmarRecibo() {
+    const instrumento = parseFloat(document.getElementById('inpMontoInstrumento').value) || 0;
+    if (instrumento <= 0) {
+        alert('Ingrese el monto total del instrumento de pago.');
+        document.getElementById('inpMontoInstrumento').focus();
+        return;
+    }
+    if (detalleItems.length === 0) {
+        alert('Debe agregar al menos una factura o un abono a cuenta al recibo.');
+        return;
+    }
+
+    // Validar abonos incompletos
+    const abonosSinComp = detalleItems.filter(d => d.tipo === 'abono' && (!d.idCompania || !d.idCliente));
+    if (abonosSinComp.length > 0) {
+        alert('Hay abonos sin compañía o cliente asignado. Complete todos los abonos antes de confirmar.');
+        return;
+    }
+    const abonosSinTicket = detalleItems.filter(d => d.tipo === 'abono' && !(d.numTicket > 0));
+    if (abonosSinTicket.length > 0) {
+        alert('Hay abonos sin número de ticket. Ingrese el N° de Ticket en cada abono.');
+        return;
+    }
+
+    // Validar balance
+    const subtotal = detalleItems.reduce((s, d) => s + (d.montoAplicado || 0), 0);
+    const balance  = instrumento - subtotal;
+    if (Math.abs(balance) > 0.01) {
+        const diff = balance > 0
+            ? `Faltan RD$ ${balance.toFixed(2)} por aplicar.`
+            : `Exceso de RD$ ${(-balance).toFixed(2)}.`;
+        if (!confirm(`⚠️ El total aplicado no cuadra con el instrumento.\n${diff}\n\n¿Desea confirmar de todas formas?`)) return;
+    }
+
+    document.getElementById('hDetalleJson').value = JSON.stringify(detalleItems);
+
+    const numTickets = detalleItems.filter(d => d.tipo === 'factura').length;
+    const numAbonos  = detalleItems.filter(d => d.tipo === 'abono').length;
+    const forma      = document.getElementById('selFormaPago').value;
+    const cheque     = document.getElementById('inpNumCheque').value;
+    const chequeStr  = cheque ? ` | ${forma}: ${cheque}` : '';
+
+    if (!confirm(
+        `¿Confirmar recibo?\n\n` +
+        `Instrumento: ${fmt(instrumento)}${chequeStr}\n` +
+        `Facturas: ${numTickets}${numAbonos > 0 ? ` | Abonos: ${numAbonos}` : ''}\n` +
+        `Total aplicado: ${fmt(subtotal)}\n\n` +
+        `Esta acción no se puede deshacer.`
+    )) return;
+
+    document.getElementById('frmRecibo').submit();
+}
+
+// ─── Toggle campo referencia ─────────────────────────────────────────────────
+function toggleRef() {
+    const forma = document.getElementById('selFormaPago').value;
+    const campo = document.getElementById('campoRef');
+    campo.style.display = (forma === 'Efectivo' || forma === 'Abono') ? 'none' : '';
+}
+
+// ─── Formato de moneda ────────────────────────────────────────────────────────
+function fmt(n) {
+    return 'RD$ ' + (parseFloat(n) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
+}

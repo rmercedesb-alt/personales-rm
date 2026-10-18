@@ -1,0 +1,123 @@
+[
+  {
+    "id": "GRP-1782320701009",
+    "nombre": "Ejemplo AMCO",
+    "contactos": [
+      {
+        "nombre": "Giancarlo Molinari",
+        "telefono": "18098522307"
+      },
+      {
+        "nombre": "Rudy Mercedes",
+        "telefono": "18092849797"
+      }
+    ],
+    "fecha": "2026-06-24T17:23:30.716Z"
+  },
+  {
+    "id": "GRP-1782321533522",
+    "nombre": "Test de envios Masivos",
+    "contactos": [
+      {
+        "nombre": "Fanny Esther Mercedes",
+        "telefono": "18299629040"
+      },
+      {
+        "nombre": "Carlos Guerrero",
+        "telefono": "18295331409"
+      },
+      {
+        "nombre": "Rudy Mercedes",
+        "telefono": "18092849797"
+      }
+    ],
+    "fecha": "2026-06-24T17:18:53.522Z"
+  },
+  {
+    "id": "GRP-1782328603922",
+    "nombre": "Rudy Test",
+    "contactos": [
+      {
+        "nombre": "Rudy 1",
+        "telefono": "18493579797"
+      },
+      {
+        "nombre": "Rudy 2",
+        "telefono": "18092849797"
+      }
+    ],
+    "fecha": "2026-06-24T19:16:43.922Z"
+  },
+  {
+    "id": "GRP-1782328706785",
+    "nombre": "Grupo sin nombre",
+    "contactos": [
+      {
+        "nombre": "Rudy 1",
+        "telefono": "18092849797"
+      },
+      {
+        "nombre": "Rudy 2",
+        "telefono": "18493579797"
+      },
+      {
+        "nombre": "Milquiades",
+        "telefono": "18094813792"
+      }
+    ],
+    "fecha": "2026-06-24T19:31:18.943Z"
+  },
+  {
+    "id": "GRP-1782329486985",
+    "nombre": "Rudy Test",
+    "contactos": [
+      {
+        "nombre": "Rudy 1",
+        "telefono": "18092849797"
+      },
+      {
+        "nombre": "Rudy 2",
+        "telefono": "18493579797"
+      },
+      {
+        "nombre": "Milquiades",
+        "telefono": "18094813792"
+      }
+    ],
+    "fecha": "2026-06-24T19:31:26.985Z"
+  },
+  {
+    "id": "GRP-1782329489460",
+    "nombre": "Rudy Test",
+    "contactos": [
+      {
+        "nombre": "Rudy 1",
+        "telefono": "18092849797"
+      },
+      {
+        "nombre": "Rudy 2",
+        "telefono": "18493579797"
+      },
+      {
+        "nombre": "Milquiades",
+        "telefono": "18094813792"
+      }
+    ],
+    "fecha": "2026-06-24T19:31:29.460Z"
+  },
+  {
+    "id": "GRP-1782441063559",
+    "nombre": "Familia",
+    "contactos": [
+      {
+        "nombre": "Alanis Cabrera",
+        "telefono": "18494062087"
+      },
+      {
+        "nombre": "Marlin Marcelino",
+        "telefono": "18498892087"
+      }
+    ],
+    "fecha": "2026-06-26T02:31:03.559Z"
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "rutavisitas-client",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "RutaVisitasSmart/client"],
+      "port": 5173
+    },
+    {
+      "name": "dashsmart",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "MovilbusinessDashBoardSmart/DashSmart.csproj", "--urls", "http://localhost:5012"],
+      "port": 5012
+    },
+    {
+      "name": "porfi-academy",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "Porfi Academy/src/PorfiAcademy/PorfiAcademy.csproj", "--launch-profile", "http", "--no-build"],
+      "port": 5273
+    }
+  ]
+}

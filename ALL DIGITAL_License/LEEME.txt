@@ -1,0 +1,70 @@
+==========================================================
+ ALL DIGITAL LICENSE  -  Generador de licencias del Dashboard Smart
+==========================================================
+
+PARA QUE SIRVE
+  Emite y renueva los archivos license.lic de cada cliente: eliges el cliente, la fecha
+  de vencimiento y, con casillas, los modulos activos. El archivo se genera solo y queda
+  guardado. Tambien lleva la lista de clientes (vencimientos y modulos) y la exporta a Excel.
+
+COMO USARLO
+  1. Doble clic en  INICIAR_ALL_DIGITAL_LICENSE.bat  (se abre el navegador solo).
+  2. Primera vez: elige una CLAVE y deja marcada "Importar la llave que ya uso"
+     (ruta de tu dashsmart_private.xml). A partir de ahi la llave queda CIFRADA.
+  3. Despues: entras con tu clave, "+ Nuevo cliente", fecha, modulos, "Generar licencia".
+  4. Renovar: en la fila del cliente, "Renovar / Editar" (+1 mes / +6 meses / +1 ano).
+  5. ENVIAR AL CLIENTE (3 botones en la fila del cliente):
+     - "Instalador completo": baja el ZIP del SISTEMA con la licencia de ese cliente YA
+       DENTRO (junto a INSTALAR_IIS.ps1 / ACTUALIZAR_IIS.ps1, que la toman solos). Es lo que
+       se envia para instalar o actualizar el sistema. Toma el ZIP de la carpeta instalables\
+       (si hay varios versiones, te deja elegir; cuando haya una version nueva del sistema,
+       copia su ZIP a instalables\).
+     - "Solo licencia": ZIP pequeno con license.lic + INSTALAR_LICENCIA.bat. Para RENOVAR
+       con el sistema ya instalado: el cliente descomprime, doble clic en INSTALAR_LICENCIA.bat
+       y la licencia se instala sola (verifica el servidor, respalda la anterior, aplica).
+     - "license.lic": baja solo el archivo (alternativa manual: copiarlo en App_Data).
+
+LICENCIA ATADA A UN SERVIDOR (OPCIONAL)  -  evita que copien el programa a otra maquina
+  - El sistema del cliente SIEMPRE se instala y arranca. Cada servidor tiene una HUELLA
+    (formato XXXX-XXXX-XXXX-XXXX-XXXX) que el sistema muestra: al terminar INSTALAR_IIS /
+    ACTUALIZAR_IIS, en la pantalla "Sistema no disponible", y en el archivo
+    App_Data\huella_servidor.txt del servidor.
+  - Con huella: en "Huella del servidor" pegas la del cliente al emitir. Esa licencia SOLO
+    funciona en ese servidor; si copian el programa + la licencia a otra maquina, no arranca
+    (dice que la licencia es de otro servidor).
+  - Sin huella (campo vacio): la licencia funciona en cualquier servidor.
+  - Flujo para un cliente nuevo con huella: (1) le instalas el sistema (sin licencia);
+    (2) te pasa la huella; (3) emites su licencia con esa huella; (4) la copia a App_Data.
+  - Si el cliente cambia de servidor (o reinstala Windows) la huella cambia: le emites otra.
+  - Limites: una maquina virtual CLONADA comparte la huella; y un administrador experto
+    podria falsear el identificador de Windows. Sube el esfuerzo, no es infalible.
+
+CARPETAS
+  app\      el programa (no tocar)
+  datos\    se crea sola al usarlo:
+              llave.enc          llave de firma CIFRADA con tu clave
+              clientes.json      base de clientes (+ clientes.bak.json, copia anterior)
+              licencias\<cliente>\license.lic   la licencia vigente de cada cliente
+  instalables\   ZIP(s) del sistema (DashSmart_*.zip) que se usan para el "Instalador completo".
+                 Puedes omitir esta carpeta si envias todo esto por correo (pesa ~55 MB).
+  fuente\   codigo fuente (PUBLICAR.ps1 reconstruye app\; cierra el programa antes)
+
+ENVIAR ESTA CARPETA POR CORREO (ZIP)
+  Es seguro SIEMPRE QUE la clave sea buena: la llave de firma viaja cifrada (AES-256) y
+  sin tu clave no sirve. NUNCA incluyas dashsmart_private.xml (la llave en texto plano).
+  Si vas a enviarla, comprime tambien datos\ para llevar tus clientes. Para quitar peso,
+  puedes omitir fuente\.
+
+REQUISITO
+  .NET 10 (ASP.NET Core Runtime) en la computadora donde lo abras. Si falta, el .bat avisa.
+
+SI OLVIDAS LA CLAVE
+  No se puede recuperar. Borra datos\llave.enc y vuelve a "Importar" tu llave original
+  (dashsmart_private.xml). Por eso guarda esa llave original en un lugar seguro y aparte.
+
+IMPORTANTE
+  - La llave debe ser la MISMA cuyo "PublicKeyXml" esta dentro del sistema instalado en los
+    clientes; la pantalla Configuracion muestra la huella de la LLAVE para compararla
+    (no confundir con la huella del SERVIDOR de cada cliente).
+  - Solo se puede abrir desde la misma computadora (127.0.0.1) y pide clave siempre.
+==========================================================

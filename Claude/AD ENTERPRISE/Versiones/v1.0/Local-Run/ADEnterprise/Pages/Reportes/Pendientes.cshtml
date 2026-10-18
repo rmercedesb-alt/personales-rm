@@ -1,0 +1,160 @@
+@page
+@model ADEnterprise.Pages.Reportes.PendientesModel
+@{ ViewData["Title"] = "Facturas Pendientes"; }
+
+<div class="d-flex justify-content-between align-items-center mb-2 no-print">
+    <div>
+        <div class="page-title mb-0"><i class="bi bi-clock-history"></i> Facturas Pendientes de Cobro</div>
+        <div class="page-subtitle mb-0">Todas las facturas no pagadas, ordenadas por más vencida primero</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="ExportarExcel">
+            <input type="hidden" name="empresa" value="@Model.FiltroEmpresa"/>
+            <input type="hidden" name="cliente" value="@Model.FiltroCliente"/>
+            <input type="hidden" name="estado"  value="@Model.FiltroEstado"/>
+            <button class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+        </form>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir / PDF</button>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-3 no-print"><div class="card-body py-2">
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-3"><label class="form-label fw-semibold small mb-1">Compañía</label>
+        <select name="FiltroEmpresa" class="form-select form-select-sm">
+            <option value="">— Todas —</option>
+            @foreach (var e in Model.Empresas)
+            { if (e == Model.FiltroEmpresa) { <option value="@e" selected>@e</option> } else { <option value="@e">@e</option> } }
+        </select></div>
+    <div class="col-6 col-md-3"><label class="form-label fw-semibold small mb-1">Cliente</label>
+        <select name="FiltroCliente" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var c in Model.Clientes)
+            { if (c == Model.FiltroCliente) { <option value="@c" selected>@c</option> } else { <option value="@c">@c</option> } }
+        </select></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Estado</label>
+        <select name="FiltroEstado" class="form-select form-select-sm">
+            <option value="">— Todos pend. —</option>
+            @foreach (var est in new[]{"Pendiente","PagadoParcial","Vencida"})
+            { if (est == Model.FiltroEstado) { <option value="@est" selected>@est</option> } else { <option value="@est">@est</option> } }
+        </select></div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-app"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="/Reportes/Pendientes" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+    </div>
+</form>
+</div></div>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-3 no-print">
+    <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm" style="border-left:4px solid var(--azul-marino)">
+            <div class="card-body py-2">
+                <div class="fs-2 fw-bold" style="color:var(--azul-marino)">@Model.Facturas.Count</div>
+                <div class="small text-muted">Total Pendientes</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm border-danger">
+            <div class="card-body py-2">
+                <div class="fs-2 fw-bold text-danger">@Model.TotalVencidas</div>
+                <div class="small text-muted">Vencidas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm border-warning">
+            <div class="card-body py-2">
+                <div class="fw-bold text-warning">RD$ @Model.TotalPendiente.ToString("N2")</div>
+                <div class="small text-muted">Saldo Total</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card text-center shadow-sm border-success">
+            <div class="card-body py-2">
+                <div class="fw-bold text-success">RD$ @Model.TotalPagado.ToString("N2")</div>
+                <div class="small text-muted">Abonado</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Encabezado impresión -->
+<div class="print-only mb-3">
+    <h4 class="fw-bold">AD ALL DIGITAL ENTERPRISE — Facturas Pendientes de Cobro</h4>
+    <p class="text-muted small">Generado: @DateTime.Now.ToString("dd/MM/yyyy HH:mm") | Total: @Model.Facturas.Count facturas | Saldo: RD$ @Model.TotalPendiente.ToString("N2")</p>
+</div>
+
+<div class="card shadow-sm">
+<div class="card-body p-0">
+@if (!Model.Facturas.Any())
+{
+    <div class="text-center py-5 text-success">
+        <i class="bi bi-check-circle-fill fs-1 d-block mb-2"></i>
+        <strong>¡Sin facturas pendientes!</strong> Todos los clientes están al día.
+    </div>
+}
+else
+{
+<div class="table-responsive">
+<table class="table table-sm table-hover mb-0">
+    <thead style="background:var(--azul-marino);color:white">
+        <tr>
+            <th>Ticket</th><th>Compañía</th><th>Cliente</th><th>Fecha Factura</th>
+            <th class="text-end">Monto</th><th class="text-end">Abonado</th>
+            <th class="text-end">Saldo</th><th class="text-center">Estado</th>
+            <th class="no-print"></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var f in Model.Facturas)
+    {
+        <tr class="@(f.Estado == EstadoFactura.Vencida ? "table-danger" : f.Estado == EstadoFactura.PagadoParcial ? "table-warning" : "")">
+            <td><strong>#@f.NumTicket</strong></td>
+            <td>@f.EmpresaNombre</td>
+            <td>@f.ClienteNombre</td>
+            <td>@f.FechaFactura.ToString("dd/MM/yyyy")</td>
+            <td class="text-end">@f.Monto.ToString("N2")</td>
+            <td class="text-end text-success">@f.PagadoALaFecha.ToString("N2")</td>
+            <td class="text-end fw-bold text-danger">@f.SaldoPendiente.ToString("N2")</td>
+            <td class="text-center">
+                <span class="badge @(f.Estado == EstadoFactura.Vencida ? "bg-danger" : f.Estado == EstadoFactura.PagadoParcial ? "bg-warning text-dark" : "bg-secondary")">
+                    @f.Estado
+                </span>
+            </td>
+            <td class="no-print">
+                <a href="/Pagos/Registrar?ticket=@f.NumTicket" class="btn btn-xs btn-sm btn-outline-primary py-0 px-1">
+                    <i class="bi bi-cash-coin"></i> Pagar
+                </a>
+            </td>
+        </tr>
+    }
+    </tbody>
+    <tfoot style="background:var(--azul-marino);color:white;font-weight:bold">
+        <tr>
+            <td colspan="4" class="text-end">TOTALES (@Model.Facturas.Count):</td>
+            <td class="text-end">RD$ @Model.TotalMonto.ToString("N2")</td>
+            <td class="text-end">RD$ @Model.TotalPagado.ToString("N2")</td>
+            <td class="text-end">RD$ @Model.TotalPendiente.ToString("N2")</td>
+            <td colspan="2"></td>
+        </tr>
+    </tfoot>
+</table>
+</div>
+}
+</div>
+</div>
+
+@section Scripts {
+<style>
+@@media print {
+    .no-print { display: none !important; } .print-only { display: block !important; }
+    .app-header, .app-navbar, .app-footer { display: none !important; }
+    .main-content { padding: 0 !important; }
+}
+.print-only { display: none; }
+</style>
+}

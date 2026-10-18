@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "DashGeo": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5013",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

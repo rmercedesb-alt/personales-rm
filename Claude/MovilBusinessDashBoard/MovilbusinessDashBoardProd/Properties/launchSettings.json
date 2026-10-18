@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "DashProd": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:5011",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

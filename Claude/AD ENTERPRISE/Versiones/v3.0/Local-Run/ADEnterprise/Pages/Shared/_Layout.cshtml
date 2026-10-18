@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — AD ALL DIGITAL ENTERPRISE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+
+@{
+    // Leer directamente de los claims del usuario — no depende de ViewData que cada
+    // página deba setear. Esto garantiza que el menú siempre sea correcto.
+    var usuario     = User.FindFirst("NombreCompleto")?.Value
+                   ?? ViewData["UsuarioNombre"]?.ToString()
+                   ?? User.Identity?.Name ?? "";
+    var perfil      = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value
+                   ?? ViewData["UsuarioPerfil"]?.ToString() ?? "";
+    var esAdmin     = perfil == "Administrador";
+    var esOperativo = perfil == "Operativo" || esAdmin;
+}
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════════ -->
+<header class="app-header">
+    <div class="header-logo-area">
+        <img src="~/images/logo-fm.png" alt="Fanny Mercedes & Asoc." class="header-logo" />
+        <div class="header-titles">
+            <span class="header-empresa">Fanny Mercedes &amp; Asoc.</span>
+            <span class="header-sistema">AD ALL DIGITAL ENTERPRISE</span>
+        </div>
+    </div>
+    <div class="header-user-area">
+        <i class="bi bi-person-circle"></i>
+        <span class="usuario-nombre">@usuario</span>
+        <span class="badge bg-secondary ms-1">@perfil</span>
+        <div class="dropdown ms-3">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-box-arrow-right"></i> Salir
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/Admin/CambiarPassword">
+                    <i class="bi bi-key text-primary"></i> Cambiar mi contraseña
+                </a></li>
+                <li><hr class="dropdown-divider"/></li>
+                <li><a class="dropdown-item" href="/Logout">
+                    <i class="bi bi-person-x text-secondary"></i> Cerrar sesión
+                    <div class="small text-muted">El servidor sigue activo</div>
+                </a></li>
+                @if (esAdmin)
+                {
+                <li><hr class="dropdown-divider"/></li>
+                <li><a class="dropdown-item text-danger" href="/Mantenimiento/Apagar">
+                    <i class="bi bi-power"></i> Cerrar sesión + Apagar servidor
+                    <div class="small text-muted">Detiene el sistema completamente</div>
+                </a></li>
+                }
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MENÚ DE NAVEGACIÓN
+════════════════════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav">
+
+                @* ── Dashboard ─────────────────────────────────────────────── *@
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                </li>
+
+                @* ── Pagos Factoring ─────────────────────────────────────────── *@
+                @if (esOperativo)
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Pagos Factoring
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Facturacion/Nueva"><i class="bi bi-plus-circle"></i> Nuevo Pago Factoring</a></li>
+                        <li><a class="dropdown-item" href="/Facturacion/Consulta"><i class="bi bi-search"></i> Consulta de Pagos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="bi bi-bar-chart"></i> Reportes Factoring</h6></li>
+                        <li><a class="dropdown-item" href="/Reportes/General"><i class="bi bi-list-ul"></i> Reporte General</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCompania"><i class="bi bi-building"></i> Por Compañía</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCliente"><i class="bi bi-person"></i> Por Cliente</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorPeriodo"><i class="bi bi-calendar-range"></i> Por Período</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/Pendientes"><i class="bi bi-clock-history"></i> Facturas Pendientes</a></li>
+                    </ul>
+                </li>
+
+                @* ── Cuentas por Cobrar ─────────────────────────────────────── *@
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-cash-coin"></i> Cuentas por Cobrar
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/CuentasCobrar/Registrar"><i class="bi bi-plus-circle"></i> Registrar Cobro</a></li>
+                        <li><a class="dropdown-item" href="/CuentasCobrar/Consulta"><i class="bi bi-search"></i> Consulta de Cobros</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="bi bi-bar-chart"></i> Reportes CxC</h6></li>
+                        <li><a class="dropdown-item" href="/Reportes/HistorialPagos"><i class="bi bi-cash-stack"></i> Historial de Cobros</a></li>
+                    </ul>
+                </li>
+                }
+
+                @* ── Finanzas ───────────────────────────────────────────────── *@
+                @if (esOperativo)
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-bank2"></i> Finanzas
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Finanzas/Caja"><i class="bi bi-safe2"></i> Apertura / Cierre de Caja</a></li>
+                        <li><a class="dropdown-item" href="/Finanzas/CajaGeneral"><i class="bi bi-bank2"></i> Caja General</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Finanzas/IngresosCapital"><i class="bi bi-cash-stack"></i> Ingresos de Capital</a></li>
+                        <li><a class="dropdown-item" href="/Finanzas/Egresos"><i class="bi bi-arrow-up-circle"></i> Egresos (Gastos / Nómina)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="bi bi-bar-chart"></i> Reportes Financieros</h6></li>
+                        <li><a class="dropdown-item" href="/Finanzas/CuadreCajaReporte"><i class="bi bi-safe2"></i> Cuadre de Caja</a></li>
+                        <li><a class="dropdown-item" href="/Finanzas/Reportes"><i class="bi bi-file-earmark-bar-graph"></i> Reportes de Finanzas</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/LogTransacciones"><i class="bi bi-journal-text"></i> Log de Transacciones</a></li>
+                    </ul>
+                </li>
+                }
+
+                @* ── Reportes (consolidado) ─────────────────────────────────── *@
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header">Facturación</h6></li>
+                        <li><a class="dropdown-item" href="/Reportes/General"><i class="bi bi-list-ul"></i> Reporte General</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCompania"><i class="bi bi-building"></i> Por Compañía</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCliente"><i class="bi bi-person"></i> Por Cliente</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorPeriodo"><i class="bi bi-calendar-range"></i> Por Período</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/Pendientes"><i class="bi bi-clock-history"></i> Facturas Pendientes</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Cuentas por Cobrar</h6></li>
+                        <li><a class="dropdown-item" href="/Reportes/HistorialPagos"><i class="bi bi-cash-stack"></i> Historial de Cobros</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">Finanzas</h6></li>
+                        <li><a class="dropdown-item" href="/Finanzas/Reportes"><i class="bi bi-bank"></i> Reportes Financieros</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header">General</h6></li>
+                        <li><a class="dropdown-item" href="/Reportes/LogTransacciones"><i class="bi bi-journal-text"></i> Log de Transacciones</a></li>
+                    </ul>
+                </li>
+
+                @* ── Usuarios ───────────────────────────────────────────────── *@
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Usuarios"><i class="bi bi-shield-person"></i> Usuarios</a>
+                </li>
+
+                @* ── Mantenimiento (admin) ───────────────────────────────────── *@
+                @if (esAdmin)
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear"></i> Mantenimiento
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="/Mantenimiento/Companias"><i class="bi bi-building"></i> Compañías</a></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Clientes"><i class="bi bi-people"></i> Clientes</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Importar"><i class="bi bi-upload"></i> Importar Datos</a></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Backup"><i class="bi bi-shield-check"></i> Backup / Restauración</a></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/CargaInicial"><i class="bi bi-database-add"></i> Carga Inicial de Datos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger fw-bold" href="/Mantenimiento/ReiniciarDatos"><i class="bi bi-arrow-counterclockwise"></i> Reiniciar Datos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/Mantenimiento/Apagar"><i class="bi bi-power"></i> Apagar Servidor</a></li>
+                    </ul>
+                </li>
+                }
+
+                @* ── Datos Históricos ───────────────────────────────────────── *@
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown"
+                       style="color:#ffc107!important">
+                        <i class="bi bi-archive"></i> Datos Históricos
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><h6 class="dropdown-header" style="color:#856404"><i class="bi bi-exclamation-triangle-fill"></i> Datos de períodos anteriores</h6></li>
+                        <li><a class="dropdown-item" href="/Historicos/Facturas"><i class="bi bi-file-earmark-text"></i> Facturas</a></li>
+                        <li><a class="dropdown-item" href="/Historicos/Pagos"><i class="bi bi-credit-card"></i> Pagos Factoring</a></li>
+                        <li><a class="dropdown-item" href="/Historicos/Caja"><i class="bi bi-safe2"></i> Caja y Cuadres</a></li>
+                        <li><a class="dropdown-item" href="/Historicos/Egresos"><i class="bi bi-arrow-up-circle"></i> Egresos</a></li>
+                        <li><a class="dropdown-item" href="/Historicos/IngresosCapital"><i class="bi bi-cash-stack"></i> Ingresos de Capital</a></li>
+                    </ul>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONTENIDO PRINCIPAL
+════════════════════════════════════════════════════════════════ -->
+<main class="container-fluid main-content">
+
+    @* Mensajes flash *@
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @Html.Raw(TempData["Exito"]?.ToString())
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @Html.Raw(TempData["Error"]?.ToString())
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Advertencia"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-exclamation-circle-fill"></i> @Html.Raw(TempData["Advertencia"]?.ToString())
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @RenderBody()
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════════ -->
+<footer class="app-footer">
+    @{
+        var cfgEmpresa = (Microsoft.Extensions.Configuration.IConfiguration)ViewContext.HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))!;
+        var nomEmpresa = cfgEmpresa["Empresa:Nombre"] ?? "AD ALL DIGITAL ENTERPRISE";
+        var appVer     = cfgEmpresa["App:Version"] ?? "1.1.0";
+    }
+    <span>@nomEmpresa &copy; @DateTime.Now.Year</span>
+    <span class="ms-3 text-muted" style="font-size:0.75rem;">v@appVer</span>
+    <!-- AD ALL DIGITAL ENTERPRISE — Derechos reservados y exclusivos. Contacto: r.mercedesb@gmail.com -->
+    <span style="font-size:0.6rem;opacity:0.28;margin-left:auto;letter-spacing:.03em">
+        &nbsp;Powered by AD ALL DIGITAL ENTERPRISE · r.mercedesb@gmail.com
+    </span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+
+<script>
+// ── Protección anti-doble-envío (aplica a TODOS los formularios POST) ─────────
+// Al hacer el primer clic en "Guardar / Registrar", los botones submit quedan
+// desactivados y muestran un spinner.  Si el servidor devuelve la página con
+// errores de validación (reload completo) los botones se reactivan solos.
+// Como respaldo se reactivan después de 30 s por si la red no responde.
+(function () {
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form || form.method.toLowerCase() !== 'post') return;
+
+        var btns = form.querySelectorAll('[type="submit"]:not([data-no-disable])');
+        var yaEnviando = false;
+        btns.forEach(function (btn) { if (btn.disabled) yaEnviando = true; });
+
+        if (yaEnviando) {
+            e.preventDefault();   // bloquear el segundo envío
+            return;
+        }
+
+        btns.forEach(function (btn) {
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Procesando...';
+            setTimeout(function () {
+                if (btn.disabled) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalHtml || btn.innerHTML;
+                }
+            }, 30000);
+        });
+    }, true);
+})();
+</script>
+</body>
+</html>

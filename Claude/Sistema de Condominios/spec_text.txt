@@ -1,0 +1,1542 @@
+ESPECIFICACIÓN TÉCNICA PARA CLAUDE CODE
+Sistema de Administración de Inmuebles
+BETA — Google Sheets + Apps Script
+República Dominicana
+Versión:
+Beta 1.0
+Fecha:
+Junio 2026
+Basado en:
+Sistema v3.0 (documento de referencia)
+Plataforma:
+Google Sheets + Google Apps Script (GAS)
+Destinatario:
+Claude Code — construir desde cero
+Usuarios:
+3–5 personas con roles distintos (Administrador, Asistente de cobros, Solo lectura)
+Moneda:
+Pesos Dominicanos (DOP)
+Organización:
+Un solo Google Sheet con múltiples pestañas. Toda la lógica en Apps Script.
+Objetivo de esta Beta
+Validar el modelo de datos y los procesos antes de invertir en el desarrollo del sistema web completo (v3.0).
+Operar en producción real mientras TI construye el sistema definitivo.
+Servir como herramienta de carga y migración de datos históricos al sistema web cuando esté listo.
+Esta especificación está redactada para ser entregada directamente a Claude Code, quien construirá el sistema desde cero sin necesidad de intervención manual adicional.
+1. Contexto y Alcance para Claude Code
+Claude Code debe construir un sistema completo de administración de inmuebles usando un único Google Sheet con múltiples pestañas como base de datos, y Google Apps Script (GAS) como motor de lógica. El sistema debe replicar, en la medida que la plataforma lo permita, el modelo definido en el Sistema v3.0.
+Lo que Claude Code debe construir
+Un Google Sheet con exactamente las pestañas definidas en la Sección 3, con los encabezados, formatos y validaciones especificados.
+Un proyecto de Google Apps Script vinculado al Sheet con todas las funciones descritas en las Secciones 4 y 5.
+Un menú personalizado en el Sheet ('⚙ Admin Inmuebles') desde donde el administrador ejecuta todos los procesos.
+Triggers automáticos de Apps Script: diario (mora y CxC), por edición (validaciones), y por tiempo (avisos).
+Funciones de carga inicial de datos (migración) para ingresar CxC activas y pagos históricos.
+Protecciones de rango por rol: Administrador, Asistente de cobros y Solo lectura.
+Generación de reportes en una pestaña dinámica y exportación a PDF via Google Drive.
+Limitaciones conocidas vs. v3.0 (Claude Code debe documentarlas en el Sheet)
+Mapa interactivo: Google Sheets no soporta Mapbox/Google Maps embebido con marcadores dinámicos. Alternativa: fórmula 
+IMAGE(
+) con Google Maps Static API para mostrar la ubicación de un inmueble individual al seleccionarlo.
+WhatsApp Business API: Apps Script no puede llamar directamente a la API de Meta sin un webhook intermediario. Alternativa implementada: generación de links wa.me con el mensaje pre-formateado para envío manual con un clic, y opcionalmente integración con Make.com/Zapier si el cliente tiene cuenta.
+Hash SHA-256 en PDFs: no disponible en Apps Script nativo. Los PDFs de cierre y liquidación se generan vía Google Docs template y se exportan a Drive sin hash.
+Roles granulares: se implementan con protecciones de rango de Google Sheets. No son tan robustos como JWT, pero son funcionales para 3–5 usuarios.
+Transacciones atómicas: Apps Script no tiene rollback. Las operaciones críticas (cuadre, liquidación) deben ser idempotentes y registrar su estado antes de ejecutar.
+2. Arquitectura del Sistema Beta
+2.1 Estructura General
+Componente
+Tecnología
+Rol
+Base de datos
+Google Sheets (pestañas)
+Almacena todos los registros del sistema
+Lógica de negocio
+Google Apps Script (GAS)
+Procesa CxC, mora, cuadre, liquidaciones, avisos
+Interfaz de usuario
+Menú personalizado + sidebar HTML
+Permite operar el sistema sin tocar celdas directamente
+Automatismos
+GAS Triggers (tiempo + edición)
+Cron diario, validaciones en tiempo real
+Reportes
+Google Docs template + PDF export
+Recibos, cierres de caja, liquidaciones
+Almacenamiento de PDFs
+Google Drive (carpeta del proyecto)
+PDFs generados por el sistema
+Avisos WhatsApp
+Links wa.me generados en Sheet
+Envío manual con un clic desde el Sheet
+Control de acceso
+Protecciones de rango de Sheets
+Roles: Administrador / Asistente / Solo lectura
+2.2 Diagrama de Pestañas
+El sistema opera en un solo Google Sheet. Claude Code debe crear exactamente estas pestañas en este orden:
+#
+Nombre de la Pestaña
+Color de Pestaña
+Tipo
+Descripción
+1
+🏠
+ INICIO
+Azul (#1B4F8C)
+Dashboard
+Panel de KPIs, alertas del día y accesos rápidos
+2
+👤
+ PROPIETARIOS
+Gris (#607D8B)
+Datos maestros
+Registro de propietarios
+3
+🏢
+ INMUEBLES
+Gris (#607D8B)
+Datos maestros
+Registro de inmuebles con dirección y GPS
+4
+👥
+ INQUILINOS
+Gris (#607D8B)
+Datos maestros
+Registro de inquilinos
+5
+📋
+ CONTRATOS
+Verde oscuro (#2E7D32)
+Datos maestros
+Contratos activos e históricos
+6
+➕
+ CARGOS_ADICIONALES
+Verde oscuro (#2E7D32)
+Datos maestros
+Ítems adicionales por contrato
+7
+💰
+ CXC_CARGOS
+Naranja (#E65100)
+Operativo
+Cargos CxC generados (la deuda)
+8
+💳
+ CXC_PAGOS
+Naranja (#E65100)
+Operativo
+Pagos recibidos con estado de custodia
+9
+🏧
+ SESIONES_CAJA
+Morado (#4A148C)
+Operativo
+Sesiones de caja diarias
+10
+🔄
+ LIQUIDACIONES
+Morado (#4A148C)
+Operativo
+Liquidaciones a propietarios
+11
+📢
+ NOTIFICACIONES
+Teal (#006064)
+Operativo
+Log de avisos enviados/generados
+12
+📊
+ LOG_CUSTODIA
+Rojo (#B71C1C)
+Auditoría
+Log inmutable de cambios de custodia
+13
+📈
+ REPORTE
+Amarillo (#F57F17)
+Reportes
+Pestaña dinámica de reportes y exportación
+14
+⚙
+ CONFIG
+Gris (#455A64)
+Sistema
+Parámetros globales y configuración
+15
+🔒
+ ROLES
+Gris (#455A64)
+Sistema
+Mapa de usuarios y permisos (oculta)
+3. Esquema de Datos — Definición de Cada Pestaña
+Claude Code debe crear cada pestaña con exactamente estos encabezados en la Fila 1 (congelada), con los formatos y validaciones especificados. La Fila 1 debe tener fondo azul (#1B4F8C), texto blanco, negrita.
+3.1 Pestaña PROPIETARIOS
+Columna
+Encabezado
+Formato
+Validación / Notas
+A
+ID_PROPIETARIO
+Texto
+Auto-generado
+: PROP-001, PROP-002...
+B
+NOMBRE_COMPLETO
+Texto
+Obligatorio
+C
+CEDULA_RNC
+Texto
+Obligatorio
+D
+TELEFONO
+Texto
+E
+EMAIL
+Texto
+Validación de formato email
+F
+BANCO
+Lista desplegable
+BHD León, Banreservas, Popular, Scotiabank, Santa Cruz, Otro
+G
+TIPO_CUENTA
+Lista desplegable
+AHORROS / CORRIENTE
+H
+NUMERO_CUENTA
+Texto
+I
+ESQUEMA_COMISION
+Lista desplegable
+PORCENTAJE / FIJO / MIXTO
+J
+PCT_COMISION
+Número (0.00%)
+Ej: 0.10 = 10%. Solo si esquema = PORCENTAJE
+K
+MONTO_FIJO_COMISION
+Número (
+#,#
+#0.00)
+Solo si esquema = FIJO
+L
+ACTIVO
+Lista desplegable
+SI / NO
+M
+FECHA_REGISTRO
+Fecha (DD/MM/YYYY)
+Auto-completada
+ al insertar
+3.2 Pestaña INMUEBLES
+Columna
+Encabezado
+Formato
+Validación / Notas
+A
+ID_INMUEBLE
+Texto
+Auto-generado
+: INM-001...
+B
+ID_PROPIETARIO
+Texto
+Dropdown desde 
+PROPIETARIOS!A
+:A. Fórmula muestra nombre en col. adyacente
+C
+NOMBRE_PROPIETARIO
+Texto
+=VLOOKUP(B
+2,PROPIETARIOS
+!
+A:B
+,2,0) — solo lectura
+D
+TIPO
+Lista desplegable
+APARTAMENTO / CASA / LOCAL / OFICINA / PENSION
+E
+NOMBRE_REFERENCIA
+Texto
+Ej: Apto 3B Torre Azul
+F
+CALLE_NUMERO
+Texto
+G
+APT_LOCAL_HAB
+Texto
+H
+NOMBRE_EDIFICIO
+Texto
+I
+URBANIZACION_SECTOR
+Texto
+J
+MUNICIPIO
+Lista desplegable
+Santo Domingo, Santiago, San Pedro de Macorís, La Romana, Puerto Plata, Otro
+K
+PROVINCIA
+Texto
+L
+REFERENCIA_UBICACION
+Texto
+M
+LATITUD
+Número (0.00000000)
+Coordenada GPS
+N
+LONGITUD
+Número (0.00000000)
+Coordenada GPS
+O
+AREA_M2
+Número (
+#,#
+#0.00)
+P
+HABITACIONES
+Número entero
+Q
+BANOS
+Número entero
+R
+PARQUEO
+Lista desplegable
+SI / NO
+S
+CANON_BASE
+Número (
+#,#
+#0.00)
+En DOP
+T
+DEPOSITO_REQUERIDO
+Número (
+#,#
+#0.00)
+En DOP
+U
+ESTADO
+Lista desplegable
+DISPONIBLE / OCUPADO / MANTENIMIENTO / INACTIVO
+V
+FECHA_REGISTRO
+Fecha
+Auto-completada
+W
+MAPA_URL
+Fórmula
+=IF(M2&lt;&gt;"","https://maps.google.com/?q="&amp;M2&amp;","&amp;N2,"") — hiperlink clickeable
+3.3 Pestaña INQUILINOS
+Columna
+Encabezado
+Formato
+Validación / Notas
+A
+ID_INQUILINO
+Texto
+Auto-generado
+: INQ-001...
+B
+NOMBRE_COMPLETO
+Texto
+Obligatorio
+C
+CEDULA
+Texto
+Obligatorio
+D
+TELEFONO_WHATSAPP
+Texto
+Formato: +1849XXXXXXX
+E
+EMAIL
+Texto
+F
+EMPLEADOR
+Texto
+G
+TELEFONO_EMPLEADOR
+Texto
+H
+REFERENCIA_NOMBRE
+Texto
+I
+REFERENCIA_TELEFONO
+Texto
+J
+ACTIVO
+Lista desplegable
+SI / NO
+K
+FECHA_REGISTRO
+Fecha
+Auto-completada
+L
+WA_
+LINK
+Fórmula
+=IF(D2&lt;&gt;"","https://wa.me/"&amp;SUBSTITUTE(D2,"+
+","
+"),"
+") —
+ hiperlink para abrir WhatsApp Web
+3.4 Pestaña CONTRATOS
+Columna
+Encabezado
+Formato
+Validación / Notas
+A
+ID_CONTRATO
+Texto
+Auto-generado
+: CON-001...
+B
+ID_INQUILINO
+Texto
+Dropdown desde 
+INQUILINOS!A
+:A
+C
+NOMBRE_INQUILINO
+Texto
+=VLOOKUP(B
+2,INQUILINOS
+!
+A:B
+,2,0)
+D
+ID_INMUEBLE
+Texto
+Dropdown desde 
+INMUEBLES!A
+:A
+E
+NOMBRE_INMUEBLE
+Texto
+=VLOOKUP(D
+2,INMUEBLES
+!
+A:E
+,5,0)
+F
+ID_PROPIETARIO
+Texto
+=VLOOKUP(D
+2,INMUEBLES
+!
+A:B
+,2,0)
+G
+NOMBRE_PROPIETARIO
+Texto
+=VLOOKUP(F
+2,PROPIETARIOS
+!
+A:B
+,2,0)
+H
+FECHA_INICIO
+Fecha
+Obligatorio
+I
+FECHA_VENCIMIENTO
+Fecha
+Obligatorio
+J
+PERIODICIDAD
+Lista desplegable
+MENSUAL / QUINCENAL
+K
+DIA_COBRO_1
+Número entero (1-31)
+Día del mes del cobro 1
+L
+DIA_COBRO_2
+Número entero (1-31)
+Solo si QUINCENAL. Vacío si MENSUAL
+M
+DIAS_GRACIA
+Número entero
+Sugerido: 5
+N
+CANON_MENSUAL
+Número (
+#,#
+#0.00)
+En DOP
+O
+DEPOSITO_RECIBIDO
+Número (
+#,#
+#0.00)
+En DOP
+P
+TIPO_MORA
+Lista desplegable
+PORCENTAJE / MONTO_FIJO
+Q
+PCT_MORA_MENSUAL
+Número (0.00%)
+Solo si tipo = PORCENTAJE. Ej: 0.03 = 3% mensual
+R
+MONTO_MORA_FIJO
+Número (
+#,#
+#0.00)
+Solo si tipo = MONTO_FIJO
+S
+ESQUEMA_COMISION
+Lista desplegable
+HEREDA / PORCENTAJE / FIJO
+T
+PCT_COMISION
+Número (0.00%)
+Si sobreescribe al propietario
+U
+MONTO_FIJO_COMISION
+Número (
+#,#
+#0.00)
+Si sobreescribe al propietario
+V
+ESTADO
+Lista desplegable
+VIGENTE / VENCIDO / RESCINDIDO / EN_DESAHUCIO
+W
+FECHA_REGISTRO
+Fecha
+Auto-completada
+3.5 Pestaña CARGOS_ADICIONALES
+Columna
+Encabezado
+Formato
+Validación / Notas
+A
+ID_CARGO_ADICIONAL
+Texto
+Auto-generado
+: CA-001...
+B
+ID_CONTRATO
+Texto
+Dropdown desde 
+CONTRATOS!A
+:A
+C
+NOMBRE_CARGO
+Texto
+Ej: Mantenimiento, Parqueo, Agua
+D
+MONTO
+Número (
+#,#
+#0.00)
+En DOP
+E
+PERIODICIDAD
+Lista desplegable
+MENSUAL / QUINCENAL
+F
+INCLUIR_EN_CXC_ALQUILER
+Lista desplegable
+SI = mismo cargo CxC / NO = cargo CxC separado
+G
+ACTIVO
+Lista desplegable
+SI / NO
+H
+FECHA_DESDE
+Fecha
+I
+FECHA_HASTA
+Fecha
+Vacío = indefinido
+3.6 Pestaña CXC_CARGOS — Núcleo Financiero
+Esta pestaña es el corazón del sistema. Cada fila es un cargo que nace en la cuenta por cobrar del inquilino. NUNCA se edita manualmente; solo Apps Script escribe aquí.
+Columna
+Encabezado
+Formato
+Notas
+A
+ID_CXC
+Texto
+Auto-generado
+: CXC-001...
+B
+ID_CONTRATO
+Texto
+FK → CONTRATOS
+C
+ID_INQUILINO
+Texto
+FK → INQUILINOS
+D
+NOMBRE_INQUILINO
+Texto
+Desnormalizado para lectura rápida
+E
+ID_INMUEBLE
+Texto
+FK → INMUEBLES
+F
+NOMBRE_INMUEBLE
+Texto
+Desnormalizado
+G
+ID_PROPIETARIO
+Texto
+FK → PROPIETARIOS
+H
+NOMBRE_PROPIETARIO
+Texto
+Desnormalizado
+I
+TIPO_CARGO
+Texto
+ALQUILER / MANTENIMIENTO / PARQUEO / AGUA / MORA / OTRO
+J
+PERIODO_INICIO
+Fecha
+Inicio del período
+K
+PERIODO_FIN
+Fecha
+Fin del período
+L
+FECHA_VENCIMIENTO
+Fecha
+Fecha límite de pago
+M
+MONTO_PRINCIPAL
+Número (
+#,#
+#0.00)
+Monto original del cargo
+N
+MORA_ACUMULADA
+Número (
+#,#
+#0.00)
+Calculada diariamente por el cron
+O
+MONTO_TOTAL
+Número (
+#,#
+#0.00)
+=M+N (calculado)
+P
+MONTO_PAGADO
+Número (
+#,#
+#0.00)
+Suma de pagos aplicados a este cargo
+Q
+SALDO_PENDIENTE
+Número (
+#,#
+#0.00)
+=O-P (calculado)
+R
+DIAS_MORA
+Número entero
+Actualizado diariamente
+S
+ESTADO
+Lista desplegable
+PENDIENTE / PARCIAL / EN_MORA / PAGADO / ANULADO
+T
+FECHA_PAGO_TOTAL
+Fecha
+Fecha en que quedó PAGADO
+U
+FECHA_GENERACION
+Fecha+Hora
+Timestamp de creación
+V
+COLOR_ESTADO
+Fórmula
+Formato condicional visual por estado
+Formato Condicional en CXC_CARGOS
+PENDIENTE → fondo blanco, texto negro.
+PARCIAL → fondo amarillo claro (#FFF9C4), texto negro.
+EN_MORA → fondo naranja claro (#FFE0B2), texto naranja oscuro.
+PAGADO → fondo verde claro (#E8F5E9), texto verde oscuro.
+ANULADO → fondo gris (#ECEFF1), texto gris, tachado.
+Columna DIAS_MORA: escala de color rojo gradual (0=blanco, 15=naranja, 30+=rojo intenso).
+3.7 Pestaña CXC_PAGOS — Registro de Pagos con Custodia
+Columna
+Encabezado
+Formato
+Notas
+A
+ID_PAGO
+Texto
+Auto-generado
+: PAG-001...
+B
+ID_CXC
+Texto
+FK → CXC_CARGOS
+C
+ID_CONTRATO
+Texto
+FK → CONTRATOS
+D
+ID_INQUILINO
+Texto
+FK → INQUILINOS
+E
+NOMBRE_INQUILINO
+Texto
+Desnormalizado
+F
+ID_INMUEBLE
+Texto
+FK → INMUEBLES
+G
+NOMBRE_INMUEBLE
+Texto
+Desnormalizado
+H
+ID_PROPIETARIO
+Texto
+FK → PROPIETARIOS
+I
+NOMBRE_PROPIETARIO
+Texto
+Desnormalizado
+J
+FECHA_PAGO
+Fecha
+Fecha en que se recibió el pago
+K
+MONTO_PAGADO
+Número (
+#,#
+#0.00)
+Monto recibido
+L
+APLICADO_A_MORA
+Número (
+#,#
+#0.00)
+Porción a mora
+M
+APLICADO_A_PRINCIPAL
+Número (
+#,#
+#0.00)
+Porción al principal
+N
+FORMA_PAGO
+Lista desplegable
+EFECTIVO / TRANSFERENCIA / TARJETA / CHEQUE
+O
+REFERENCIA_PAGO
+Texto
+Número de referencia de la transferencia
+P
+BANCO_ORIGEN
+Texto
+Banco desde donde se transfirió
+Q
+REGISTRADO_POR
+Texto
+Email del usuario que registró
+R
+OBSERVACIONES
+Texto
+Notas del administrador
+S
+ESTADO_CUSTODIA
+Lista desplegable
+COBRADO / EN_ADMINISTRACION / LIQUIDADO
+T
+ID_SESION_CAJA
+Texto
+FK → SESIONES_CAJA
+U
+ID_LIQUIDACION
+Texto
+FK → LIQUIDACIONES (vacío hasta liquidar)
+V
+FECHA_EN_ADMINISTRACION
+Fecha+Hora
+Cuando el cuadre fue aprobado
+W
+FECHA_LIQUIDADO
+Fecha+Hora
+Cuando se procesó la liquidación
+X
+RECIBO_PDF_URL
+Texto
+URL del PDF en Google Drive
+Y
+FECHA_REGISTRO
+Fecha+Hora
+Timestamp de creación
+3.8 Pestaña SESIONES_CAJA
+Columna
+Encabezado
+Formato
+Notas
+A
+ID_SESION
+Texto
+Auto-generado
+: CAJA-001...
+B
+FECHA_SESION
+Fecha
+Fecha del día (única por día)
+C
+USUARIO_CAJERO
+Texto
+Email del usuario que registró los pagos
+D
+USUARIO_CIERRE
+Texto
+Email del administrador que aprobó el cuadre
+E
+TOTAL_EFECTIVO
+Número (
+#,#
+#0.00)
+Suma de pagos en efectivo
+F
+TOTAL_TRANSFERENCIA
+Número (
+#,#
+#0.00)
+Suma de pagos por transferencia
+G
+TOTAL_TARJETA
+Número (
+#,#
+#0.00)
+Suma de pagos por tarjeta
+H
+TOTAL_CHEQUE
+Número (
+#,#
+#0.00)
+Suma de pagos por cheque
+I
+TOTAL_SESION
+Número (
+#,#
+#0.00)
+=E+F+G+H
+J
+CANTIDAD_TRANSACCIONES
+Número entero
+Conteo de pagos de la sesión
+K
+ESTADO
+Lista desplegable
+ABIERTA / PENDIENTE_AJUSTE / APROBADA
+L
+OBSERVACIONES
+Texto
+Notas del administrador al cuadrar
+M
+DOC_CIERRE_PDF_URL
+Texto
+URL del PDF del cierre en Drive
+N
+FECHA_APERTURA
+Fecha+Hora
+Timestamp de apertura
+O
+FECHA_CIERRE
+Fecha+Hora
+Timestamp de aprobación del cuadre
+3.9 Pestaña LIQUIDACIONES
+Columna
+Encabezado
+Formato
+Notas
+A
+ID_LIQUIDACION
+Texto
+Auto-generado
+: LIQ-001...
+B
+ID_PROPIETARIO
+Texto
+FK → PROPIETARIOS
+C
+NOMBRE_PROPIETARIO
+Texto
+Desnormalizado
+D
+PERIODO_DESDE
+Fecha
+Inicio del rango de la liquidación
+E
+PERIODO_HASTA
+Fecha
+Fin del rango
+F
+FILTRO_ADICIONAL
+Texto
+Descripción del filtro aplicado (ej: 'INM-003 + INM-007')
+G
+TOTAL_COBRADO
+Número (
+#,#
+#0.00)
+Total
+ cobrado a sus inquilinos
+H
+TOTAL_MORA_COBRADA
+Número (
+#,#
+#0.00)
+Mora incluida en lo cobrado
+I
+COMISION_ADMINISTRADOR
+Número (
+#,#
+#0.00)
+Comisión descontada
+J
+MONTO_NETO_PROPIETARIO
+Número (
+#,#
+#0.00)
+=G-I
+K
+FECHA_LIQUIDACION
+Fecha
+Fecha de procesamiento
+L
+FECHA_PAGO_PROPIETARIO
+Fecha
+Fecha del pago al propietario
+M
+REFERENCIA_PAGO
+Texto
+Referencia de la transferencia
+N
+ESTADO
+Lista desplegable
+PENDIENTE / PAGADO
+O
+DOC_LIQUIDACION_PDF_URL
+Texto
+URL del comprobante en Drive
+3.10 Pestaña LOG_CUSTODIA — Solo Inserción
+Esta pestaña es el log inmutable de auditoría. Claude Code debe protegerla para que NINGÚN usuario pueda editar ni eliminar filas. Solo Apps Script puede insertar (appendRow).
+Columna
+Encabezado
+Formato
+Notas
+A
+ID_LOG
+Texto
+Auto-generado
+: LOG-001...
+B
+TIMESTAMP
+Fecha+Hora
+Fecha y hora exacta del evento
+C
+ID_PAGO
+Texto
+FK → CXC_PAGOS
+D
+ID_INQUILINO
+Texto
+FK → INQUILINOS
+E
+NOMBRE_INQUILINO
+Texto
+Desnormalizado
+F
+ID_INMUEBLE
+Texto
+FK → INMUEBLES
+G
+ID_PROPIETARIO
+Texto
+FK → PROPIETARIOS
+H
+ESTADO_ANTERIOR
+Texto
+Estado antes del cambio
+I
+ESTADO_NUEVO
+Texto
+Estado después del cambio
+J
+EVENTO
+Texto
+REGISTRO_PAGO / CUADRE_CAJA / LIQUIDACION / ANULACION / AJUSTE
+K
+ID_SESION_CAJA
+Texto
+Si aplica
+L
+ID_LIQUIDACION
+Texto
+Si aplica
+M
+MONTO_PAGO
+Número (
+#,#
+#0.00)
+Monto del pago en el momento del evento
+N
+USUARIO
+Texto
+Email del usuario que ejecutó la acción
+O
+OBSERVACIONES
+Texto
+Notas adicionales
+3.11 Pestaña CONFIG
+Pestaña de configuración del sistema. Solo editable por el Administrador.
+Clave
+Valor Predeterminado
+Descripción
+DIAS_GRACIA_DEFAULT
+5
+Días de gracia globales (si el contrato no especifica)
+PCT_MORA_DEFAULT
+0.03
+Tasa de mora mensual predeterminada (3%)
+DIAS_AVISO_PREVIO
+5
+Días antes del vencimiento para enviar aviso
+EMPRESA_NOMBRE
+[Nombre de la empresa]
+Para los encabezados de PDF
+EMPRESA_RNC
+[RNC]
+RNC de la empresa administradora
+EMPRESA_TELEFONO
+[Teléfono]
+Teléfono para los documentos
+EMPRESA_EMAIL
+[Email]
+Email de contacto
+GOOGLE_DRIVE_FOLDER_ID
+[ID de carpeta]
+Carpeta en Drive donde se guardan los PDFs
+TRIGGER_CRON_HORA
+0
+Hora del día para ejecutar el cron (0 = medianoche)
+ALERTA_DIAS_ADMIN
+5
+Alertar si hay saldos EN_ADMINISTRACION más de X días sin liquidar
+VERSION_SISTEMA
+Beta 1.0
+Versión actual
+4. Google Apps Script — Funciones Requeridas
+Claude Code debe implementar todas las funciones en el archivo Code.gs (o múltiples archivos .gs organizados por módulo). Cada función debe incluir manejo de errores con try/catch y logging con console.log para depuración.
+4.1 Función: 
+onOpen(
+) — Menú Principal
+Menú '⚙ Admin Inmuebles' que Claude Code debe crear
+── DATOS MAESTROS ──
+Nuevo Propietario (abre sidebar HTML)
+Nuevo Inmueble (abre sidebar HTML)
+Nuevo Inquilino (abre sidebar HTML)
+Nuevo Contrato (abre sidebar HTML)
+── COBRANZA ──
+Registrar Pago (abre sidebar HTML)
+Ver Estado de Cuenta de Inquilino
+── CAJA ──
+Ver Sesión de Caja Activa
+Aprobar Cuadre de Caja (solo Admin)
+── LIQUIDACIONES ──
+Procesar Liquidación a Propietario (solo Admin)
+── CARGA INICIAL ──
+Cargar CxC Pendientes (migración)
+Cargar Pagos Históricos sin Liquidar (migración)
+── REPORTES ──
+Reporte de Cobranza del Período
+Reporte de Morosidad
+Estado de Cuenta por Inquilino
+Reporte de Custodia
+── SISTEMA ──
+Instalar/Actualizar Triggers Automáticos
+Verificar Integridad del Sistema
+Acerca de esta Beta
+4.2 Función: 
+generarIdUnico(
+prefijo, hoja)
+Genera IDs auto-incrementales del tipo PROP-001, INM-042, CXC-103. Debe: leer la última fila de la hoja especificada, extraer el número actual, incrementar en 1, y devolver el nuevo ID con ceros a la izquierda (padding de 3 dígitos mínimo, escalar a 4 si supera 999).
+4.3 Función: 
+cronDiario(
+) — Job Automático
+Pasos que debe ejecutar en este orden exacto
+PASO 1 — Generación de CxC nuevos: leer todos los contratos en estado VIGENTE. Para cada uno, verificar si hoy es DIA_COBRO_1 o DIA_COBRO_2. Si es así, verificar que no exista ya un CxC para este contrato+período. Si no existe, crear el registro en CXC_CARGOS con estado PENDIENTE. Procesar también los CARGOS_ADICIONALES activos del contrato según su periodicidad.
+PASO 2 — Actualización de mora: leer todos los CxC en estado PENDIENTE o PARCIAL cuya FECHA_VENCIMIENTO + DIAS_GRACIA sea menor o igual a hoy. Calcular los días de mora: 
+MAX(
+0, HOY - FECHA_VENCIMIENTO - DIAS_GRACIA). Calcular mora_acumulada según el tipo de mora del contrato (PORCENTAJE o MONTO_FIJO). Actualizar MORA_ACUMULADA, DIAS_MORA y MONTO_TOTAL en la fila.
+PASO 3 — Cambio de estado a EN_MORA: para los CxC que en el paso 2 resultaron con días_mora &gt; 0 y cuyo estado sea PENDIENTE o PARCIAL, cambiar ESTADO a EN_MORA.
+PASO 4 — Alerta Art. 1762: verificar si algún inquilino tiene 2 o más CxC de tipo ALQUILER consecutivos en estado PENDIENTE, PARCIAL o EN_MORA. Si sí, registrar la alerta en la pestaña INICIO con fondo rojo.
+PASO 5 — Verificación de sesión de caja: si la hora actual es mayor a las 20:00 y existe una sesión con ESTADO = ABIERTA del día de hoy, registrar alerta en INICIO.
+PASO 6 — Actualización del Dashboard: llamar a 
+actualizarDashboard(
+).
+PASO 7 — Generación de avisos WhatsApp: para cada CxC que vence en X días (
+CONFIG!DIAS
+_AVISO_PREVIO), generar el 
+link
+ wa.me y registrarlo en NOTIFICACIONES. Para los EN_MORA que no han recibido aviso en los últimos 7 días, ídem.
+4.4 Función: registrarPago(datos)
+Lógica de registro de pago
+Validar que el ID_CXC existe y no está en estado PAGADO o ANULADO.
+Obtener o crear la sesión de caja del día. Si no existe sesión ABIERTA para hoy, crear una nueva con ESTADO = ABIERTA.
+Aplicar el pago: primero a mora pendiente, luego al principal.
+Calcular nuevo MONTO_PAGADO = suma anterior + monto recibido.
+Calcular nuevo SALDO_PENDIENTE = MONTO_TOTAL - MONTO_PAGADO.
+Actualizar ESTADO del CxC: si SALDO_PENDIENTE &lt;= 0 → PAGADO (registrar FECHA_PAGO_TOTAL); si SALDO_PENDIENTE &gt; 0 → PARCIAL.
+Insertar fila en CXC_PAGOS con ESTADO_CUSTODIA = COBRADO, ID_SESION_CAJA = sesión activa.
+Insertar fila en LOG_CUSTODIA: evento = REGISTRO_PAGO, estado_anterior = NULL, estado_nuevo = COBRADO.
+Actualizar totales de la sesión de caja (TOTAL_EFECTIVO, TOTAL_TRANSFERENCIA, etc. según forma de pago).
+Llamar a generarReciboPDF(id_pago) para generar el recibo.
+Llamar a 
+generarLinkWhatsApp(
+id_pago, tipo='PAGO_CONFIRMADO') para preparar el aviso.
+Actualizar el Dashboard.
+4.5 Función: aprobarCuadreCaja(id_sesion)
+Proceso de cuadre
+Validar que el usuario tiene rol Administrador (verificar en ROLES).
+Validar que la sesión existe y está en estado ABIERTA o PENDIENTE_AJUSTE.
+Leer todos los pagos en CXC_PAGOS con ID_SESION_CAJA = id_sesion y ESTADO_CUSTODIA = COBRADO.
+Para cada pago: actualizar ESTADO_CUSTODIA → EN_ADMINISTRACION y FECHA_EN_ADMINISTRACION → ahora.
+Para cada pago: insertar fila en LOG_CUSTODIA: evento = CUADRE_CAJA, estado_anterior = COBRADO, estado_nuevo = EN_ADMINISTRACION.
+Actualizar la sesión: ESTADO → APROBADA, USUARIO_CIERRE = email del admin, FECHA_CIERRE = ahora.
+Llamar a generarCierreCajaPDF(id_sesion).
+Actualizar el Dashboard.
+4.6 Función: 
+procesarLiquidacion(
+id_propietario, fecha_desde, fecha_hasta, filtro_adicional)
+Proceso de liquidación
+Validar que el usuario tiene rol Administrador.
+Leer todos los pagos en CXC_PAGOS donde ID_PROPIETARIO = id_propietario AND ESTADO_CUSTODIA = EN_ADMINISTRACION AND FECHA_EN_ADMINISTRACION entre fecha_desde y fecha_hasta (y filtro_adicional si aplica).
+Si no hay pagos que cumplan el criterio, mostrar alerta y detener.
+Calcular: total_cobrado = suma de MONTO_PAGADO, total_mora = suma de APLICADO_A_MORA.
+Obtener esquema de comisión del propietario (o del contrato si sobreescribe). Calcular comision_administrador.
+Calcular monto_neto = total_cobrado - comision_administrador.
+Crear registro en LIQUIDACIONES con estado PENDIENTE.
+Para cada pago incluido: actualizar ESTADO_CUSTODIA → LIQUIDADO, ID_LIQUIDACION = nuevo id, FECHA_LIQUIDADO = ahora.
+Para cada pago: insertar en LOG_CUSTODIA: evento = LIQUIDACION, estado_anterior = EN_ADMINISTRACION, estado_nuevo = LIQUIDADO.
+Llamar a generarLiquidacionPDF(id_liquidacion).
+Actualizar el Dashboard.
+4.7 Función: generarReciboPDF(id_pago)
+Usa un Google Doc como plantilla (almacenado en Drive, ID en CONFIG). Abre la plantilla, hace una copia, reemplaza los marcadores {{campo}} con los valores del pago, exporta a PDF, guarda en la carpeta de Drive (
+CONFIG!GOOGLE
+_DRIVE_FOLDER_ID), registra la URL en CXC_
+PAGOS!RECIBO
+_PDF_URL.
+Marcadores requeridos en la plantilla del Recibo
+{{EMPRESA_NOMBRE}}, {{EMPRESA_RNC}}, {{EMPRESA_TELEFONO}}
+{{RECIBO_NUM}}, {{FECHA_PAGO}}, {{REGISTRADO_POR}}
+{{INQUILINO_NOMBRE}}, {{INQUILINO_CEDULA}}, {{INQUILINO_WHATSAPP}}
+{{INMUEBLE_REFERENCIA}}, {{INMUEBLE_DIRECCION}}, {{PROPIETARIO_NOMBRE}}
+{{PERIODO}}, {{TIPO_CARGO}}, {{MONTO_PRINCIPAL}}, {{MORA_APLICADA}}, {{TOTAL_PAGADO}}
+{{FORMA_PAGO}}, {{REFERENCIA_PAGO}}, {{SALDO_PENDIENTE}}
+4.8 Función: generarCierreCajaPDF(id_sesion)
+Similar al recibo. Usa plantilla de cierre de caja. Genera tabla con el detalle de todos los pagos de la sesión agrupados por FORMA_PAGO. Incluye: encabezado de la empresa, fecha, usuario cajero, usuario que aprobó, resumen por forma de pago, detalle de transacciones, espacio para firma.
+4.9 Función: generarLiquidacionPDF(id_liquidacion)
+Genera el comprobante de liquidación. Detalle por inmueble: inquilino, período, monto cobrado, mora, comisión, neto. Totales al final. Datos de la transferencia bancaria. Espacio para firma del propietario.
+4.10 Función: 
+generarLinkWhatsApp(
+id_pago o id_cxc, tipo)
+Genera la URL wa.me con el mensaje pre-formateado para el inquilino o propietario. La URL se almacena en NOTIFICACIONES y se puede abrir con un clic desde el Sheet o el sidebar. No requiere WhatsApp Business API.
+Tipos de mensaje y plantillas de texto
+VENCIMIENTO_PROXIMO: 'Estimado/a [NOMBRE], le recordamos que su pago de alquiler de [INMUEBLE] por RD$[MONTO] vence el [FECHA]. Puede contactarnos para coordinar el pago. Gracias.'
+VENCE_HOY: 'Estimado/a [NOMBRE], su pago de alquiler de [INMUEBLE] por RD$[MONTO] vence HOY. Por favor realice su pago a la brevedad para evitar cargos por mora.'
+MORA_ACTIVA: 'Estimado/a [NOMBRE], su cuenta de [INMUEBLE] tiene un saldo pendiente de RD$[SALDO] con [DIAS] días de atraso. Mora acumulada: RD$[MORA]. Le solicitamos regularizar su situación.'
+PAGO_CONFIRMADO: 'Estimado/a [NOMBRE], confirmamos la recepción de su pago de RD$[MONTO] correspondiente a [PERIODO] del inmueble [INMUEBLE]. Saldo pendiente: RD$[SALDO]. Gracias.'
+RENOVACION_CONTRATO: 'Estimado/a [NOMBRE], su contrato de arrendamiento de [INMUEBLE] vence el [FECHA_VENC]. Por favor contáctenos para coordinar la renovación.'
+4.11 Función: 
+actualizarDashboard(
+)
+Actualiza la pestaña INICIO con los KPIs y alertas del día. Esta función es llamada por el cron y por cada operación crítica.
+KPIs que debe calcular y mostrar
+Total
+ CxC generado en el mes en curso: SUMIF en CXC_CARGOS.
+Total
+ cobrado a la fecha (todos los estados de custodia): SUMIF en CXC_PAGOS.
+Total
+ COBRADO (pendiente de cuadre): suma de pagos con ESTADO_CUSTODIA = COBRADO.
+Total
+ EN_ADMINISTRACION: suma de pagos con ESTADO_CUSTODIA = EN_ADMINISTRACION.
+Total
+ LIQUIDADO en el mes: suma de pagos LIQUIDADO en el período.
+Total
+ pendiente de cobro: suma de SALDO_PENDIENTE en CxC no PAGADOS.
+Tasa de cobro del mes: total cobrado / total CxC generado.
+Inmuebles ocupados: COUNTIF en INMUEBLES donde ESTADO = OCUPADO.
+Sesión de caja hoy: estado de la sesión del día (ABIERTA / APROBADA / Sin abrir).
+Alertas que debe mostrar en INICIO (con color rojo si crítica)
+CxC que vencen HOY sin pago (lista con inquilino, inmueble, monto).
+CxC que entraron EN_MORA hoy.
+Inquilinos con alerta Art. 1762 (2+ períodos sin pago).
+Sesión de caja ABIERTA después de las 8 PM.
+Pagos COBRADO de días anteriores (sesiones sin cuadre).
+Propietarios con saldo EN_ADMINISTRACION mayor a 
+CONFIG!ALERTA
+_DIAS_ADMIN días.
+Contratos que vencen en los próximos 30 días.
+Avisos WhatsApp pendientes de enviar (
+generados
+ pero no marcados como enviados).
+5. Carga Inicial de Datos — Metodología de Migración
+Este es uno de los requerimientos más importantes. El sistema debe permitir cargar el estado actual de las CxC al momento de poner en marcha la beta. Hay dos categorías de datos a migrar:
+Categoría
+Descripción
+Estado en Sistema
+Función de Carga
+CxC Pendientes
+Cargos que el inquilino DEBE y que aún no han sido pagados. Incluye los que están en período de gracia y los que ya están en mora.
+PENDIENTE o EN_MORA según si superaron días de gracia
+cargarCxCPendientes(
+)
+Pagos sin Liquidar
+Pagos que el inquilino YA realizó y que el administrador recibió, pero que aún no han sido liquidados al propietario. Pueden estar cuadrados o no.
+EN_ADMINISTRACION (si ya fueron cuadrados) o COBRADO (si aún no)
+cargarPagosSinLiquidar(
+)
+5.1 Función: 
+cargarCxCPendientes(
+)
+Esta función es el punto de entrada para la migración de deudas activas. Abre un sidebar HTML donde el usuario puede ingresar o pegar los datos de carga, o importar desde una hoja de Excel/CSV.
+Campos requeridos para cada CxC a cargar
+ID_CONTRATO: el contrato al que corresponde la deuda (debe existir previamente en la pestaña CONTRATOS).
+TIPO_CARGO: ALQUILER / MANTENIMIENTO / PARQUEO / OTRO.
+PERIODO_INICIO y PERIODO_FIN: el mes o quincena a la que corresponde la deuda.
+FECHA_VENCIMIENTO: la fecha original de vencimiento del cargo.
+MONTO_PRINCIPAL: el monto original sin mora.
+MONTO_PAGADO: si hubo algún pago parcial antes de la migración, indicarlo aquí. El sistema calculará el saldo.
+OBSERVACIONES_MIGRACION: campo libre para anotar el origen del dato ('Sistema anterior', 'Excel de control', etc.).
+Lógica que ejecuta la función al cargar cada CxC
+Validar que ID_CONTRATO existe en CONTRATOS y está VIGENTE.
+Generar ID_CXC automáticamente.
+Obtener DIAS_GRACIA del contrato.
+Calcular días de mora: 
+MAX(
+0, HOY - FECHA_VENCIMIENTO - DIAS_GRACIA).
+Si días de mora &gt; 0: calcular mora acumulada según el tipo de mora del contrato. Estado = EN_MORA.
+Si días de mora = 0 y hay saldo pendiente: Estado = PENDIENTE.
+Si MONTO_PAGADO &gt; 0 pero hay saldo: Estado = PARCIAL o EN_MORA según corresponda.
+Insertar la fila en CXC_CARGOS con el flag ORIGEN = 'MIGRACION' en OBSERVACIONES.
+NO generar recibo PDF ni aviso WhatsApp para los cargos de migración (son históricos).
+Actualizar el Dashboard al terminar.
+Plantilla de Carga — Pestaña Temporal CARGA_CXC
+Claude Code debe crear una pestaña temporal CARGA_CXC con estos encabezados para facilitar el pegado masivo de datos:
+ID_CONTRATO | TIPO_CARGO | PERIODO_INICIO | PERIODO_FIN | FECHA_VENCIMIENTO | MONTO_PRINCIPAL | MONTO_PAGADO | OBSERVACIONES_MIGRACION
+El menú 'Cargar CxC Pendientes' lee esta pestaña, procesa cada fila y la mueve a CXC_CARGOS. Al terminar, limpia la pestaña de carga y muestra un resumen de lo procesado.
+Si una fila tiene error (contrato no existe, fecha inválida, etc.), la marca en rojo y la deja en CARGA_CXC para revisión manual.
+5.2 Función: 
+cargarPagosSinLiquidar(
+)
+Carga los pagos que ya fueron recibidos por el administrador antes de la puesta en marcha de la beta, pero que aún no han sido liquidados al propietario.
+Campos requeridos para cada pago a cargar
+ID_CXC: el ID del cargo CxC al que corresponde el pago (debe existir, cargado previamente con 
+cargarCxCPendientes(
+) o generado por el sistema).
+FECHA_PAGO: fecha real en que se recibió el pago.
+MONTO_PAGADO: monto recibido.
+FORMA_PAGO: EFECTIVO / TRANSFERENCIA / TARJETA / CHEQUE.
+REFERENCIA_PAGO: si aplica.
+ESTADO_CUSTODIA_INICIAL: EN_ADMINISTRACION (ya fue cuadrado antes de la migración) o COBRADO (aún no cuadrado).
+OBSERVACIONES_MIGRACION: origen del dato.
+Lógica que ejecuta la función
+Validar que ID_CXC existe en CXC_CARGOS.
+Generar ID_PAGO automáticamente.
+Calcular APLICADO_A_MORA y APLICADO_A_PRINCIPAL según el saldo de mora del CxC.
+Insertar en CXC_PAGOS con el ESTADO_CUSTODIA indicado por el usuario.
+Actualizar el CxC correspondiente: MONTO_PAGADO, SALDO_PENDIENTE, ESTADO.
+Insertar en LOG_CUSTODIA con evento = REGISTRO_PAGO (migracion), estado_anterior = NULL, estado_nuevo = ESTADO_CUSTODIA_INICIAL.
+Si ESTADO_CUSTODIA_INICIAL = EN_ADMINISTRACION: registrar también en LOG_CUSTODIA el evento CUADRE_CAJA con nota 'Migración histórica'.
+NO asignar a ninguna sesión de caja (ID_SESION_CAJA = 'MIGRACION').
+NO generar recibo PDF ni aviso WhatsApp.
+Actualizar el Dashboard al terminar.
+Plantilla de Carga — Pestaña Temporal CARGA_PAGOS
+Claude Code debe crear una pestaña temporal CARGA_PAGOS con estos encabezados:
+ID_CXC | FECHA_PAGO | MONTO_PAGADO | FORMA_PAGO | REFERENCIA_PAGO | ESTADO_CUSTODIA_INICIAL | OBSERVACIONES_MIGRACION
+Misma lógica de procesamiento por lotes que CARGA_CXC: leer, procesar, mover, marcar errores en rojo.
+5.3 Secuencia de Carga Inicial Recomendada
+Crear el Sheet desde cero con Claude Code (todas las pestañas, formatos, validaciones).
+Registrar los propietarios en la pestaña PROPIETARIOS.
+Registrar los inmuebles en la pestaña INMUEBLES.
+Registrar los inquilinos en la pestaña INQUILINOS.
+Registrar los contratos activos en la pestaña CONTRATOS.
+Registrar los cargos adicionales de cada contrato en CARGOS_ADICIONALES.
+Pegar los datos de CxC pendientes en la pestaña CARGA_CXC y ejecutar 'Cargar CxC Pendientes'.
+Pegar los datos de pagos sin liquidar en CARGA_PAGOS y ejecutar 'Cargar Pagos Históricos sin Liquidar'.
+Revisar el Dashboard INICIO y verificar que los KPIs y alertas son coherentes.
+Instalar los triggers automáticos: menú → Sistema → 'Instalar/Actualizar Triggers Automáticos'.
+El sistema queda operativo para registrar nuevos cobros del día en adelante.
+6. Control de Acceso y Roles
+6.1 Pestaña ROLES
+La pestaña ROLES define quién puede hacer qué. Solo el Administrador puede editar esta pestaña.
+Columna
+Encabezado
+Descripción
+A
+EMAIL
+Email de Google del usuario
+B
+NOMBRE
+Nombre del usuario
+C
+ROL
+ADMINISTRADOR / ASISTENTE / LECTURA
+D
+ACTIVO
+SI / NO
+Permiso
+ADMINISTRADOR
+ASISTENTE
+LECTURA
+Ver Dashboard INICIO
+✅
+✅
+✅
+Ver CxC y pagos
+✅
+✅
+✅
+Registrar pagos
+✅
+✅
+❌
+Crear contratos
+✅
+❌
+❌
+Aprobar cuadre de caja
+✅
+❌
+❌
+Procesar liquidaciones
+✅
+❌
+❌
+Cargar datos de migración
+✅
+❌
+❌
+Editar CONFIG
+✅
+❌
+❌
+Editar ROLES
+✅
+❌
+❌
+Ver LOG_CUSTODIA
+✅
+✅
+✅
+Editar LOG_CUSTODIA
+❌
+ (nadie)
+❌
+ (nadie)
+❌
+ (nadie)
+6.2 Implementación
+La función verificarRol(rolRequerido) lee el email del usuario activo con Session.getActiveUser(
+).getEmail
+(), lo busca en la pestaña ROLES y verifica si tiene el rol requerido.
+Toda función crítica (aprobarCuadreCaja, procesarLiquidacion, cargarDatos) debe llamar 
+verificarRol(
+) como primera línea y lanzar un error si el usuario no tiene permiso.
+La pestaña LOG_CUSTODIA debe tener protección de rango para todos los usuarios (incluyendo el Administrador) que solo permite edición al script del sistema (owner).
+Las pestañas CONFIG y ROLES deben tener protección que solo permite edición al Administrador.
+7. Triggers Automáticos de Apps Script
+Trigger
+Tipo
+Configuración
+Función
+Cron diario
+Basado en tiempo
+Cada día a la hora configurada en CONFIG (default: medianoche)
+cronDiario(
+)
+Al abrir el Sheet
+Al abrir
+onOpen
+onOpen(
+) — crea el menú personalizado
+Al editar
+Al editar
+onChange en hojas de datos
+validarEdicion(
+) — valida formatos y FK en tiempo real
+Recordatorio semanal
+Basado en tiempo
+Cada lunes a las 8 AM
+generarRecordatoriosSemana(
+) — genera links WA para mora activa
+Claude Code debe implementar la función 
+instalarTriggers(
+) en el menú Sistema → 'Instalar/Actualizar Triggers Automáticos'. Esta función elimina los triggers existentes del proyecto y los reinstala con la configuración actual de CONFIG, para evitar duplicados.
+8. Diseño del Dashboard INICIO
+La pestaña INICIO es la pantalla principal. Claude Code debe diseñarla como un dashboard visual usando celdas combinadas, bordes, colores y fórmulas. Se actualiza automáticamente con la función 
+actualizarDashboard(
+).
+Layout del Dashboard (de arriba hacia abajo)
+FILA 1-3: Encabezado con nombre de la empresa (desde CONFIG), logo placeholder, fecha de hoy (=
+HOY(
+)), y versión del sistema.
+FILA 5-10: Panel de KPIs en 3 columnas. Cada KPI tiene: título en celda gris, valor en celda grande con formato moneda o porcentaje, y un indicador de color (verde/amarillo/rojo) basado en umbrales.
+FILA 12: Separador con texto 'ALERTAS DEL DÍA'.
+FILA 13-30: Panel de alertas. Cada alerta ocupa 1-2 filas. Las críticas tienen fondo rojo, las de advertencia fondo amarillo. Si no hay alertas, mostrar '✅ Sin alertas pendientes' en verde.
+FILA 32: Separador 'SESIÓN DE CAJA HOY'.
+FILA 33-38: Resumen de la sesión de caja del día: estado, total por forma de pago, botón para abrir el cuadre.
+FILA 40+: Accesos rápidos: botones (imágenes con hipervínculos o checkboxes) para las acciones más comunes.
+9. Instrucciones de Construcción para Claude Code
+IMPORTANTE — Leer antes de comenzar
+Esta especificación es el documento único de construcción. Claude Code debe implementar TODO lo descrito aquí desde cero, sin asumir que existe ningún archivo previo.
+El orden de construcción debe ser: (1) Crear el Google Sheet con todas las pestañas y esquemas. (2) Configurar formatos, validaciones y formato condicional. (3) Configurar protecciones de rango. (4) Implementar Apps Script con todas las funciones. (5) Crear las plantillas de Google Docs para PDFs. (6) Instalar triggers. (7) Poblar CONFIG con los valores predeterminados. (8) Verificar el sistema con la función 'Verificar Integridad del Sistema'.
+Todos los IDs son generados por el sistema (nunca por el usuario). El usuario nunca escribe directamente en CXC_CARGOS ni en LOG_CUSTODIA.
+Toda operación que modifique datos debe primero verificar el rol del usuario activo.
+El sistema debe funcionar en español dominicano. Todos los mensajes, alertas y documentos en español.
+Los números monetarios siempre con separador de miles y 2 decimales: RD$ 1,234.56.
+Las fechas siempre en formato DD/MM/YYYY en la interfaz.
+9.1 Estructura de Archivos Apps Script
+Archivos .gs recomendados
+Code.gs — 
+onOpen(
+), 
+onEdit(
+), instalación de triggers, función main.
+Maestros.gs — funciones de propietarios, inmuebles, inquilinos, contratos, cargos adicionales.
+CxC.gs — 
+generarCxC(
+), 
+cronDiario(
+), 
+calcularMora(
+), 
+actualizarEstadoCxC(
+).
+Pagos.gs — 
+registrarPago(
+), 
+aplicarPago(
+).
+Caja.gs — 
+obtenerSesionCaja(
+), 
+aprobarCuadreCaja(
+).
+Liquidaciones.gs — 
+procesarLiquidacion(
+).
+PDFs.gs — 
+generarReciboPDF(
+), 
+generarCierreCajaPDF(
+), 
+generarLiquidacionPDF(
+).
+WhatsApp.gs — 
+generarLinkWhatsApp(
+), 
+registrarNotificacion(
+).
+Dashboard.gs — 
+actualizarDashboard(
+), 
+calcularKPIs(
+), 
+registrarAlerta(
+).
+Migracion.gs — 
+cargarCxCPendientes(
+), 
+cargarPagosSinLiquidar(
+), 
+procesarHojaCarga(
+).
+Utils.gs — 
+generarIdUnico(
+), 
+verificarRol(
+), 
+formatearMoneda(
+), 
+formatearFecha(
+), 
+logError(
+).
+Sidebar.html — interfaz HTML para el panel lateral (formularios de registro de pago, nuevos registros).
+9.2 Función: 
+verificarIntegridad(
+)
+Esta función de diagnóstico verifica que el sistema está correctamente configurado y muestra un reporte en el sidebar:
+Verificar que todas las pestañas requeridas existen con sus encabezados correctos.
+Verificar que los triggers están instalados y activos.
+Verificar que la carpeta de Drive para PDFs está configurada y accesible.
+Contar registros en cada pestaña y mostrar el resumen.
+Verificar que no hay FKs huérfanas (CxC sin contrato, pagos sin CxC, etc.).
+Mostrar la versión de Apps Script y el email del propietario del script.
+9.3 Manejo de Errores
+Toda función debe tener try/catch. Los errores deben loguearse con 
+Logger.log(
+) y mostrarse al usuario con un toast message o un alert según la gravedad.
+Las operaciones críticas (cuadre, liquidación) deben verificar el estado inicial antes de ejecutar y abortar si el estado ya fue procesado (idempotencia).
+Si el 
+cronDiario(
+) falla, debe registrar el error en una celda de CONFIG (ULTIMO_ERROR_CRON) con timestamp para que el administrador pueda diagnosticar.
+10. Plan de Trabajo Sugerido para Claude Code
+Etapa
+Tareas
+Resultado Esperado
+Etapa 1 — Estructura
+Crear el Google Sheet. Crear todas las pestañas con nombres, colores y encabezados. Configurar formatos de columna (fecha, número, lista desplegable). Configurar formato condicional en CXC_CARGOS. Poblar CONFIG con valores predeterminados. Protecciones de rango iniciales.
+Sheet listo para recibir datos. Todas las pestañas con su estructura correcta.
+Etapa 2 — Utils y Maestros
+Implementar Utils.gs completo. Implementar 
+onOpen(
+) con el menú. Implementar Maestros.gs: funciones para crear propietarios, inmuebles, inquilinos, contratos y cargos adicionales desde el sidebar.
+El administrador puede registrar los datos maestros desde el menú.
+Etapa 3 — CxC y Cron
+Implementar CxC.gs: generación automática, cálculo de mora, cambio de estados. Implementar 
+cronDiario(
+). Instalar el trigger de tiempo. Prueba: crear un contrato, esperar al día siguiente, verificar que se generó el CxC.
+El ciclo automático de CxC funciona correctamente.
+Etapa 4 — Pagos y Caja
+Implementar Pagos.gs y Caja.gs. Sidebar de registro de pago. Función de cuadre de caja. Prueba: registrar un pago, aprobar el cuadre, verificar LOG_CUSTODIA.
+El flujo de custodia COBRADO → EN_ADMINISTRACION funciona.
+Etapa 5 — PDFs y WhatsApp
+Implementar PDFs.gs: crear plantillas en Drive, generar recibos y cierres de caja. Implementar WhatsApp.gs: generación de links wa.me.
+Se generan PDFs descargables y links de WhatsApp funcionales.
+Etapa 6 — Liquidaciones
+Implementar Liquidaciones.gs. Flujo completo EN_ADMINISTRACION → LIQUIDADO. Generar PDF de liquidación.
+El ciclo de custodia completo funciona de extremo a extremo.
+Etapa 7 — Dashboard
+Implementar Dashboard.gs y diseñar la pestaña INICIO con KPIs y alertas. Trigger onOpen actualiza el dashboard.
+El administrador ve el estado del sistema al abrir el Sheet.
+Etapa 8 — Migración
+Implementar Migracion.gs: 
+cargarCxCPendientes(
+) y 
+cargarPagosSinLiquidar(
+). Crear pestañas temporales CARGA_CXC y CARGA_PAGOS.
+El cliente puede cargar su historial activo en una sesión de trabajo.
+Etapa 9 — Verificación
+Implementar 
+verificarIntegridad(
+). Prueba de extremo a extremo con datos reales del cliente. Ajustes finales.
+Sistema listo para uso en producción.
+Entregables Finales de Claude Code
+URL del Google Sheet con el sistema completo y funcional.
+Instrucciones de uso de 1 página (pestaña INICIO o documento adjunto).
+Confirmación de que los 9 triggers están instalados y activos.
+IDs de las plantillas de Google Docs (recibo, cierre de caja, liquidación) almacenadas en CONFIG.
+Confirmación de la carpeta de Drive configurada para PDFs.

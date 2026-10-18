@@ -1,0 +1,25 @@
+@model PorfiAcademy.Controllers.WatchViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<section class="card">
+    <h1>@Model.Title</h1>
+    <div class="player-wrap">
+        <mux-player
+            playback-id="@Model.PlaybackId"
+            playback-token="@Model.Tokens.Video"
+            thumbnail-token="@Model.Tokens.Thumbnail"
+            storyboard-token="@Model.Tokens.Storyboard"
+            metadata-video-title="@Model.Title"
+            accent-color="#f94d05"
+            style="width:100%; aspect-ratio:16/9;">
+        </mux-player>
+        <div class="watermark" aria-hidden="true">@Model.UserLabel</div>
+    </div>
+    <p><a asp-action="Index">← Volver a mis cursos</a></p>
+</section>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@mux/mux-player@@3.14.0"></script>
+}

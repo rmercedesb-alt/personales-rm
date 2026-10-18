@@ -1,0 +1,73 @@
+================================================================
+   IMPRESORA DE TICKETS 80mm  (JAMATech PT080BK — USB + LAN)
+   Configuracion para imprimir recibos de punto de venta
+================================================================
+
+Especificaciones (de la caja):
+  - Termica directa 80mm, 203 dpi.
+  - Ancho de impresion 72mm, ancho de papel 80mm.
+  - Cortador automatico.
+  - Interfaz para cajon de dinero (cash drawer).
+  - Conexion: USB + LAN (red).
+
+----------------------------------------------------------------
+ 1) INSTALAR EL CONTROLADOR (DRIVER)
+----------------------------------------------------------------
+  - Descarga el driver desde  www.jamatech.com.do  (modelo PT080BK).
+    Si no aparece, sirve un driver generico "POS-80" / "80mm Series
+    Printer" (la mayoria de termicas 80mm son compatibles).
+  - Instala el driver.
+
+----------------------------------------------------------------
+ 2) CONECTAR LA IMPRESORA
+----------------------------------------------------------------
+ OPCION A — USB (mas simple):
+   - Conecta el cable USB y enciende. Windows la detecta con el
+     driver instalado. Aparecera en "Impresoras y escaneres".
+
+ OPCION B — LAN (red):
+   - Conecta el cable de red. Para saber su IP, apaga la impresora,
+     manten pulsado el boton FEED y enciendela: imprime una pagina
+     de auto-prueba con la IP (o la config de red).
+   - En Windows: Configuracion -> Bluetooth y dispositivos ->
+     Impresoras -> Agregar dispositivo -> "Agregar manualmente" ->
+     "Agregar usando una direccion TCP/IP" -> escribe la IP ->
+     tipo de puerto RAW, puerto 9100.
+   - Asocia el driver 80mm.
+   (Recomendado: fija la IP de la impresora en el router para que
+    no cambie.)
+
+----------------------------------------------------------------
+ 3) PREFERENCIAS DE LA IMPRESORA (importante)
+----------------------------------------------------------------
+  Panel de control -> Dispositivos e impresoras -> clic derecho en
+  la impresora -> "Preferencias de impresion":
+   - Tamano de papel: 80(72.1) x 297mm  (o "80mm" / "Roll 80").
+   - Cortador: activar "Corte parcial despues de cada documento".
+   - Cajon de dinero: si tienes cajon conectado a la impresora
+     (cable RJ11), activa "Abrir cajon antes/despues de imprimir".
+   - Velocidad/densidad: dejar por defecto.
+
+----------------------------------------------------------------
+ 4) EN EL SISTEMA (V6)
+----------------------------------------------------------------
+  - Al generar/reimprimir un recibo, en la ventana del recibo elige
+    el formato "Tickera 80mm" (el sistema recuerda tu eleccion).
+  - Pulsa Imprimir: se abre el dialogo del navegador.
+      * Selecciona la impresora JAMATech 80mm.
+      * Margenes: Ninguno.  Escala: 100% (Predeterminado).
+      * Desmarca "Encabezados y pies de pagina".
+  - Para pagos normales usa "Tickera 80mm"; para un comprobante
+    grande en hoja normal, usa "Hoja Carta".
+
+----------------------------------------------------------------
+ 5) (OPCIONAL) IMPRIMIR SIN DIALOGO / MAS RAPIDO
+----------------------------------------------------------------
+  - Pon la impresora 80mm como PREDETERMINADA de Windows.
+  - En Chrome/Edge se puede activar "impresion silenciosa" con
+    modo kiosco, pero para empezar el dialogo normal funciona bien.
+
+NOTA: el cortador y el cajon se controlan desde las PREFERENCIAS
+del driver (paso 3), no desde el sistema. El sistema solo envia el
+ticket con el ancho correcto (80mm).
+================================================================

@@ -1,0 +1,620 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimientos Semanales &mdash; AM COMERCIAL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px;min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid #21262d;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{height:38px;border-radius:6px;object-fit:contain}
+.brand-name{font-size:16px;font-weight:800}
+.brand-sub{font-size:11px;color:#bc8cff;margin-top:2px}
+.spacer{flex:1}
+.hbtn{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+.hbtn:hover{border-color:#bc8cff;color:#bc8cff}
+.btn-menu,.btn-out{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 11px;text-decoration:none;font-size:12px;font-weight:600}
+.btn-menu:hover{border-color:#58a6ff;color:#58a6ff}.btn-out:hover{border-color:#f85149;color:#f85149}
+.user-badge{font-size:11px;color:#8b949e;background:#21262d;padding:3px 10px;border-radius:20px}
+.filters{display:flex;align-items:center;gap:9px;padding:9px 18px;border-bottom:1px solid #21262d;flex-wrap:wrap;background:#0b0f14}
+.f-lbl{font-size:11px;color:#8b949e;white-space:nowrap}
+.filters input[type=date],.filters input[type=number]{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;height:30px;color-scheme:dark}
+.filters input[type=number]{width:74px}
+.btn-ref{background:#8957e5;border:none;color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:700;height:30px}
+.btn-ref:hover{background:#9d6ef0}
+/* Multiselect */
+.ms{position:relative}.ms-btn{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer;height:30px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:104px}
+.ms-btn:hover{border-color:#bc8cff}.ms-btn .cnt{background:#8957e5;color:#fff;border-radius:10px;font-size:10px;padding:1px 7px;font-weight:700}
+.ms-pop{display:none;position:absolute;top:34px;left:0;z-index:1200;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:220px;max-height:320px;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:6px}
+.ms-pop.open{display:block}.ms-search{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px 8px;font-size:12px;margin-bottom:6px;outline:none}
+.ms-head{display:flex;gap:12px;padding:4px 8px 6px;border-bottom:1px solid #21262d;margin-bottom:4px}.ms-link{font-size:11px;color:#58a6ff;cursor:pointer;font-weight:600}
+.ms-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px}.ms-opt:hover{background:#21262d}.ms-opt input{accent-color:#8957e5}
+/* Contenido */
+.wrap{padding:14px 18px}
+.crumbs{display:flex;align-items:center;gap:6px;font-size:12px;color:#8b949e;margin-bottom:12px;flex-wrap:wrap}
+.crumb{color:#58a6ff;cursor:pointer}.crumb:hover{text-decoration:underline}.crumb.cur{color:#e6edf3;cursor:default}
+.cards{display:flex;gap:11px;flex-wrap:wrap;margin-bottom:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:11px;padding:11px 15px;min-width:130px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card .cl{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:5px}
+.card .cv{font-size:26px;font-weight:800;line-height:1}.card .ch{font-size:10px;color:#8b949e;margin-top:3px}
+table{width:100%;border-collapse:collapse;background:#161b22;border:1px solid #30363d;border-radius:10px;overflow:hidden}
+th,td{padding:8px 10px;font-size:12px;text-align:center;border-bottom:1px solid #21262d;white-space:nowrap}
+th{background:#0b0f14;color:#8b949e;text-transform:uppercase;font-size:10px;letter-spacing:.5px;position:sticky;top:0;z-index:5;box-shadow:0 1px 0 #30363d}
+td.l,th.l{text-align:left}
+tr.clickable{cursor:pointer}tr.clickable:hover td{background:#1c2128}
+.badge{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:700;color:#0d1117}
+.iegt{font-weight:800;font-size:14px}
+.mini{font-size:10px;color:#8b949e}
+.modo-group{display:flex;gap:0}
+.btn-modo{background:#21262d;border:1px solid #30363d;color:#8b949e;padding:6px 13px;cursor:pointer;font-size:12px}
+.btn-modo:first-child{border-radius:6px 0 0 6px}.btn-modo:last-child{border-radius:0 6px 6px 0;border-left:none}
+.btn-modo.on{background:#8957e5;border-color:#8957e5;color:#fff;font-weight:700}
+tr.totals td{background:#0b0f14;font-weight:800;border-top:2px solid #30363d}
+#report-head{display:none;margin-bottom:12px}   /* solo en impresión/Excel, no en pantalla */
+.rh-title{font-size:18px;font-weight:800}
+.rh-sub{font-size:12px;color:#8b949e;margin-top:2px}
+.rh-filtros{font-size:11px;color:#8b949e;margin-top:8px;background:#0b0f14;border:1px solid #21262d;border-radius:6px;padding:8px 11px}
+.rh-filtros b{color:#e6edf3}
+#iegt-legend{border-top:1px solid #21262d;margin-top:22px;padding:8px 2px 4px;font-size:10px;color:#6e7681;line-height:1.6}
+.lg-b{display:inline-block;padding:0 6px;border-radius:7px;color:#0d1117;font-weight:700;margin:0 1px;font-size:9px}
+#iegt-legend b{color:#8b949e}
+/* Detalle vendedor */
+.detail{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px 18px;margin-top:14px}
+.detail h3{font-size:15px;margin-bottom:4px}
+.detail .sub{font-size:12px;color:#8b949e;margin-bottom:12px}
+.subgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.subcard{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:8px 10px}
+.subcard .k{font-size:10px;color:#8b949e}.subcard .v{font-size:15px;font-weight:700;margin-top:2px}
+.concl{background:#0d1117;border-left:3px solid #bc8cff;border-radius:6px;padding:12px 14px;font-size:13px;line-height:1.6;margin-bottom:12px}
+.concl b{color:#e6edf3}
+.plan{background:#0d1117;border:1px solid #30363d;border-radius:8px;padding:0;overflow:hidden}
+.plan .ph{background:#21262d;padding:8px 12px;font-size:12px;font-weight:700;color:#f0883e}
+.plan .pi{padding:8px 12px;font-size:12px;border-top:1px solid #21262d;display:flex;gap:8px}
+.plan .pi .tag{color:#f85149;font-weight:700;white-space:nowrap}
+/* Modal config */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:22px 24px;width:560px;max-width:94vw;max-height:90vh;overflow-y:auto}
+.modal h2{font-size:16px;margin-bottom:14px}
+.cfg-sec h3{font-size:12px;color:#bc8cff;text-transform:uppercase;letter-spacing:.5px;margin:14px 0 8px}
+.cfg-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px}
+.cfg-row label{flex:1;color:#e6edf3}
+.cfg-row input{width:70px;background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:4px 7px;font-size:12px;outline:none}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.btn-clear{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px}
+.overlay{position:fixed;inset:0;z-index:1500;display:none;align-items:center;justify-content:center;background:rgba(13,17,23,.6)}
+.overlay.show{display:flex}.spin{width:34px;height:34px;border:3px solid #30363d;border-top-color:#bc8cff;border-radius:50%;animation:sp 1s linear infinite}
+@@keyframes sp{to{transform:rotate(360deg)}}
+@@media print{header .hbtn,header .btn-menu,header .btn-out,.filters,#modobar,#nivelbar{display:none!important}#report-head{display:block!important}.wrap{padding:0}tr.clickable{cursor:default}th{position:static}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <img src="@(Context.Request.PathBase)/apiseg/logo" alt="" onerror="this.style.display='none'">
+    <div><div class="brand-name" id="brand-name">AM COMERCIAL</div><div class="brand-sub">Seguimientos Semanales &middot; Torre de Control (IEGT)</div></div>
+  </div>
+  <div class="spacer"></div>
+  <span class="user-badge" id="user-nombre"></span>
+  <button class="hbtn" id="btn-excel" title="Exportar a Excel">&#128229;</button>
+  <button class="hbtn" id="btn-print" title="Imprimir / PDF ejecutivo">&#128424;</button>
+  <button class="hbtn" id="btn-cfg" title="Configurar parámetros (IEGT)">&#9881;</button>
+@if (ViewBag.ShowMenu as bool? != false)
+{
+  <a class="btn-menu" href="@(Context.Request.PathBase)/menu">&#8592; Menú</a>
+}
+  <a class="btn-out" href="@(Context.Request.PathBase)/account/logout">Salir</a>
+</header>
+
+<div class="filters" id="filters">
+  <span class="f-lbl">Semana:</span>
+  <input type="date" id="f-ini"><span class="f-lbl">a</span><input type="date" id="f-fin">
+  <span id="ms-centro"></span><span id="ms-sup"></span><span id="ms-ven"></span><span id="ms-div"></span>
+  <span class="f-lbl">Fuera PDV (m):</span><input type="number" id="f-pdv" value="200" min="20" max="5000">
+  <button class="btn-ref" id="btn-go">Generar informe</button>
+</div>
+
+<div class="wrap">
+  <div id="report-head"></div>
+  <div class="modo-group" id="modobar" style="display:inline-flex;margin-bottom:12px"></div>
+  <div class="crumbs" id="crumbs"></div>
+  <div class="cards" id="cards"></div>
+  <div class="modo-group" id="nivelbar" style="display:inline-flex;margin:6px 0 12px"></div>
+  <div id="tabla"></div>
+  <div id="detalle"></div>
+  <div id="iegt-legend"></div>
+</div>
+
+<div class="overlay" id="overlay"><div class="spin"></div></div>
+
+<!-- Modal configuracion -->
+<div class="modal-bg" id="cfg-modal"><div class="modal">
+  <h2>Configuración de parámetros — IEGT</h2>
+  <div id="cfg-body"></div>
+  <div class="modal-foot"><button class="btn-clear" id="cfg-reset">Restaurar por defecto</button><button class="btn-clear" id="cfg-cancel">Cancelar</button><button class="btn-ref" id="cfg-save">Guardar</button></div>
+</div></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+const BASE='@Context.Request.PathBase.Value';
+const $=s=>document.querySelector(s);
+fetch(BASE+'/apiseg/me').then(r=>r.json()).then(j=>{ if(j&&j.ok) $('#user-nombre').textContent=j.nombre||j.login; }).catch(()=>{});
+fetch(BASE+'/apiseg/empresa').then(r=>r.json()).then(j=>{ if(j&&j.ok&&j.nombre){ EMP=j.nombre; $('#brand-name').textContent=j.nombre; document.title='Seguimientos — '+j.nombre; } }).catch(()=>{});
+
+/* ── Config editable (IEGT) ── */
+const CFG_DEF={
+  pesos:{visitas:30,inicio:20,cierre:10,ventas:10,ruta:10,pdv:10,ritmo:10},
+  visitas:{v100:98,v75:95,v50:88},
+  inicio:{min100:495,min50:525},   // 08:15 / 08:45 (minutos desde medianoche)
+  cierre:{min100:930,min50:870},   // 15:30 / 14:30
+  ventas:{bandLo:55,bandHi:65,tol:5},
+  bandas:{solida:85,aceptable:70,irregular:55},
+  pdvMetros:200,
+  pdvModo:'distancia'   // 'distancia' (GPS>umbral) | 'ruta' (cliente no programado ese día)
+};
+let CFG=loadCfg();
+function loadCfg(){ try{const s=JSON.parse(localStorage.getItem('segCfg')); if(s&&s.pesos) return Object.assign(JSON.parse(JSON.stringify(CFG_DEF)),s);}catch(e){} return JSON.parse(JSON.stringify(CFG_DEF)); }
+function saveCfg(){ localStorage.setItem('segCfg',JSON.stringify(CFG)); }
+
+/* ── Sub-scores IEGT ── */
+function subVisitas(ef){ return ef>=CFG.visitas.v100?100:ef>=CFG.visitas.v75?75:ef>=CFG.visitas.v50?50:25; }
+function subInicio(m){ if(m==null)return 0; return m<=CFG.inicio.min100?100:m<=CFG.inicio.min50?50:0; }
+function subCierre(m){ if(m==null)return 0; return m>=CFG.cierre.min100?100:m>=CFG.cierre.min50?50:0; }
+function subVentas(ef){ const c=CFG.ventas; return (ef>=c.bandLo&&ef<=c.bandHi)?100:(ef>=c.bandLo-c.tol&&ef<=c.bandHi+c.tol)?60:25; }
+function subRuta(n){ return n===0?100:n===1?80:n===2?50:20; }
+function subPDV(n){ return n<=2?100:n<=5?70:n<=10?40:15; }
+function subRitmo(seg,med){ if(!seg||!med)return 100; const d=Math.abs(seg-med)/med; return d<=0.25?100:d<=0.5?60:30; }
+function efVis(v){ return v.TotVis?100*v.Visitados/v.TotVis:0; }
+function efVen(v){ return v.Visitados?100*v.Pedidos/v.Visitados:0; }
+function iegtDe(v,med){ const p=CFG.pesos; const tot=p.visitas+p.inicio+p.cierre+p.ventas+p.ruta+p.pdv+p.ritmo;
+  return (p.visitas*subVisitas(efVis(v))+p.inicio*subInicio(v.PrimerMin)+p.cierre*subCierre(v.UltimoMin)+p.ventas*subVentas(efVen(v))+p.ruta*subRuta(v.FueraRuta)+p.pdv*subPDV(v.FueraPDV)+p.ritmo*subRitmo(v.PromSeg,med))/tot; }
+function banda(s){ const b=CFG.bandas; return s>=b.solida?['Sólida','#3fb950']:s>=b.aceptable?['Aceptable','#58a6ff']:s>=b.irregular?['Irregular','#e3b341']:['Deficiente','#f85149']; }
+function inconsist(ef){ return ef>=98?['Sin','#3fb950']:ef>=95?['Baja','#e3b341']:ef>=88?['Media','#f0883e']:['Alta','#f85149']; }
+function hhmm(m){ if(m==null)return '—'; m=Math.round(m); return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'); }
+function median(arr){ const a=arr.filter(x=>x!=null).slice().sort((x,y)=>x-y); if(!a.length)return null; const n=a.length; return n%2?a[(n-1)/2]:(a[Math.floor(n/2)-1]+a[Math.floor(n/2)])/2; }
+
+/* ── Multiselect ── */
+function multiselect(host,label,opts,onChange){
+  const wrap=document.createElement('div');wrap.className='ms';const btn=document.createElement('div');btn.className='ms-btn';
+  const txt=document.createElement('span');txt.textContent=label;const cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';
+  btn.append(txt,cnt);const pop=document.createElement('div');pop.className='ms-pop';
+  const search=document.createElement('input');search.className='ms-search';search.placeholder='Buscar...';
+  const head=document.createElement('div');head.className='ms-head';const all=document.createElement('span');all.className='ms-link';all.textContent='✓ Todos';const non=document.createElement('span');non.className='ms-link';non.textContent='✕ Ninguno';head.append(all,non);
+  const list=document.createElement('div');pop.append(search,head,list);wrap.append(btn,pop);host.appendChild(wrap);
+  let options=opts.slice(),selected=new Set();
+  const vis=()=>{const q=(search.value||'').toLowerCase();return options.filter(o=>o.t.toLowerCase().includes(q));};
+  all.onclick=e=>{e.stopPropagation();vis().forEach(o=>selected.add(o.v));render();sync();onChange&&onChange();};
+  non.onclick=e=>{e.stopPropagation();vis().forEach(o=>selected.delete(o.v));render();sync();onChange&&onChange();};
+  function render(){list.innerHTML='';const f=vis();if(!f.length){list.innerHTML='<div class="mini" style="padding:8px;text-align:center">Sin opciones</div>';}
+    f.forEach(o=>{const row=document.createElement('label');row.className='ms-opt';const cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(o.v);cb.onchange=()=>{cb.checked?selected.add(o.v):selected.delete(o.v);sync();onChange&&onChange();};const sp=document.createElement('span');sp.textContent=o.t;row.append(cb,sp);list.appendChild(row);});}
+  function sync(){const n=selected.size;cnt.style.display=n?'inline-block':'none';cnt.textContent=n;}
+  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.ms-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open');});pop.classList.toggle('open');if(pop.classList.contains('open')){search.value='';render();search.focus();}};
+  search.oninput=render;pop.onclick=e=>e.stopPropagation();render();sync();
+  return {values:()=>[...selected],setOptions:(n,keep)=>{options=n.slice();if(!keep)selected=new Set([...selected].filter(v=>options.some(o=>o.v===v)));render();sync();},select:(vs)=>{(vs||[]).forEach(v=>selected.add(v));render();sync();},clear:()=>{selected.clear();render();sync();}};
+}
+document.addEventListener('click',()=>document.querySelectorAll('.ms-pop.open').forEach(p=>p.classList.remove('open')));
+
+/* ── Estado ── */
+let REPS=[], DATA=[], MS={}, nav={nivel:'centro', ced:null, sup:null}, EMP='AM COMERCIAL', APPLIED=null;
+let modoAnalisis='general', SUP=[], SUPITEMS=[], supNav={agrupar:'suplidor',sup:null,cat:null}, promOv={};
+/* Semana anterior (lunes a sábado) por defecto */
+function diaSemana(s){ if(!s)return ''; const p=s.split('-'); const d=new Date(+p[0],+p[1]-1,+p[2]); return ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'][d.getDay()]; }
+(function(){ const d=new Date(); const day=d.getDay(); const thisMon=new Date(d); thisMon.setDate(d.getDate()-((day+6)%7)); const mon=new Date(thisMon); mon.setDate(thisMon.getDate()-7); const sat=new Date(mon); sat.setDate(mon.getDate()+5); const f=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0'); $('#f-ini').value=f(mon); $('#f-fin').value=f(sat); })();
+
+function buildFiltros(){
+  const centros=[...new Map(REPS.filter(r=>r.CedCodigo).map(r=>[r.CedCodigo,r.CentroNombre])).entries()].map(([v,t])=>({v,t}));
+  const divis=[...new Set(REPS.map(r=>r.Division).filter(Boolean))].sort().map(v=>({v,t:'División '+v}));
+  MS.centro=multiselect($('#ms-centro'),'Centro',centros,depend);
+  MS.sup=multiselect($('#ms-sup'),'Supervisor',[],depend);
+  MS.ven=multiselect($('#ms-ven'),'Vendedor',[]);
+  MS.div=multiselect($('#ms-div'),'División',divis);
+  MS.div.select(['10','11']);
+  depend();
+}
+function depend(){
+  const cen=new Set(MS.centro.values());
+  const rc=cen.size?REPS.filter(r=>cen.has(r.CedCodigo)):REPS;
+  MS.sup.setOptions([...new Map(rc.filter(r=>r.SupervisorCod).map(r=>[r.SupervisorCod,r.SupervisorNombre])).entries()].map(([v,t])=>({v,t})));
+  const sup=new Set(MS.sup.values());
+  const rs=sup.size?rc.filter(r=>sup.has(r.SupervisorCod)):rc;
+  MS.ven.setOptions(rs.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre})));
+}
+function overlay(b){ $('#overlay').classList.toggle('show',b); }
+function lblList(ms,fn){ return ms.values().map(fn); }
+function capturarFiltros(){
+  const cName=v=>{const r=REPS.find(x=>x.CedCodigo===v);return r?r.CentroNombre:v;};
+  const sName=v=>{const r=REPS.find(x=>x.SupervisorCod===v);return r?r.SupervisorNombre:v;};
+  const vName=v=>{const r=REPS.find(x=>x.RepCodigo===v);return r?(v+' - '+r.RepNombre):v;};
+  APPLIED={ ini:$('#f-ini').value, fin:$('#f-fin').value,
+    centros:lblList(MS.centro,cName), sups:lblList(MS.sup,sName), vens:lblList(MS.ven,vName),
+    div:MS.div.values(), pdvModo:CFG.pdvModo, pdvMetros:CFG.pdvMetros };
+}
+function generar(){
+  overlay(true); capturarFiltros();
+  const p=new URLSearchParams();
+  p.set('fechaIni',$('#f-ini').value); p.set('fechaFin',$('#f-fin').value); p.set('pdvMetros',$('#f-pdv').value||'200');
+  p.set('pdvModo',CFG.pdvModo||'distancia');
+  if(MS.centro.values().length) p.set('centros',MS.centro.values().join(','));
+  if(MS.sup.values().length)    p.set('supervisores',MS.sup.values().join(','));
+  if(MS.ven.values().length)    p.set('reps',MS.ven.values().join(','));
+  if(MS.div.values().length)    p.set('divisiones',MS.div.values().join(','));
+  fetch(BASE+'/apiseg/semana?'+p.toString()).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'?')); return; }
+    DATA=j.vendedores||[]; nav={nivel:'centro',ced:null,sup:null};
+    if(modoAnalisis==='suplidor'){ supNav={agrupar:'suplidor',sup:null,cat:null}; loadSuplidor(); } else render();
+  }).catch(e=>{ overlay(false); alert('Error de conexión: '+e); });
+}
+
+/* ── Render con drill-down + salto directo de nivel ── */
+function scope(){ let d=DATA; if(nav.ced) d=d.filter(v=>v.CedCodigo===nav.ced); if(nav.sup) d=d.filter(v=>v.SupCod===nav.sup); return d; }
+function withIegt(list){ const med=median(list.map(v=>v.PromSeg)); return list.map(v=>{const s=iegtDe(v,med);return Object.assign({},v,{_iegt:s,_banda:banda(s),_efv:efVis(v),_efn:efVen(v),_inc:inconsist(efVis(v))});}); }
+function agg(list,keyFn,nameFn,parentFn){
+  const g={}; list.forEach(v=>{const k=keyFn(v); (g[k]=g[k]||{k,nombre:nameFn(v),padre:parentFn?parentFn(v):'',reps:[]}).reps.push(v);});
+  return Object.values(g).map(x=>{ const avg=x.reps.reduce((a,b)=>a+b._iegt,0)/x.reps.length;
+    const cnt={Sólida:0,Aceptable:0,Irregular:0,Deficiente:0}; x.reps.forEach(r=>cnt[r._banda[0]]++);
+    return {k:x.k,nombre:x.nombre,padre:x.padre,n:x.reps.length,iegt:avg,banda:banda(avg),cnt}; }).sort((a,b)=>b.iegt-a.iegt);
+}
+/* ── Modo General / Por Suplidor ── */
+function renderModoBar(){
+  const b=(id,t)=>'<button class="btn-modo'+(modoAnalisis===id?' on':'')+'" onclick="switchModo(\''+id+'\')">'+t+'</button>';
+  $('#modobar').innerHTML=b('general','General (IEGT)')+b('suplidor','Por Suplidor');
+}
+window.switchModo=(m)=>{ modoAnalisis=m; renderModoBar();
+  if(m==='suplidor'){ supNav={agrupar:'suplidor',sup:null,cat:null}; loadSuplidor(); }
+  else { $('#iegt-legend').style.display=''; $('#detalle').innerHTML=''; render(); } };
+function filtrosURL(p){
+  p.set('fechaIni',$('#f-ini').value); p.set('fechaFin',$('#f-fin').value);
+  if(MS.centro.values().length) p.set('centros',MS.centro.values().join(','));
+  if(MS.sup.values().length)    p.set('supervisores',MS.sup.values().join(','));
+  if(MS.ven.values().length)    p.set('reps',MS.ven.values().join(','));
+  if(MS.div.values().length)    p.set('divisiones',MS.div.values().join(','));
+  return p;
+}
+let PARAMS=null;
+function ensureParams(cb){
+  if(PARAMS){ cb(); return; }
+  fetch(BASE+'/apiseg/parametros').then(r=>r.json()).then(j=>{
+    PARAMS=(j&&j.ok)?{suplidor:j.suplidor||{},categoria:j.categoria||{},producto:j.producto||{}}:{suplidor:{},categoria:{},producto:{}};
+    cb();
+  }).catch(()=>{ PARAMS={suplidor:{},categoria:{},producto:{}}; cb(); });
+}
+function loadSuplidor(){
+  overlay(true); capturarFiltros();
+  ensureParams(()=>{
+    const p=filtrosURL(new URLSearchParams());
+    p.set('agrupar',supNav.agrupar);
+    if(supNav.sup) p.set('suplidorId',supNav.sup.id);
+    if(supNav.cat) p.set('categoriaId',supNav.cat.id);
+    fetch(BASE+'/apiseg/suplidor?'+p.toString()).then(r=>r.json()).then(j=>{
+      overlay(false);
+      if(!j||!j.ok){ alert('Error: '+(j&&j.error||'?')); return; }
+      SUP=j.filas||[]; renderSuplidor();
+    }).catch(e=>{ overlay(false); alert('Error de conexión: '+e); });
+  });
+}
+/* ── IEGT por suplidor: jornada (de /semana) + cumplimiento de meta del suplidor ── */
+function curParLevel(){ return supNav.cat?'producto':(supNav.sup?'categoria':'suplidor'); }
+function parOf(itemId){ if(!PARAMS)return null; return (PARAMS[curParLevel()]||{})[itemId]||null; }
+function subCumpl(pct){ return pct>=100?100:pct>=70?75:pct>=40?50:pct>0?25:0; }
+/* combina una fila (item,vendedor) con su jornada de la semana y calcula el IEGT del suplidor */
+function supIegt(f, med){
+  const j=DATA.find(x=>x.RepCodigo===f.RepCodigo)||{};
+  const efv=j.TotVis?100*j.Visitados/j.TotVis:0;
+  const par=parOf(f.ItemId); const target=par?par.valSem:0;
+  const cumpl=target>0?100*f.Valor/target:(f.Valor>0?100:0);
+  const sc={visitas:subVisitas(efv),inicio:subInicio(j.PrimerMin),cierre:subCierre(j.UltimoMin),
+            ventas:subCumpl(cumpl),ruta:subRuta(j.FueraRuta||0),pdv:subPDV(j.FueraPDV||0),ritmo:subRitmo(j.PromSeg,med)};
+  const p=CFG.pesos, tot=p.visitas+p.inicio+p.cierre+p.ventas+p.ruta+p.pdv+p.ritmo;
+  const iegt=(p.visitas*sc.visitas+p.inicio*sc.inicio+p.cierre*sc.cierre+p.ventas*sc.ventas+p.ruta*sc.ruta+p.pdv*sc.pdv+p.ritmo*sc.ritmo)/tot;
+  return Object.assign({},f,{_j:j,_efv:efv,_cumpl:cumpl,_target:target,_sc:sc,_iegt:iegt,_banda:banda(iegt)});
+}
+function aggItems(){
+  const med=median(DATA.map(x=>x.PromSeg));
+  const g={};
+  SUP.forEach(f=>{ const o=g[f.ItemId]=g[f.ItemId]||{item:f.Item,itemId:f.ItemId,reps:[],V:0,U:0,C:0};
+    o.reps.push(supIegt(f,med)); o.V+=f.Valor;o.U+=f.Unidades;o.C+=f.Cajas; });
+  return Object.values(g).map(o=>{
+    o.nAsig=o.reps.length; o.nVend=o.reps.filter(r=>r.Valor>0).length;
+    o.pen=o.nAsig?100*o.nVend/o.nAsig:0;
+    o.iegt=o.reps.reduce((a,b)=>a+b._iegt,0)/(o.reps.length||1);
+    o.cnt={Sólida:0,Aceptable:0,Irregular:0,Deficiente:0}; o.reps.forEach(r=>o.cnt[r._banda[0]]++);
+    o.par=parOf(o.itemId); o.meta=o.par?o.par.valSem:0;
+    return o; }).sort((a,b)=>b.V-a.V);
+}
+function cardN2(l,v){ return '<div class="card"><div class="cl">'+l+'</div><div class="cv" style="color:#e6edf3">'+v+'</div><div class="ch">total</div></div>'; }
+function renderSuplidor(){
+  reportHead(); renderModoBar();
+  $('#iegt-legend').style.display='none';
+  const nivel = supNav.cat?'Producto':(supNav.sup?'Categoría':'Suplidor');
+  let cr='<span class="crumb '+(supNav.sup?'':'cur')+'" onclick="supGo(0)">Suplidores</span>';
+  if(supNav.sup) cr+=' › <span class="crumb '+(supNav.cat?'':'cur')+'" onclick="supGo(1)">'+supNav.sup.name+'</span>';
+  if(supNav.cat) cr+=' › <span class="crumb cur">'+supNav.cat.name+'</span>';
+  $('#crumbs').innerHTML=cr; $('#nivelbar').innerHTML='';
+  SUPITEMS=aggItems();
+  const totV=SUPITEMS.reduce((a,b)=>a+b.V,0);
+  const totAsig=SUPITEMS.reduce((a,b)=>a+b.nAsig,0), totVend=SUPITEMS.reduce((a,b)=>a+b.nVend,0);
+  const iegtProm=SUPITEMS.length?SUPITEMS.reduce((a,b)=>a+b.iegt*b.nAsig,0)/(totAsig||1):0;
+  const penG=totAsig?100*totVend/totAsig:0;
+  $('#cards').innerHTML=
+    cardB('IEGT prom. '+nivel.toLowerCase(),iegtProm.toFixed(1),banda(iegtProm)[1],SUPITEMS.length+' '+nivel.toLowerCase()+'(s)')+
+    cardB('Penetración',penG.toFixed(0)+'%',penG>=70?'#3fb950':penG>=50?'#e3b341':'#f85149',totVend+' de '+totAsig+' asignados vendieron')+
+    cardN2('Valor total',fmtN(totV));
+  const drill = !supNav.cat;   // suplidor→cat, cat→prod; en producto ya no
+  let h='<table><thead><tr><th class="l">#</th><th class="l">'+nivel+'</th><th>Asign.</th><th>Vend.</th><th>Penetr.</th><th>Valor</th><th>Meta/vend</th><th>IEGT</th><th>Banda</th><th>Sól</th><th>Ace</th><th>Irr</th><th>Def</th><th></th></tr></thead><tbody>';
+  SUPITEMS.forEach((o,i)=>{
+    const nameCell = drill ? ('<a style="color:#58a6ff;cursor:pointer" onclick="supDrill('+i+')">'+o.item+' ⤵</a>') : o.item;
+    const penCol=o.pen>=70?'#3fb950':o.pen>=50?'#e3b341':'#f85149';
+    h+='<tr><td class="l">'+(i+1)+'</td><td class="l">'+nameCell+'</td><td>'+o.nAsig+'</td><td>'+o.nVend+'</td>'+
+      '<td style="color:'+penCol+';font-weight:700">'+o.pen.toFixed(0)+'%</td><td>'+fmtN(o.V)+'</td>'+
+      '<td><input type="number" value="'+Math.round(o.meta)+'" title="Meta Valor/vendedor (editable, se guarda)" style="width:92px;background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:5px;padding:3px 6px;font-size:12px" onchange="setMeta('+o.itemId+',this.value)"></td>'+
+      '<td class="iegt" style="color:'+banda(o.iegt)[1]+'">'+o.iegt.toFixed(1)+'</td>'+
+      '<td><span class="badge" style="background:'+banda(o.iegt)[1]+'">'+banda(o.iegt)[0]+'</span></td>'+
+      '<td>'+o.cnt['Sólida']+'</td><td>'+o.cnt['Aceptable']+'</td><td>'+o.cnt['Irregular']+'</td><td style="color:#f85149;font-weight:700">'+o.cnt['Deficiente']+'</td>'+
+      '<td><button class="btn-clear" style="padding:3px 8px" onclick="supVend('+i+')">Vendedores</button></td></tr>'; });
+  h+='</tbody></table>'; $('#tabla').innerHTML=h; $('#detalle').innerHTML='';
+}
+window.supDrill=(i)=>{ const o=SUPITEMS[i];
+  if(supNav.agrupar==='suplidor') supNav={agrupar:'categoria',sup:{id:o.itemId,name:o.item},cat:null};
+  else if(supNav.agrupar==='categoria') supNav={agrupar:'producto',sup:supNav.sup,cat:{id:o.itemId,name:o.item}};
+  loadSuplidor(); };
+window.supGo=(lvl)=>{ if(lvl===0) supNav={agrupar:'suplidor',sup:null,cat:null}; else if(lvl===1) supNav={agrupar:'categoria',sup:supNav.sup,cat:null}; loadSuplidor(); };
+/* edita la meta Valor/vend del ítem y la guarda en la tabla (Editado=1) */
+window.setMeta=(itemId,val)=>{ val=+val||0; const lvl=curParLevel();
+  PARAMS[lvl]=PARAMS[lvl]||{}; const cur=PARAMS[lvl][itemId]||{}; cur.valSem=val; PARAMS[lvl][itemId]=cur;
+  const NivelCap={suplidor:'Suplidor',categoria:'Categoria',producto:'Producto'}[lvl];
+  const body={ Nivel:NivelCap, ValorSemVend:val,
+    SuplidorID: lvl==='suplidor'?itemId:(supNav.sup?supNav.sup.id:0),
+    CategoriaID: lvl==='categoria'?itemId:(lvl==='producto'?(supNav.cat?supNav.cat.id:null):null),
+    ProductoID: lvl==='producto'?itemId:null };
+  fetch(BASE+'/apiseg/parametros',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).catch(()=>{});
+  renderSuplidor(); };
+/* detalle por vendedor asignado: sub-scores del IEGT del suplidor (como el detalle general) */
+window.supVend=(i)=>{ const o=SUPITEMS[i];
+  const reps=o.reps.slice().sort((a,b)=>b._iegt-a._iegt);
+  const metaTxt=o.meta?('meta Valor/vend '+fmtN(o.meta)):'sin meta';
+  let h='<div class="detail"><h3>'+o.item+' <span class="mini">· IEGT del suplidor · '+metaTxt+' · '+o.nVend+'/'+o.nAsig+' asignados vendieron</span></h3>'+
+    '<div class="sub mini">Jornada (visitas, horas, ruta, PDV, ritmo) = la del vendedor en la semana; <b>Cumpl.</b> = Valor del suplidor ÷ meta. Vendedores asignados que no vendieron aparecen en rojo.</div>'+
+    '<table><thead><tr><th class="l">#</th><th class="l">Centro</th><th class="l">Supervisor</th><th class="l">Vendedor</th><th>Ef.Vis</th><th>1er</th><th>Últ</th><th>F.Ruta</th><th>F.PDV</th><th>Valor sup.</th><th>Cumpl.</th><th>IEGT</th><th>Banda</th></tr></thead><tbody>';
+  reps.forEach((r,k)=>{ const j=r._j; const noVend=r.Valor<=0;
+    h+='<tr'+(noVend?' style="background:rgba(248,81,73,.07)"':'')+'><td class="l">'+(k+1)+'</td><td class="l">'+r.Centro+'</td><td class="l">'+r.Supervisor+'</td>'+
+      '<td class="l">'+r.RepNombre+' <span class="mini">('+r.RepCodigo+')</span></td>'+
+      '<td style="color:'+inconsist(r._efv)[1]+'">'+r._efv.toFixed(0)+'%</td><td>'+hhmm(j.PrimerMin)+'</td><td>'+hhmm(j.UltimoMin)+'</td>'+
+      '<td '+((j.FueraRuta||0)>=2?'style="color:#f85149;font-weight:700"':'')+'>'+(j.FueraRuta||0)+'</td><td>'+(j.FueraPDV||0)+'</td>'+
+      '<td style="color:'+(noVend?'#f85149':'#3fb950')+';font-weight:700">'+fmtN(r.Valor)+'</td>'+
+      '<td style="color:'+(r._cumpl>=100?'#3fb950':r._cumpl>=40?'#e3b341':'#f85149')+'">'+r._cumpl.toFixed(0)+'%</td>'+
+      '<td class="iegt" style="color:'+r._banda[1]+'">'+r._iegt.toFixed(1)+'</td>'+
+      '<td><span class="badge" style="background:'+r._banda[1]+'">'+r._banda[0]+'</span></td></tr>'; });
+  h+='</tbody></table></div>'; $('#detalle').innerHTML=h; $('#detalle').scrollIntoView({behavior:'smooth'}); };
+
+function reportHead(){
+  if(!APPLIED){ $('#report-head').innerHTML=''; return; }
+  const a=APPLIED; const some=(arr,todos)=>arr.length?arr.join(', '):todos;
+  const pdv = a.pdvModo==='ruta' ? 'Cliente no programado ese día' : ('Distancia GPS > '+a.pdvMetros+' m');
+  $('#report-head').innerHTML=
+    '<div class="rh-title">'+EMP+' — Informe Semanal · Torre de Control (IEGT)</div>'+
+    '<div class="rh-sub">Semana del <b>'+a.ini+'</b> ('+diaSemana(a.ini)+') al <b>'+a.fin+'</b> ('+diaSemana(a.fin)+')</div>'+
+    '<div class="rh-filtros"><b>Filtros aplicados:</b> '+
+      'Centro: <b>'+some(a.centros,'Todos')+'</b> · Supervisor: <b>'+some(a.sups,'Todos')+'</b> · '+
+      'Vendedor: <b>'+some(a.vens,'Todos')+'</b> · División: <b>'+some(a.div,'Todas')+'</b> · '+
+      'Fuera de PDV: <b>'+pdv+'</b></div>';
+}
+function iegtLegend(){
+  const b=CFG.bandas;
+  $('#iegt-legend').innerHTML=
+    '<b>IEGT</b> (Índice de Eficiencia de la Gestión del Tiempo, 0–100) = gestión del tiempo 60% (plan de visitas, arranque, cierre) + calidad de ejecución 40% (ventas, ruta, PDV, ritmo). '+
+    'Bandas: <span class="lg-b" style="background:#3fb950">Sólida ≥'+b.solida+'</span> '+
+    '<span class="lg-b" style="background:#58a6ff">Aceptable ≥'+b.aceptable+'</span> '+
+    '<span class="lg-b" style="background:#e3b341">Irregular ≥'+b.irregular+'</span> '+
+    '<span class="lg-b" style="background:#f85149">Deficiente &lt;'+b.irregular+'</span>. '+
+    'Inconsistencia (efect. visitas): Sin ≥98% · Baja 95–97.9% · Media 88–94.9% · Alta &lt;88%.';
+}
+function render(){
+  reportHead(); iegtLegend(); renderModoBar();
+  $('#iegt-legend').style.display='';
+  const list=withIegt(scope());
+  // breadcrumb
+  let cr=`<span class="crumb ${nav.ced?'':'cur'}" onclick="setNivel('centro',null,null)">Compañía</span>`;
+  if(nav.ced){ const cn=(DATA.find(v=>v.CedCodigo===nav.ced)||{}).Centro||nav.ced; cr+=` › <span class="crumb ${nav.sup?'':'cur'}" onclick="setNivel('supervisor','${nav.ced}',null)">${cn}</span>`; }
+  if(nav.sup){ const sn=(DATA.find(v=>v.SupCod===nav.sup)||{}).Supervisor||nav.sup; cr+=` › <span class="crumb cur">${sn}</span>`; }
+  $('#crumbs').innerHTML=cr; $('#detalle').innerHTML='';
+  // barra de nivel (salto directo, sin tener que ir por centro)
+  const nb=(id,t)=>'<button class="btn-modo'+(nav.nivel===id?' on':'')+'" onclick="setNivel(\''+id+'\')">'+t+'</button>';
+  $('#nivelbar').innerHTML=nb('centro','Por Centro')+nb('supervisor','Por Supervisor')+nb('vendedor','Por Vendedor');
+  // cards: distribucion de bandas
+  const cnt={Sólida:0,Aceptable:0,Irregular:0,Deficiente:0}; list.forEach(v=>cnt[v._banda[0]]++);
+  const avg=list.length?list.reduce((a,b)=>a+b._iegt,0)/list.length:0;
+  $('#cards').innerHTML=
+    cardB('IEGT promedio',avg.toFixed(1),banda(avg)[1],list.length+' vendedores')+
+    cardN('Sólida',cnt['Sólida'],'#3fb950')+cardN('Aceptable',cnt['Aceptable'],'#58a6ff')+
+    cardN('Irregular',cnt['Irregular'],'#e3b341')+cardN('Deficiente',cnt['Deficiente'],'#f85149');
+  // tabla segun nivel
+  if(nav.nivel==='centro')          renderAgg(agg(list,v=>v.CedCodigo,v=>v.Centro),'Centro',[]);
+  else if(nav.nivel==='supervisor') renderAgg(agg(list,v=>v.SupCod,v=>v.Supervisor,v=>v.Centro),'Supervisor',['Centro']);
+  else                              renderVendedores(list);
+}
+function cardB(l,v,col,h){ return '<div class="card" style="min-width:150px"><div class="cl">'+l+'</div><div class="cv" style="color:'+col+'">'+v+'</div><div class="ch">'+h+'</div></div>'; }
+function cardN(l,v,col){ return '<div class="card"><div class="cl" style="color:'+col+'">'+l+'</div><div class="cv" style="color:'+col+'">'+v+'</div><div class="ch">vendedores</div></div>'; }
+function renderAgg(rows,tipo,parents){
+  const nextTipo = tipo==='Centro'?'supervisor':'vendedor';
+  let th=parents.map(p=>'<th class="l">'+p+'</th>').join('');
+  let h='<table><thead><tr><th class="l">#</th>'+th+'<th class="l">'+tipo+'</th><th>Vendedores</th><th>IEGT prom.</th><th>Banda</th><th>Sólida</th><th>Acept.</th><th>Irreg.</th><th>Defic.</th></tr></thead><tbody>';
+  let tN=0,tS=0,tA=0,tI=0,tD=0,sumW=0;
+  rows.forEach((r,i)=>{ const pc=parents.length?('<td class="l">'+r.padre+'</td>'):'';
+    h+='<tr class="clickable" onclick="__drill('+"'"+r.k+"'"+',\''+tipo+'\')"><td class="l">'+(i+1)+'</td>'+pc+'<td class="l">'+r.nombre+'</td><td>'+r.n+'</td>'+
+      '<td class="iegt" style="color:'+r.banda[1]+'">'+r.iegt.toFixed(1)+'</td><td><span class="badge" style="background:'+r.banda[1]+'">'+r.banda[0]+'</span></td>'+
+      '<td>'+r.cnt['Sólida']+'</td><td>'+r.cnt['Aceptable']+'</td><td>'+r.cnt['Irregular']+'</td><td style="color:#f85149;font-weight:700">'+r.cnt['Deficiente']+'</td></tr>';
+    tN+=r.n;tS+=r.cnt['Sólida'];tA+=r.cnt['Aceptable'];tI+=r.cnt['Irregular'];tD+=r.cnt['Deficiente'];sumW+=r.iegt*r.n; });
+  const iegtT=tN?sumW/tN:0;
+  h+='<tr class="totals"><td class="l" colspan="'+(2+parents.length)+'">TOTAL</td><td>'+tN+'</td><td class="iegt" style="color:'+banda(iegtT)[1]+'">'+iegtT.toFixed(1)+'</td><td></td><td>'+tS+'</td><td>'+tA+'</td><td>'+tI+'</td><td style="color:#f85149">'+tD+'</td></tr>';
+  h+='</tbody></table>'; $('#tabla').innerHTML=h;
+}
+function fmtN(x){ return (x==null?0:Math.round(x)).toLocaleString('es-DO'); }
+function fmtDec(x){ return (x==null?0:x).toLocaleString('es-DO',{maximumFractionDigits:1}); }
+function renderVendedores(list){
+  list.sort((a,b)=>b._iegt-a._iegt);
+  let h='<table><thead><tr><th class="l">#</th><th class="l">Centro</th><th class="l">Supervisor</th><th class="l">Vendedor</th><th>Ef.Vis</th><th>Ef.Ven</th><th>1er ped</th><th>Últ ped</th><th>F.Ruta</th><th>F.PDV</th><th>Ritmo(s)</th><th>Unidades</th><th>Cajas</th><th>Valor</th><th>IEGT</th><th>Banda</th></tr></thead><tbody>';
+  let n=0,sIeg=0,sFr=0,sFp=0,sU=0,sC=0,sV=0;
+  list.forEach((v,i)=>{ h+='<tr class="clickable" onclick="__ver('+"'"+v.RepCodigo+"'"+')"><td class="l">'+(i+1)+'</td><td class="l">'+v.Centro+'</td><td class="l">'+v.Supervisor+'</td><td class="l">'+v.RepNombre+' <span class="mini">('+v.RepCodigo+')</span></td>'+
+    '<td style="color:'+v._inc[1]+'">'+v._efv.toFixed(0)+'%</td><td>'+v._efn.toFixed(0)+'%</td><td>'+hhmm(v.PrimerMin)+'</td><td>'+hhmm(v.UltimoMin)+'</td>'+
+    '<td '+(v.FueraRuta>=2?'style="color:#f85149;font-weight:700"':'')+'>'+v.FueraRuta+'</td><td '+(v.FueraPDV>10?'style="color:#f85149;font-weight:700"':'')+'>'+v.FueraPDV+'</td>'+
+    '<td>'+(v.PromSeg||'—')+'</td><td>'+fmtN(v.Unidades)+'</td><td>'+fmtDec(v.Cajas)+'</td><td>'+fmtN(v.Valor)+'</td>'+
+    '<td class="iegt" style="color:'+v._banda[1]+'">'+v._iegt.toFixed(1)+'</td><td><span class="badge" style="background:'+v._banda[1]+'">'+v._banda[0]+'</span></td></tr>';
+    n++;sIeg+=v._iegt;sFr+=v.FueraRuta;sFp+=v.FueraPDV;sU+=(v.Unidades||0);sC+=(v.Cajas||0);sV+=(v.Valor||0); });
+  const iegtT=n?sIeg/n:0;
+  h+='<tr class="totals"><td class="l" colspan="4">TOTAL ('+n+' vendedores)</td><td></td><td></td><td></td><td></td><td>'+sFr+'</td><td>'+sFp+'</td><td></td><td>'+fmtN(sU)+'</td><td>'+fmtDec(sC)+'</td><td>'+fmtN(sV)+'</td><td class="iegt" style="color:'+banda(iegtT)[1]+'">'+iegtT.toFixed(1)+'</td><td></td></tr>';
+  h+='</tbody></table>'; $('#tabla').innerHTML=h;
+}
+window.__drill=(k,tipo)=>{ if(tipo==='Centro')setNivel('supervisor',k,null); else { const v=DATA.find(x=>x.SupCod===k); setNivel('vendedor',v?v.CedCodigo:nav.ced,k); } };
+window.setNivel=(nivel,ced,sup)=>{ nav={nivel:nivel, ced:(ced!==undefined?ced:nav.ced), sup:(sup!==undefined?sup:nav.sup)}; if(nivel==='centro'){nav.ced=null;nav.sup=null;} if(nivel==='supervisor'&&sup===undefined)nav.sup=null; render(); };
+window.__ver=(rep)=>{ verVendedor(rep); };
+
+/* ── Detalle + conclusión + plan de acción ── */
+function verVendedor(rep){
+  const list=withIegt(scope()); const v=list.find(x=>x.RepCodigo===rep); if(!v)return;
+  const med=median(scope().map(x=>x.PromSeg));
+  const sc={visitas:subVisitas(v._efv),inicio:subInicio(v.PrimerMin),cierre:subCierre(v.UltimoMin),ventas:subVentas(v._efn),ruta:subRuta(v.FueraRuta),pdv:subPDV(v.FueraPDV),ritmo:subRitmo(v.PromSeg,med)};
+  let h='<div class="detail"><h3>'+v.RepNombre+' <span class="mini">('+v.RepCodigo+') · '+v.Supervisor+' · '+v.Centro+'</span></h3>'+
+    '<div class="sub">IEGT <b style="color:'+v._banda[1]+'">'+v._iegt.toFixed(1)+'</b> — banda <span class="badge" style="background:'+v._banda[1]+'">'+v._banda[0]+'</span> · Inconsistencia (visitas): <b style="color:'+v._inc[1]+'">'+v._inc[0]+'</b></div>'+
+    '<div class="subgrid">'+
+      sub('Ef. visitas',v._efv.toFixed(0)+'%',sc.visitas)+sub('Ef. ventas',v._efn.toFixed(0)+'%',sc.ventas)+
+      sub('1er pedido',hhmm(v.PrimerMin),sc.inicio)+sub('Últ. pedido',hhmm(v.UltimoMin),sc.cierre)+
+      sub('Fuera de ruta',v.FueraRuta,sc.ruta)+sub('Fuera de PDV',v.FueraPDV,sc.pdv)+
+      sub('Ritmo (s/visita)',(v.PromSeg||'—'),sc.ritmo)+sub('Clientes sin venta',v.SinVenta,'')+
+      sub('Unidades',fmtN(v.Unidades),'')+sub('Cajas',fmtDec(v.Cajas),'')+sub('Valor',fmtN(v.Valor),'')+
+    '</div>'+
+    '<div class="concl">'+conclusion(v,med)+'</div>'+
+    planAccion(v)+
+  '</div>';
+  $('#detalle').innerHTML=h; $('#detalle').scrollIntoView({behavior:'smooth'});
+}
+function sub(k,val,score){ const col=score===''?'#e6edf3':score>=100?'#3fb950':score>=50?'#e3b341':'#f85149'; return '<div class="subcard"><div class="k">'+k+'</div><div class="v" style="color:'+col+'">'+val+(score!==''?' <span class="mini">('+score+')</span>':'')+'</div></div>'; }
+function conclusion(v,med){
+  const pat=[];
+  if(v._efv<98) pat.push('efectividad de visitas '+v._efv.toFixed(0)+'% ('+v._inc[0].toLowerCase()+')');
+  if(v._efn<CFG.ventas.bandLo) pat.push('conversión baja ('+v._efn.toFixed(0)+'%)');
+  if(v.PrimerMin!=null&&v.PrimerMin>CFG.inicio.min100) pat.push('arranque tardío ('+hhmm(v.PrimerMin)+')');
+  if(v.UltimoMin!=null&&v.UltimoMin<CFG.cierre.min100) pat.push('cierre prematuro ('+hhmm(v.UltimoMin)+')');
+  if(v.FueraRuta>=2) pat.push(v.FueraRuta+' pedidos fuera de ruta');
+  if(v.FueraPDV>10) pat.push(v.FueraPDV+' capturas fuera de PDV');
+  if(med&&v.PromSeg){ const d=(v.PromSeg-med)/med; if(d>0.5)pat.push('ritmo muy lento vs pares'); else if(d<-0.5)pat.push('ritmo muy corto vs pares'); }
+  const focos=pat.slice(0,3).join(', ')||'sin desviaciones relevantes';
+  return '<b>'+v.RepNombre+'</b> — Ruta '+(v.RepCodigo)+', IEGT '+v._iegt.toFixed(1)+' ('+v._banda[0]+'). '+
+    'El plan de visitas quedó en '+v._efv.toFixed(0)+'% ('+v._inc[0].toLowerCase()+'). '+
+    'Patrones que más pesaron: '+focos+'. '+
+    '<b>Foco de la semana:</b> '+focoTrabajo(v)+'.';
+}
+function focoTrabajo(v){
+  if(v._iegt<CFG.bandas.irregular) return 'vendedor prioritario — acompañamiento de al menos 2 días en ruta y seguimiento diario';
+  if(v._efv<88) return 'recuperar cobertura del plan de visitas (comprometer clientes no visitados)';
+  if(v.PrimerMin!=null&&v.PrimerMin>CFG.inicio.min100) return 'comprometer primer pedido ≤ '+hhmm(CFG.inicio.min100)+' y verificarlo al día siguiente';
+  if(v.FueraRuta>=2) return 'auditar el ruteo y reforzar la disciplina de secuencia';
+  if(v._efn<CFG.ventas.bandLo) return 'acompañamiento en ruta enfocado en detección de necesidades y cierre';
+  if(v.UltimoMin!=null&&v.UltimoMin<CFG.cierre.min100) return 'asignar clientes de cola de ruta y validar cobertura hasta el cierre';
+  return 'mantener el estándar y usar como referencia del grupo';
+}
+function planAccion(v){
+  const t=[];
+  if(v._efv<98) t.push(['Efectividad de visitas '+v._efv.toFixed(0)+'%','Revisar itinerario planificado vs. ejecutado; identificar clientes no visitados y comprometer cobertura al día siguiente.']);
+  if(v._efn<CFG.ventas.bandLo||v._efn>CFG.ventas.bandHi) t.push(['Efectividad de ventas fuera de banda','Acompañamiento en ruta de medio día enfocado en detección de necesidades y cierre.']);
+  if(v.FueraRuta>=2) t.push(['≥2 pedidos fuera de ruta','Auditar el ruteo; reforzar disciplina de secuencia y validar por qué se vende fuera de ruta.']);
+  if(v.PrimerMin!=null&&v.PrimerMin>CFG.inicio.min100) t.push(['Arranque tardío (1er pedido '+hhmm(v.PrimerMin)+')','Comprometer primer pedido ≤ '+hhmm(CFG.inicio.min100)+' y verificarlo en el tablero al día siguiente.']);
+  if(v.UltimoMin!=null&&v.UltimoMin<CFG.cierre.min100) t.push(['Cierre prematuro (último pedido '+hhmm(v.UltimoMin)+')','Revisar por qué se abandona la zona temprano; asignar clientes de cola de ruta.']);
+  if(v.FueraPDV>10) t.push(['Capturas fuera de PDV ('+v.FueraPDV+')','Verificar registro dentro del punto de venta; revisar disciplina de captura GPS.']);
+  if(v._iegt<CFG.bandas.irregular) t.push(['IEGT en banda Deficiente','Vendedor prioritario de la semana: acompañamiento de al menos 2 días en ruta y seguimiento diario.']);
+  if(!t.length) return '<div class="plan"><div class="ph">Plan de acción — sin inconsistencias relevantes</div><div class="pi">Se reconoce el desempeño. Mantener el estándar.</div></div>';
+  return '<div class="plan"><div class="ph">&#128203; Plan de acción del supervisor</div>'+t.map(x=>'<div class="pi"><span class="tag">'+x[0]+'</span><span>'+x[1]+'</span></div>').join('')+'</div>';
+}
+
+/* ── Config modal ── */
+function cfgBody(){
+  const r=(id,lbl,val)=>'<div class="cfg-row"><label>'+lbl+'</label><input type="number" id="'+id+'" value="'+val+'"></div>';
+  $('#cfg-body').innerHTML=
+    '<div class="cfg-sec"><h3>Pesos (%)</h3>'+r('p-vis','Efectividad de visitas',CFG.pesos.visitas)+r('p-ini','Inicio temprano (Primer Pedido)',CFG.pesos.inicio)+r('p-cie','Cierre no prematuro (Último Pedido)',CFG.pesos.cierre)+r('p-ven','Efectividad de ventas',CFG.pesos.ventas)+r('p-rut','Disciplina de ruta',CFG.pesos.ruta)+r('p-pdv','Consistencia PDV',CFG.pesos.pdv)+r('p-rit','Ritmo de visita',CFG.pesos.ritmo)+'</div>'+
+    '<div class="cfg-sec"><h3>Umbrales</h3>'+r('v-100','Ef. visitas: ≥ para 100 (%)',CFG.visitas.v100)+r('v-75','Ef. visitas: ≥ para 75 (%)',CFG.visitas.v75)+r('v-50','Ef. visitas: ≥ para 50 (%)',CFG.visitas.v50)+
+      r('i-100','Inicio ≤ para 100 (min)',CFG.inicio.min100)+r('i-50','Inicio ≤ para 50 (min)',CFG.inicio.min50)+
+      r('c-100','Cierre ≥ para 100 (min)',CFG.cierre.min100)+r('c-50','Cierre ≥ para 50 (min)',CFG.cierre.min50)+
+      r('vt-lo','Ventas banda mín (%)',CFG.ventas.bandLo)+r('vt-hi','Ventas banda máx (%)',CFG.ventas.bandHi)+r('vt-tol','Ventas tolerancia (±%)',CFG.ventas.tol)+'</div>'+
+    '<div class="cfg-sec"><h3>Bandas IEGT</h3>'+r('b-sol','Sólida ≥',CFG.bandas.solida)+r('b-ace','Aceptable ≥',CFG.bandas.aceptable)+r('b-irr','Irregular ≥',CFG.bandas.irregular)+'</div>'+
+    '<div class="cfg-sec"><h3>Fuera de PDV</h3><div class="cfg-row"><label>Cómo se mide</label>'+
+      '<select id="pdv-modo" style="background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:4px 7px;font-size:12px">'+
+      '<option value="distancia"'+(CFG.pdvModo==='distancia'?' selected':'')+'>Por distancia GPS</option>'+
+      '<option value="ruta"'+(CFG.pdvModo==='ruta'?' selected':'')+'>Cliente no programado ese día</option></select></div>'+
+      r('pdv-met','Distancia umbral (m)',CFG.pdvMetros)+'</div>'+
+    '<div class="mini">Inicio/cierre en minutos desde medianoche: 08:15=495 · 08:45=525 · 14:30=870 · 15:30=930.</div>';
+}
+$('#btn-cfg').onclick=()=>{ cfgBody(); $('#cfg-modal').classList.add('open'); };
+$('#cfg-cancel').onclick=()=>$('#cfg-modal').classList.remove('open');
+$('#cfg-modal').onclick=e=>{ if(e.target.id==='cfg-modal')$('#cfg-modal').classList.remove('open'); };
+$('#cfg-reset').onclick=()=>{ CFG=JSON.parse(JSON.stringify(CFG_DEF)); cfgBody(); };
+$('#cfg-save').onclick=()=>{ const g=id=>+$('#'+id).value;
+  CFG.pesos={visitas:g('p-vis'),inicio:g('p-ini'),cierre:g('p-cie'),ventas:g('p-ven'),ruta:g('p-rut'),pdv:g('p-pdv'),ritmo:g('p-rit')};
+  CFG.visitas={v100:g('v-100'),v75:g('v-75'),v50:g('v-50')};
+  CFG.inicio={min100:g('i-100'),min50:g('i-50')}; CFG.cierre={min100:g('c-100'),min50:g('c-50')};
+  CFG.ventas={bandLo:g('vt-lo'),bandHi:g('vt-hi'),tol:g('vt-tol')};
+  CFG.bandas={solida:g('b-sol'),aceptable:g('b-ace'),irregular:g('b-irr')};
+  CFG.pdvModo=$('#pdv-modo').value; CFG.pdvMetros=g('pdv-met'); $('#f-pdv').value=CFG.pdvMetros;
+  saveCfg(); $('#cfg-modal').classList.remove('open');
+  if(DATA.length) generar();   // cambia el modo de fuera-de-PDV → re-consulta
+
+};
+
+/* ── Exportar / Imprimir ── */
+$('#btn-print').onclick=()=>window.print();
+$('#btn-excel').onclick=()=>{
+  if(typeof XLSX==='undefined'){ alert('No se pudo cargar el generador de Excel (revisa la conexión).'); return; }
+  const a=APPLIED||{}; const some=(arr,t)=>(arr&&arr.length)?arr.join('; '):t;
+  const pdv=a.pdvModo==='ruta'?'Cliente no programado ese día':('Distancia GPS > '+a.pdvMetros+' m');
+  const headBase=[
+    [EMP+' — Informe Semanal · Torre de Control'],
+    ['Semana', (a.ini||'')+' ('+diaSemana(a.ini)+') al '+(a.fin||'')+' ('+diaSemana(a.fin)+')'],
+    ['Centro', some(a.centros,'Todos')], ['Supervisor', some(a.sups,'Todos')],
+    ['Vendedor', some(a.vens,'Todos')], ['División', some(a.div,'Todas')],
+    ['Generado', new Date().toLocaleString('es-DO')], []
+  ];
+  if(modoAnalisis==='suplidor'){
+    if(!SUP.length){ alert('Genera el informe primero.'); return; }
+    const nivel=supNav.cat?'Producto':(supNav.sup?'Categoria':'Suplidor');
+    const ctx=[['Análisis','Por '+nivel+(supNav.sup?(' · Suplidor: '+supNav.sup.name):'')+(supNav.cat?(' · Categoría: '+supNav.cat.name):'')]];
+    const H2=[nivel,'Centro','Supervisor','Vendedor','Código','Unidades','Cajas','Valor'];
+    const rows2=SUP.map(f=>[f.Item,f.Centro,f.Supervisor,f.RepNombre,f.RepCodigo,Math.round(f.Unidades),+(f.Cajas||0).toFixed(1),Math.round(f.Valor)]);
+    const ws2=XLSX.utils.aoa_to_sheet(headBase.concat(ctx).concat([[]]).concat([H2]).concat(rows2));
+    ws2['!cols']=H2.map((h,i)=>({wch:i===0?26:(i===3?24:14)}));
+    const wb2=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb2,ws2,'Por '+nivel);
+    XLSX.writeFile(wb2,'seguimiento_'+nivel.toLowerCase()+'_'+(a.ini||'')+'.xlsx'); return;
+  }
+  const list=withIegt(DATA);
+  if(!list.length){ alert('Genera el informe primero.'); return; }
+  // Cabecera con los filtros medidos
+  const head=[
+    [EMP+' — Informe Semanal · Torre de Control (IEGT)'],
+    ['Semana', (a.ini||'')+' ('+diaSemana(a.ini)+') al '+(a.fin||'')+' ('+diaSemana(a.fin)+')'],
+    ['Centro', some(a.centros,'Todos')],
+    ['Supervisor', some(a.sups,'Todos')],
+    ['Vendedor', some(a.vens,'Todos')],
+    ['División', some(a.div,'Todas')],
+    ['Fuera de PDV', pdv],
+    ['Generado', new Date().toLocaleString('es-DO')],
+    []
+  ];
+  const H=['Centro','Supervisor','Vendedor','Código','División','Ef.Visitas %','Ef.Ventas %','1er Pedido','Últ Pedido','Fuera Ruta','Fuera PDV','Clientes sin venta','Ritmo (s)','Unidades','Cajas','Valor','IEGT','Banda'];
+  const rows=list.map(v=>[v.Centro,v.Supervisor,v.RepNombre,v.RepCodigo,v.Division,+v._efv.toFixed(1),+v._efn.toFixed(1),hhmm(v.PrimerMin),hhmm(v.UltimoMin),v.FueraRuta,v.FueraPDV,v.SinVenta,(v.PromSeg||0),Math.round(v.Unidades||0),+(v.Cajas||0).toFixed(1),Math.round(v.Valor||0),+v._iegt.toFixed(1),v._banda[0]]);
+  const aoa=head.concat([H]).concat(rows);
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=H.map((h,i)=>({wch:i<3?22:(i===2?26:12)}));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Seguimiento');
+  XLSX.writeFile(wb,'seguimiento_semanal_'+(a.ini||$('#f-ini').value)+'.xlsx');
+};
+
+$('#btn-go').onclick=generar;
+/* Arranque */
+overlay(true);
+fetch(BASE+'/apiseg/filtros').then(r=>r.json()).then(j=>{ overlay(false); REPS=(j&&j.ok&&j.representantes)||[]; buildFiltros(); renderModoBar(); }).catch(e=>{ overlay(false); alert('No se pudo cargar el catálogo: '+e); });
+</script>
+</body>
+</html>

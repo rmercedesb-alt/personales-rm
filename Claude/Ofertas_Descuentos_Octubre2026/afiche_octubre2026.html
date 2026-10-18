@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Ofertas y Descuentos Octubre 2026</title>
+<style>
+  @page { size: 8.5in 11in; margin: 0; }
+  :root {
+    --navy: #1E2761; --ice: #5B6FB8; --amber: #F2A341; --txt: #1F2433; --gris: #6B7280;
+    --linea: #E3E6EF; --fondo: #F5F6FA;
+    --d10: #1E5AA8; --d11: #1F8A5B; --d12: #D9771E; --d15: #7A3FA0;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Segoe UI", Arial, sans-serif; color: var(--txt); background: #fff;
+         -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 8.5in; height: 11in; padding: 0.35in 0.42in 0.3in; display: flex; flex-direction: column;
+          page-break-after: always; overflow: hidden; background: #fff; }
+  .page:last-child { page-break-after: auto; }
+
+  header { background: var(--navy); color: #fff; border-radius: 14px; padding: 12px 22px; display: flex;
+           justify-content: space-between; align-items: center; }
+  header .kicker { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--amber); font-weight: 700; }
+  header h1 { font-size: 34px; line-height: 1.05; font-weight: 800; margin-top: 2px; }
+  header .vig { text-align: right; font-size: 12px; line-height: 1.5; }
+  header .vig b { display: block; font-size: 17px; color: var(--amber); }
+
+  .leyenda { display: flex; gap: 8px; margin: 9px 0 9px; flex-wrap: wrap; align-items: center; }
+  .leyenda .t { font-size: 11px; font-weight: 700; color: var(--gris); text-transform: uppercase; letter-spacing: 1px; margin-right: 2px; }
+  .leyenda .item { display: flex; align-items: center; gap: 6px; font-size: 11.5px; background: var(--fondo);
+                   border-radius: 20px; padding: 3px 10px 3px 3px; }
+
+  .div { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 20px; padding: 0 6px;
+         border-radius: 10px; color: #fff; font-size: 11.5px; font-weight: 800; }
+  .d10 { background: var(--d10); } .d11 { background: var(--d11); } .d12 { background: var(--d12); } .d15 { background: var(--d15); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; flex: 1; align-content: start; }
+  .col { display: flex; flex-direction: column; gap: 9px; }
+  .nuevo { display: inline-block; background: #D92D4A; color: #fff; font-size: 8.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; border-radius: 5px; padding: 1px 5px; vertical-align: 2px; margin-left: 3px; }
+  .mini { display: grid; grid-template-columns: 1fr 1fr; }
+  .mini .row { border-top: 1px dashed var(--linea); padding: 5px 12px; }
+  .mini .row:nth-child(-n+2) { border-top: 0; }
+  .mini .badge { min-width: 58px; font-size: 16px; padding: 4px 5px; }
+  .desc span.nuevo, .sup .nuevo { display: inline-block; color: #fff; font-size: 8px; margin-top: 0; line-height: 1.3; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; flex: 1; align-content: start; }
+  .card { border: 1.5px solid var(--linea); border-radius: 12px; overflow: hidden; break-inside: avoid; }
+  .card .head { display: flex; justify-content: space-between; align-items: center; padding: 5px 11px;
+                background: var(--fondo); border-bottom: 1.5px solid var(--linea); }
+  .card .sup { font-size: 13px; font-weight: 800; color: var(--navy); text-transform: uppercase; letter-spacing: .4px; }
+  .card .divs { display: flex; gap: 4px; align-items: center; }
+  .card .divs small { font-size: 9.5px; color: var(--gris); margin-right: 2px; text-transform: uppercase; font-weight: 700; }
+  .row { display: flex; gap: 9px; padding: 5px 11px; align-items: center; border-top: 1px dashed var(--linea); }
+  .row:first-of-type { border-top: 0; }
+  .badge { flex: 0 0 auto; min-width: 66px; text-align: center; background: var(--amber); color: var(--navy);
+           border-radius: 9px; padding: 5px 6px; font-weight: 900; font-size: 17px; line-height: 1; }
+  .badge small { display: block; font-size: 8.5px; font-weight: 800; letter-spacing: .5px; margin-top: 2px; text-transform: uppercase; }
+  .badge.pct { background: var(--navy); color: #fff; }
+  .badge.pct small { color: var(--amber); }
+  .desc b { display: block; font-size: 12.5px; line-height: 1.25; }
+  .desc span { display: block; font-size: 11px; color: var(--gris); line-height: 1.3; margin-top: 1px; }
+  .desc em { font-style: normal; color: var(--d12); font-weight: 700; }
+
+  .escala { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .escala i { font-style: normal; font-size: 11px; font-weight: 800; background: #FFF1DE; color: var(--navy);
+              border-radius: 6px; padding: 2px 6px; }
+
+  h2.sec { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--navy); margin: 2px 0 8px;
+           display: flex; align-items: center; gap: 8px; }
+  h2.sec::after { content: ""; flex: 1; height: 2px; background: var(--linea); }
+
+  .vol { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .vcard { border-radius: 12px; border: 1.5px solid var(--linea); padding: 8px 11px; }
+  .vcard .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; }
+  .vcard h3 { font-size: 13.5px; color: var(--navy); line-height: 1.2; }
+  .vcard p { font-size: 10.5px; color: var(--gris); margin: 2px 0 5px; line-height: 1.3; }
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+  .tier { background: var(--fondo); border-radius: 8px; text-align: center; padding: 5px 4px; }
+  .tier .p { font-size: 18px; font-weight: 900; color: var(--navy); line-height: 1; }
+  .tier .m { font-size: 9.5px; color: var(--txt); margin-top: 3px; font-weight: 600; }
+
+  footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px;
+           font-size: 10px; color: var(--gris); border-top: 1.5px solid var(--linea); padding-top: 7px; }
+  footer b { color: var(--navy); }
+  .nota { font-size: 10px; color: var(--txt); background: #FFF6EA; border-left: 4px solid var(--amber);
+          border-radius: 6px; padding: 7px 10px; margin-top: 8px; line-height: 1.35; }
+</style>
+</head>
+<body>
+
+<!-- ======================= HOJA 1: OFERTAS ======================= -->
+<section class="page">
+  <header>
+    <div>
+      <div class="kicker">AM Comercial · Representantes</div>
+      <h1>Ofertas del Mes</h1>
+    </div>
+    <div class="vig">Vigencia<b>1 – 31 Octubre 2026</b>Producto gratis al cumplir la compra</div>
+  </header>
+
+  <div class="leyenda">
+    <span class="t">Divisiones:</span>
+    <span class="item"><span class="div d10">10</span>Santo Domingo · Minorista</span>
+    <span class="item"><span class="div d11">11</span>Azua · Espejo</span>
+    <span class="item"><span class="div d12">12</span>Azua · Minorista Sur</span>
+    <span class="item"><span class="div d15">15</span>Mayoristas</span>
+  </div>
+
+  <div class="cols">
+   <div class="col">
+    <div class="card">
+      <div class="head"><span class="sup">Ampoule · Ilumia</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d11">11</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge">10+2<small>gratis</small></div>
+        <div class="desc"><b>Baterías Ilumia AAA 2x1 (blister)</b><span>Compra 10 y lleva 2 adicionales de regalo.</span></div></div>
+      <div class="row"><div class="badge">10+2<small>gratis</small></div>
+        <div class="desc"><b>Baterías Ilumia AA 2x1 (blister)</b><span>Compra 10 y lleva 2 adicionales de regalo.</span></div></div>
+      <div class="row"><div class="badge">10+2<small>gratis</small></div>
+        <div class="desc"><b>Bombillo Ilumia 5W luz blanca</b><span>Compra 10 y lleva 2 bombillos 5W luz cálida.</span></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">Dimar · Atún y Sardinas <span class="nuevo">Nuevo</span></span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d11">11</span></span></div>
+      <div class="row"><div class="badge">12+1<small>gratis</small></div>
+        <div class="desc"><b>Atún Dimar 142 g (todas las variedades)</b><span>Compra 12 und (combinables) y lleva 1 atún desmenuzado en agua.</span></div></div>
+      <div class="row"><div class="badge">12+1<small>gratis</small></div>
+        <div class="desc"><b>Sardinas Dimar en aceite, lata plana 125 g</b><span>Compra 12 und y lleva 1 gratis.</span></div></div>
+      <div class="row"><div class="badge">12+1<small>gratis</small></div>
+        <div class="desc"><b>Sardinas Dimar Tall en tomate 425 g</b><span>Compra 12 und y lleva 1 gratis.</span></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">Agua Crystal</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge">8+1<small>desde</small></div>
+        <div class="desc"><b>Botellita Agua Crystal 0.5 L (paq. 1/20)</b><span>Mientras más compra, más le regalamos:</span><div class="escala"><i>8 + 1</i><i>20 + 3</i><i>100 + 16</i><i>120 + 20</i><i>250 + 45</i></div></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">P.Q.P. · Ultrex</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d12">12</span></span></div>
+      <div class="row"><div class="badge">12+3<small>gratis</small></div>
+        <div class="desc"><b>Detergente Ultrex 200 g</b><span>Compra 12 und y lleva 3 Ultrex de 100 g gratis.</span></div></div>
+      <div class="row"><div class="badge">12+2<small>gratis</small></div>
+        <div class="desc"><b>Detergente Ultrex 100 g</b><span>Compra 12 und y lleva 2 Ultrex de 100 g gratis.</span></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">Molinos · Galletas CMI</span>
+        <span class="divs"><small>Aplica</small><span class="div d11">11</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge" style="font-size:15px">Combo<small>+ exhibidor</small></div>
+        <div class="desc"><b>Combo CMI de 10, 15 o 19 paquetes de galletas</b><span>Con cualquiera de los 3 combos el cliente recibe 1 exhibidor de mostrador (4 galletas) gratis.</span></div></div>
+    </div>
+   </div>
+   <div class="col">
+    <div class="card">
+      <div class="head"><span class="sup">Colombina</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d12">12</span></span></div>
+      <div class="row"><div class="badge">12+1<small>gratis</small></div>
+        <div class="desc"><b>Gomas Grissly 80 g</b><span>Compra 12 und (mezcla sabores) y lleva 1 gratis.</span></div></div>
+      <div class="row"><div class="badge">5+1<small>gratis</small></div>
+        <div class="desc"><b>Mentas duras Colombina</b><span>Compra 5 und de mentas y lleva 1 paquete de Tipitín gratis.</span></div></div>
+      <div class="row"><div class="badge">3+1<small>gratis</small></div>
+        <div class="desc"><b>BBB Jumbo (todos los sabores)</b><span>Compra 3 und de BBB y lleva 1 Tipitín gratis.</span></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">Galisa · Cigarrillos 252</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d12">12</span></span></div>
+      <div class="row"><div class="badge">10+1<small>gratis</small></div>
+        <div class="desc"><b>Cigarrillos 252 Regular / Mentol / Light</b><span>Compra 10 paquetes (combinables) y lleva 1 gratis.</span></div></div>
+    </div>
+    <div class="card">
+      <div class="head"><span class="sup">Continental de Negocios</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d12">12</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge">24+4<small>gratis</small></div>
+        <div class="desc"><b>Papel Familia Aroma 48x1 <span class="nuevo">Nuevo</span></b><span>24 und → 4 gratis · 48 und → 8 gratis. <em>Div 10 y 12.</em></span></div></div>
+      <div class="row"><div class="badge">24+5<small>gratis</small></div>
+        <div class="desc"><b>Papel Familia Aroma · Grupo Familia <span class="nuevo">Nuevo</span></b><span>24 und → 5 gratis · 48 und → 10 gratis. <em>Div 10 y 12.</em></span></div></div>
+      <div class="row"><div class="badge">24+1<small>gratis</small></div>
+        <div class="desc"><b>Papel Familia Mediano 48x1 <span class="nuevo">Nuevo</span></b><span>24 und → 1 gratis · 48 und → 4 gratis. <em>Div 10 y 12.</em></span></div></div>
+      <div class="row"><div class="badge">8+20<small>gratis</small></div>
+        <div class="desc"><b>Toallas Nosotras display <span class="nuevo">Nuevo</span></b><span>8 displays (Buenas Noches, Invisibles o Plus) → 20 und Buenas Noches. <em>Solo Div 12, 1–15 oct.</em></span></div></div>
+      <div class="row"><div class="badge">4+2<small>gratis</small></div>
+        <div class="desc"><b>Paños húmedos Pequeñín Aloe 12x(4x24)</b><span>Compra 4 y lleva 2 paños Aloe 100x10. <em>Div 10 y 12.</em></span></div></div>
+      <div class="row"><div class="badge">5+1<small>fardo</small></div>
+        <div class="desc"><b>Combo papel higiénico Familia Aroma 48x1</b><span>5 fardos + 1 fardo de oferta. <em>Solo Mayoristas (15).</em></span></div></div>
+    </div>
+   </div>
+  </div>
+
+  <footer>
+    <span>Cantidades en unidades de venta del producto. Ofertas para todos los clientes de la división indicada.</span>
+    <span><b>Fuente:</b> MovilBusiness · actualizado 04-oct-2026</span>
+  </footer>
+</section>
+
+<!-- ======================= HOJA 2: DESCUENTOS ======================= -->
+<section class="page">
+  <header>
+    <div>
+      <div class="kicker">AM Comercial · Representantes</div>
+      <h1>Descuentos del Mes</h1>
+    </div>
+    <div class="vig">Vigencia<b>1 – 31 Octubre 2026</b>% de descuento sobre el pedido</div>
+  </header>
+
+  <div class="leyenda">
+    <span class="t">Divisiones:</span>
+    <span class="item"><span class="div d10">10</span>Santo Domingo · Minorista</span>
+    <span class="item"><span class="div d11">11</span>Azua · Espejo</span>
+    <span class="item"><span class="div d12">12</span>Azua · Minorista Sur</span>
+    <span class="item"><span class="div d15">15</span>Mayoristas</span>
+  </div>
+
+  <h2 class="sec">1 · Descuento por volumen (según monto del pedido)</h2>
+  <div class="vol">
+    <div class="vcard">
+      <div class="top"><h3>Volumen Minorista</h3><span class="divs"><span class="div d10">10</span></span></div>
+      <p>Clientes con lista Minorista. Aplica a casi todo el portafolio (Colombina, Continental, Dimar, Brinsa, Fila, Agua Crystal…).</p>
+      <div class="tiers">
+        <div class="tier"><div class="p">1%</div><div class="m">RD$5,000 – 9,999</div></div>
+        <div class="tier"><div class="p">2%</div><div class="m">RD$10,000 – 19,999</div></div>
+        <div class="tier"><div class="p">2.5%</div><div class="m">RD$20,000 o más</div></div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="top"><h3>Monto vendido Minorista Sur</h3><span class="divs"><span class="div d12">12</span></span></div>
+      <p>Clientes con lista Minorista Sur. Productos de Continental, Nestlé, Bocadeli, Kardisa, Fila, Brinsa, Dimar, entre otros.</p>
+      <div class="tiers">
+        <div class="tier"><div class="p">1%</div><div class="m">RD$5,000 – 9,999</div></div>
+        <div class="tier"><div class="p">2%</div><div class="m">RD$10,000 – 19,999</div></div>
+        <div class="tier"><div class="p">2.5%</div><div class="m">RD$20,000 o más</div></div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="top"><h3>Volumen Minorista Espejo</h3><span class="divs"><span class="div d11">11</span></span></div>
+      <p>Productos de Molinos (pastas, galletas, harinas, sopas, salsas, mascotas), Dimar, Ampoule y Pimentel.</p>
+      <div class="tiers">
+        <div class="tier"><div class="p">1%</div><div class="m">RD$10,000 – 19,999</div></div>
+        <div class="tier"><div class="p">2%</div><div class="m">RD$20,000 – 39,999</div></div>
+        <div class="tier"><div class="p">2.5%</div><div class="m">RD$40,000 o más</div></div>
+      </div>
+    </div>
+    <div class="vcard">
+      <div class="top"><h3>Volumen Mayorista</h3><span class="divs"><span class="div d10">10</span><span class="div d11">11</span><span class="div d12">12</span></span></div>
+      <p>Solo clientes con lista de precio Mayorista, sobre los productos del grupo mayorista.</p>
+      <div class="tiers">
+        <div class="tier"><div class="p">1%</div><div class="m">RD$10,000 – 19,999</div></div>
+        <div class="tier"><div class="p">2%</div><div class="m">RD$20,000 – 39,999</div></div>
+        <div class="tier"><div class="p">2.5%</div><div class="m">RD$40,000 o más</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="sec">2 · Descuento por producto</h2>
+  <div class="grid">
+    <div class="card" style="grid-column: span 2;">
+      <div class="head"><span class="sup">Molinos Modernos · Pastas, harina, sopas, mascotas y galletas</span>
+        <span class="divs"><small>Aplica</small><span class="div d11">11</span><span class="div d15">15</span></span></div>
+      <div class="mini">
+        <div class="row"><div class="badge pct">8%<small>1+ und</small></div><div class="desc"><b>Pasta Milano (espagueti, codito, espiral…) <span class="nuevo">Nuevo</span></b></div></div>
+        <div class="row"><div class="badge pct">7%<small>1+ und</small></div><div class="desc"><b>Fideo Milano fino y grueso (incluye 10 lb) <span class="nuevo">Nuevo</span></b></div></div>
+        <div class="row"><div class="badge pct">5%<small>1+ und</small></div><div class="desc"><b>Alimento perro Rufo <span class="nuevo">Nuevo</span></b></div></div>
+        <div class="row"><div class="badge pct">5%<small>1+ und</small></div><div class="desc"><b>Sopa Cantonesa (vaso y paquete) <span class="nuevo">Nuevo</span></b></div></div>
+        <div class="row"><div class="badge pct">3%<small>1+ und</small></div><div class="desc"><b>Harina de trigo Milano 15x1 lb <span class="nuevo">Nuevo</span></b></div></div>
+        <div class="row"><div class="badge pct">5%<small>3+ und</small></div><div class="desc"><b>Galleta Hatuey Soda 6x20x32 g · <em>solo 1 al 15 oct</em></b></div></div>
+        <div class="row"><div class="badge pct">2%<small>1+ und</small></div><div class="desc"><b>Galleta Max Queso Sextena 24x6x30</b></div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="sup">Galisa · Cigarrillos 252</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d12">12</span></span></div>
+      <div class="row"><div class="badge pct">3%<small>3–4 paq</small></div>
+        <div class="desc"><b>Cigarrillos 252 Regular / Mentol / Light</b><span>3% comprando de 3 a 4 paquetes.</span></div></div>
+      <div class="row"><div class="badge pct">5%<small>5–9 paq</small></div>
+        <div class="desc"><b>Cigarrillos 252 Regular / Mentol / Light</b><span>5% comprando de 5 a 9 paquetes.</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="sup">Brinsa · Refisal</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge pct">4%<small>25+ und</small></div>
+        <div class="desc"><b>Refisal fundas refinada (25 und)</b><span>Minoristas: 4% desde 25 und. Mayoristas: 4% de 25 a 200 und.</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="sup">Comercial Fila · Baygon</span>
+        <span class="divs"><small>Aplica</small><span class="div d10">10</span><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge pct">3%<small>1+ caja</small></div>
+        <div class="desc"><b>Baygon Aerosol 400 ml y Verde 285 ml</b><span>Minoristas: 3% desde 1 caja (12 und). Mayoristas: 3% desde 8 cajas (96 und).</span></div></div>
+    </div>
+
+    <div class="card">
+      <div class="head"><span class="sup">Continental · Toallas Nosotras</span>
+        <span class="divs"><small>Aplica</small><span class="div d15">15</span></span></div>
+      <div class="row"><div class="badge pct">2%<small>200+ und</small></div>
+        <div class="desc"><b>Toallas Nosotras (grupo Display Mayorista)</b><span>2% comprando 200 unidades o más. Solo Mayoristas.</span></div></div>
+    </div>
+  </div>
+
+  <div class="nota"><b>Ojo:</b> los descuentos de Refisal y Baygon aplican a clientes con lista Minorista (Div 10) o Mayorista. En la Div 12 solo aplican a los clientes con lista Mayorista.</div>
+
+  <footer>
+    <span>El descuento depende del monto o la cantidad del pedido. No incluye descuentos de Cesar Iglesias.</span>
+    <span><b>Fuente:</b> MovilBusiness · actualizado 04-oct-2026</span>
+  </footer>
+</section>
+
+</body>
+</html>

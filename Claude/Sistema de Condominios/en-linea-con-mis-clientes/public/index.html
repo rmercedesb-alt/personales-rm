@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>En línea con mis clientes</title>
+<style>
+  :root { --brand:#1B4F8C; --brand-dark:#0e2f55; --green:#15803d; }
+  * { box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+  body { margin:0; background:#f1f5f9; color:#1e293b; }
+  header { background:var(--brand-dark); color:#fff; padding:14px 20px; display:flex; align-items:center; gap:12px; }
+  header h1 { font-size:18px; margin:0; }
+  .estado { margin-left:auto; font-size:13px; display:flex; align-items:center; gap:6px; }
+  .dot { width:10px; height:10px; border-radius:50%; display:inline-block; }
+  .tabs { display:flex; gap:4px; background:#fff; padding:0 16px; border-bottom:1px solid #e2e8f0; flex-wrap:wrap; }
+  .tab { padding:12px 16px; cursor:pointer; border-bottom:2px solid transparent; font-size:14px; color:#64748b; }
+  .tab.active { color:var(--brand); border-color:var(--brand); font-weight:600; }
+  main { padding:20px; max-width:1000px; margin:0 auto; }
+  .card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px; margin-bottom:16px; }
+  h2 { font-size:15px; margin:0 0 12px; }
+  label { font-size:12px; color:#64748b; display:block; margin-bottom:4px; }
+  select, input[type=text], input[type=number], textarea {
+    width:100%; padding:8px 10px; border:1px solid #cbd5e1; border-radius:8px; font-size:14px; }
+  textarea { min-height:140px; resize:vertical; }
+  button { background:var(--brand); color:#fff; border:0; padding:9px 16px; border-radius:8px; cursor:pointer; font-size:14px; }
+  button.green { background:var(--green); }
+  button.ghost { background:#fff; color:#475569; border:1px solid #cbd5e1; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:7px 9px; border-bottom:1px solid #f1f5f9; }
+  th { color:#64748b; font-size:11px; text-transform:uppercase; background:#f8fafc; }
+  .pill { font-size:11px; padding:2px 8px; border-radius:999px; }
+  .rojo { background:#fee2e2; color:#b91c1c; } .naranja { background:#ffedd5; color:#c2410c; }
+  .gris { background:#f1f5f9; color:#475569; } .verde { background:#dcfce7; color:#15803d; }
+  .row { display:flex; gap:12px; flex-wrap:wrap; } .row > * { flex:1; min-width:180px; }
+  .muted { color:#94a3b8; font-size:12px; }
+  #qrbox img { width:240px; height:240px; }
+  .hide { display:none; }
+</style>
+</head>
+<body>
+<header>
+  <strong>📲 En línea con mis clientes</strong>
+  <span class="muted" style="color:#cbd5e1">Fanny Mercedes &amp; Asoc.</span>
+  <span class="estado"><span id="dot" class="dot" style="background:#fbbf24"></span><span id="estadoTxt">Verificando...</span></span>
+</header>
+
+<div class="tabs">
+  <div class="tab active" data-tab="conexion">Conexión</div>
+  <div class="tab" data-tab="manual">Envío de cartas</div>
+  <div class="tab" data-tab="masivo">Enviar Masivamente</div>
+  <div class="tab" data-tab="auto">Recordatorios automáticos</div>
+  <div class="tab" data-tab="historial">Historial</div>
+</div>
+
+<main>
+  <!-- CONEXION -->
+  <section id="conexion">
+    <div class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <h2 style="margin:0">Estado de la conexión WhatsApp</h2>
+        <button id="btnLogout" class="ghost hide" onclick="cerrarSesionWA()"
+          style="border-color:#fecaca; color:#b91c1c;">Cerrar sesión / Cambiar número</button>
+      </div>
+      <div id="qrbox" style="margin-top:12px">
+        <p class="muted">Cargando...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENVIO MANUAL -->
+  <section id="manual" class="hide">
+    <div class="card">
+      <h2>1. Selecciona destinatarios</h2>
+      <div class="row">
+        <div>
+          <label>Propietario</label>
+          <select id="selProp"><option value="">Todos los propietarios</option></select>
+        </div>
+        <div style="flex:0; display:flex; align-items:flex-end;">
+          <button class="ghost" onclick="cargarDestinatarios()">Cargar lista</button>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:8px">Ordenados por nivel de vencimiento de la cartera. Marca uno a uno o usa "Seleccionar todos".</p>
+      <div style="max-height:300px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; margin-top:8px;">
+        <table>
+          <thead><tr>
+            <th style="width:30px"><input type="checkbox" id="chkAll" onclick="toggleAll(this)"></th>
+            <th>Inquilino</th><th>Teléfono</th><th>Días mora</th><th>Total vencido</th>
+          </tr></thead>
+          <tbody id="tbDest"><tr><td colspan="5" class="muted" style="padding:14px">Carga la lista...</td></tr></tbody>
+        </table>
+      </div>
+      <p class="muted" id="contSel" style="margin-top:6px">0 seleccionados</p>
+    </div>
+
+    <div class="card">
+      <h2>2. Escribe el mensaje y adjunta (opcional)</h2>
+      <textarea id="msgManual" placeholder="Escribe aquí la carta que se enviará a los seleccionados..."></textarea>
+      <div style="margin-top:10px"><label>Archivo adjunto (opcional)</label><input type="file" id="archivo"></div>
+      <div style="margin-top:14px; display:flex; gap:8px;">
+        <button class="green" onclick="enviarManual()" id="btnEnviar">Enviar a seleccionados</button>
+        <span id="resManual" class="muted"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENVIO MASIVO MANUAL -->
+  <section id="masivo" class="hide">
+    <div class="card">
+      <h2>Grupos guardados</h2>
+      <div class="row" style="align-items:flex-end">
+        <div>
+          <label>Cargar un grupo guardado</label>
+          <select id="selGrupo"><option value="">— Selecciona un grupo —</option></select>
+        </div>
+        <div style="flex:0; display:flex; gap:6px; align-items:flex-end;">
+          <button class="ghost" onclick="cargarGrupo()">Cargar</button>
+          <button class="ghost" onclick="eliminarGrupo()">Eliminar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>1. Contactos (escribe nombre y número)</h2>
+      <p class="muted">Agrega tantos como quieras. No necesitan estar en la base de datos.</p>
+      <div style="max-height:300px; overflow:auto; border:1px solid #e2e8f0; border-radius:8px; margin-top:8px;">
+        <table>
+          <thead><tr><th>Nombre</th><th>Teléfono</th><th style="width:40px"></th></tr></thead>
+          <tbody id="tbMasivo"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="ghost" onclick="agregarFila()">+ Agregar contacto</button>
+        <input type="text" id="grpNombre" placeholder="Nombre del grupo (para guardar)" style="max-width:240px">
+        <button onclick="guardarGrupo()">Guardar grupo</button>
+        <span id="resGrupo" class="muted"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2. Mensaje y adjunto</h2>
+      <textarea id="msgMasivo" placeholder="Escribe aquí el mensaje que se enviará..."></textarea>
+      <div style="margin-top:10px"><label>Archivo adjunto (opcional)</label><input type="file" id="archivoMasivo"></div>
+      <div style="margin-top:14px; display:flex; gap:8px; align-items:center;">
+        <button class="green" onclick="enviarMasivo()" id="btnMasivo">Enviar a todos los contactos</button>
+        <span id="resMasivo" class="muted"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUTOMATICO -->
+  <section id="auto" class="hide">
+    <div class="card">
+      <h2>Recordatorio automático a clientes en mora</h2>
+      <label style="display:flex; align-items:center; gap:8px; font-size:14px; color:#1e293b;">
+        <input type="checkbox" id="cfgActivo"> Enviar recordatorios automáticamente
+      </label>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label>Días de envío</label>
+          <div id="dias" style="display:flex; gap:6px; flex-wrap:wrap; font-size:13px;"></div>
+        </div>
+        <div>
+          <label>Hora de envío (0-23)</label>
+          <input type="number" id="cfgHora" min="0" max="23">
+        </div>
+        <div>
+          <label>¿Solo a quienes ya pasaron el período de gracia?</label>
+          <select id="cfgGracia"><option value="false">No (todos los vencidos)</option><option value="true">Sí, solo fuera de gracia</option></select>
+        </div>
+      </div>
+      <div style="margin-top:14px">
+        <label>Mensaje (usa {nombre}, {meses} y {monto} como variables)</label>
+        <textarea id="cfgPlantilla"></textarea>
+      </div>
+      <div style="margin-top:14px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button onclick="guardarConfig()">Guardar configuración</button>
+        <button class="ghost" onclick="previewRec()">Vista previa</button>
+        <button class="green" onclick="enviarAhora()">Enviar recordatorios ahora</button>
+        <span id="resAuto" class="muted"></span>
+      </div>
+      <div id="previewBox" class="hide" style="margin-top:12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:12px; white-space:pre-wrap; font-size:13px;"></div>
+    </div>
+  </section>
+
+  <!-- HISTORIAL -->
+  <section id="historial" class="hide">
+    <div class="card">
+      <h2>Historial de envíos <button class="ghost" style="float:right" onclick="cargarHistorial()">Actualizar</button></h2>
+      <div style="max-height:480px; overflow:auto;">
+        <table>
+          <thead><tr><th>Fecha</th><th>Tipo</th><th>Inquilino</th><th>Teléfono</th><th>Estado</th><th>Detalle</th></tr></thead>
+          <tbody id="tbHist"><tr><td colspan="6" class="muted" style="padding:14px">Sin datos</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id)
+let destinatarios = []
+
+// --- Tabs ---
+document.querySelectorAll('.tab').forEach(t => t.onclick = () => {
+  document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'))
+  t.classList.add('active')
+  document.querySelectorAll('main > section').forEach(s => s.classList.add('hide'))
+  $(t.dataset.tab).classList.remove('hide')
+  if (t.dataset.tab === 'historial') cargarHistorial()
+  if (t.dataset.tab === 'masivo') initMasivo()
+})
+
+// --- Estado WhatsApp (polling) ---
+async function pollStatus() {
+  try {
+    const s = await (await fetch('/api/status')).json()
+    const dot = $('dot'), txt = $('estadoTxt'), box = $('qrbox')
+    // El boton "Cerrar sesion" solo aparece cuando esta conectado
+    $('btnLogout').classList.toggle('hide', s.estado !== 'CONECTADO')
+    if (s.estado === 'CONECTADO') {
+      dot.style.background = '#22c55e'; txt.textContent = 'Conectado'
+      box.innerHTML = '<p style="color:#15803d; font-weight:600;">✓ WhatsApp conectado y listo para enviar mensajes.</p>'
+    } else if (s.estado === 'QR' && s.qr) {
+      dot.style.background = '#fbbf24'; txt.textContent = 'Escanea el QR'
+      box.innerHTML = '<p class="muted">Abre WhatsApp en tu teléfono → Dispositivos vinculados → Vincular un dispositivo, y escanea:</p><img src="'+s.qr+'">'
+    } else {
+      dot.style.background = '#fbbf24'; txt.textContent = 'Iniciando...'
+      box.innerHTML = '<p class="muted">Iniciando WhatsApp, espera unos segundos...</p>'
+    }
+  } catch {}
+}
+setInterval(pollStatus, 3000); pollStatus()
+
+// Cerrar sesion de WhatsApp para entrar con otro numero
+async function cerrarSesionWA() {
+  if (!confirm('¿Cerrar la sesión de WhatsApp? Tendrás que escanear el código QR de nuevo (puede ser con otro número).')) return
+  $('btnLogout').classList.add('hide')
+  $('estadoTxt').textContent = 'Cerrando sesión...'
+  $('qrbox').innerHTML = '<p class="muted">Cerrando sesión y generando un nuevo código QR... espera unos segundos.</p>'
+  try { await fetch('/api/logout', { method: 'POST' }) } catch {}
+}
+
+// --- Propietarios ---
+async function cargarProps() {
+  const props = await (await fetch('/api/propietarios')).json()
+  props.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = p.nombre; $('selProp').appendChild(o) })
+}
+cargarProps()
+
+// --- Destinatarios ---
+function pillDias(d) { const n = Number(d)||0; const c = n>30?'rojo':n>0?'naranja':'gris'; return '<span class="pill '+c+'">'+n+'</span>' }
+function rd(n){ return 'RD$ '+Number(n||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2}) }
+
+async function cargarDestinatarios() {
+  const idp = $('selProp').value
+  const url = '/api/destinatarios' + (idp ? ('?idPropietario='+encodeURIComponent(idp)) : '')
+  destinatarios = await (await fetch(url)).json()
+  const tb = $('tbDest')
+  if (!destinatarios.length) { tb.innerHTML = '<tr><td colspan="5" class="muted" style="padding:14px">Sin destinatarios</td></tr>'; return }
+  tb.innerHTML = destinatarios.map((d,i) =>
+    '<tr><td><input type="checkbox" class="chkd" data-i="'+i+'" onclick="contar()"></td>'+
+    '<td>'+d.nombre+'</td><td>'+(d.telefono||'—')+'</td><td>'+pillDias(d.dias_mora)+'</td>'+
+    '<td>'+rd(d.total_vencido)+'</td></tr>').join('')
+  contar()
+}
+function toggleAll(c){ document.querySelectorAll('.chkd').forEach(x=>x.checked=c.checked); contar() }
+function contar(){ $('contSel').textContent = document.querySelectorAll('.chkd:checked').length + ' seleccionados' }
+function seleccionados(){ return [...document.querySelectorAll('.chkd:checked')].map(c => destinatarios[Number(c.dataset.i)]) }
+
+async function enviarManual() {
+  const sel = seleccionados()
+  if (!sel.length) { alert('Selecciona al menos un destinatario'); return }
+  if (!$('msgManual').value.trim()) { alert('Escribe el mensaje'); return }
+  $('btnEnviar').disabled = true; $('resManual').textContent = 'Enviando...'
+  const fd = new FormData()
+  fd.append('destinatarios', JSON.stringify(sel.map(d => ({ id:d.id, nombre:d.nombre, telefono:d.telefono }))))
+  fd.append('mensaje', $('msgManual').value)
+  if ($('archivo').files[0]) fd.append('archivo', $('archivo').files[0])
+  try {
+    const r = await (await fetch('/api/enviar', { method:'POST', body: fd })).json()
+    $('resManual').textContent = r.error ? ('Error: '+r.error) : ('✓ Enviados: '+r.enviados+'  ·  Errores: '+r.errores)
+  } catch (e) { $('resManual').textContent = 'Error: '+e.message }
+  $('btnEnviar').disabled = false
+}
+
+// --- Config automatica ---
+const NOMBRES_DIA = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb']
+async function cargarConfig() {
+  const c = await (await fetch('/api/config')).json()
+  $('cfgActivo').checked = c.recordatorioActivo
+  $('cfgHora').value = c.hora
+  $('cfgGracia').value = String(c.soloFueraDeGracia)
+  $('cfgPlantilla').value = c.plantilla
+  $('dias').innerHTML = NOMBRES_DIA.map((n,i) =>
+    '<label style="display:flex;align-items:center;gap:4px;color:#1e293b;"><input type="checkbox" class="chkdia" value="'+i+'" '+
+    (c.dias.includes(i)?'checked':'')+'> '+n+'</label>').join('')
+}
+function guardarConfig() {
+  const dias = [...document.querySelectorAll('.chkdia:checked')].map(c=>Number(c.value))
+  const body = { recordatorioActivo:$('cfgActivo').checked, hora:Number($('cfgHora').value),
+    soloFueraDeGracia: $('cfgGracia').value==='true', plantilla:$('cfgPlantilla').value, dias }
+  fetch('/api/config', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(()=> $('resAuto').textContent = '✓ Configuración guardada')
+}
+async function previewRec() {
+  const r = await (await fetch('/api/preview-recordatorio')).json()
+  $('previewBox').classList.remove('hide')
+  $('previewBox').textContent = 'Clientes vencidos: '+r.cantidadClientes+'\n\n--- Ejemplo ---\n'+r.ejemplo
+}
+async function enviarAhora() {
+  if (!confirm('¿Enviar el recordatorio ahora a TODOS los clientes vencidos?')) return
+  $('resAuto').textContent = 'Enviando...'
+  const r = await (await fetch('/api/enviar-recordatorios', { method:'POST' })).json()
+  $('resAuto').textContent = r.error ? ('Error: '+r.error) : ('✓ Enviados: '+r.enviados+' · Errores: '+r.errores+' · Omitidos: '+(r.omitidos||0))
+}
+cargarConfig()
+
+// --- Envío masivo manual ---
+let masivoInit = false
+function initMasivo() {
+  if (!masivoInit) { agregarFila(); agregarFila(); agregarFila(); masivoInit = true }
+  cargarGrupos()
+}
+function agregarFila(nombre, telefono) {
+  const tr = document.createElement('tr')
+  tr.innerHTML =
+    '<td><input type="text" class="mNom" value="'+(nombre||'').replace(/"/g,'&quot;')+'" placeholder="Nombre"></td>'+
+    '<td><input type="text" class="mTel" value="'+(telefono||'').replace(/"/g,'&quot;')+'" placeholder="809-000-0000"></td>'+
+    '<td><button class="ghost" onclick="this.closest(\'tr\').remove()">✕</button></td>'
+  $('tbMasivo').appendChild(tr)
+}
+function leerContactos() {
+  const noms = [...document.querySelectorAll('.mNom')]
+  const tels = [...document.querySelectorAll('.mTel')]
+  const out = []
+  for (let i = 0; i < tels.length; i++) {
+    const t = tels[i].value.trim(); if (!t) continue
+    out.push({ nombre: noms[i].value.trim(), telefono: t })
+  }
+  return out
+}
+async function cargarGrupos() {
+  const g = await (await fetch('/api/grupos')).json()
+  const sel = $('selGrupo')
+  sel.innerHTML = '<option value="">— Selecciona un grupo —</option>' +
+    g.map(x => '<option value="'+x.id+'">'+x.nombre+' ('+x.contactos.length+')</option>').join('')
+  window._grupos = g
+}
+function cargarGrupo() {
+  const id = $('selGrupo').value; if (!id) return
+  const g = (window._grupos || []).find(x => x.id === id); if (!g) return
+  $('tbMasivo').innerHTML = ''
+  g.contactos.forEach(c => agregarFila(c.nombre, c.telefono))
+  if (!g.contactos.length) agregarFila()
+  $('grpNombre').value = g.nombre
+  $('resGrupo').textContent = 'Grupo "'+g.nombre+'" cargado'
+}
+async function guardarGrupo() {
+  const contactos = leerContactos()
+  if (!contactos.length) { alert('Agrega al menos un contacto con teléfono'); return }
+  const nombre = $('grpNombre').value.trim() || 'Grupo sin nombre'
+  const id = $('selGrupo').value || undefined
+  await fetch('/api/grupos', { method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ id, nombre, contactos }) })
+  $('resGrupo').textContent = '✓ Grupo guardado'
+  cargarGrupos()
+}
+async function eliminarGrupo() {
+  const id = $('selGrupo').value; if (!id) { alert('Selecciona un grupo'); return }
+  if (!confirm('¿Eliminar este grupo guardado?')) return
+  await fetch('/api/grupos/'+id, { method:'DELETE' })
+  $('resGrupo').textContent = 'Grupo eliminado'
+  cargarGrupos()
+}
+async function enviarMasivo() {
+  const contactos = leerContactos()
+  if (!contactos.length) { alert('Agrega al menos un contacto con teléfono'); return }
+  if (!$('msgMasivo').value.trim()) { alert('Escribe el mensaje'); return }
+  $('btnMasivo').disabled = true; $('resMasivo').textContent = 'Enviando...'
+  const fd = new FormData()
+  fd.append('destinatarios', JSON.stringify(contactos.map(c => ({ nombre:c.nombre, telefono:c.telefono }))))
+  fd.append('mensaje', $('msgMasivo').value)
+  if ($('archivoMasivo').files[0]) fd.append('archivo', $('archivoMasivo').files[0])
+  try {
+    const r = await (await fetch('/api/enviar', { method:'POST', body: fd })).json()
+    $('resMasivo').textContent = r.error ? ('Error: '+r.error) : ('✓ Enviados: '+r.enviados+'  ·  Errores: '+r.errores)
+  } catch (e) { $('resMasivo').textContent = 'Error: '+e.message }
+  $('btnMasivo').disabled = false
+}
+
+// --- Historial ---
+async function cargarHistorial() {
+  const h = await (await fetch('/api/historial')).json()
+  const tb = $('tbHist')
+  if (!h.length) { tb.innerHTML = '<tr><td colspan="6" class="muted" style="padding:14px">Sin datos</td></tr>'; return }
+  tb.innerHTML = h.map(x => {
+    const est = x.estado==='ENVIADO' ? '<span class="pill verde">ENVIADO</span>' : '<span class="pill rojo">ERROR</span>'
+    return '<tr><td>'+new Date(x.fecha).toLocaleString('es-DO')+'</td><td>'+x.tipo+'</td><td>'+(x.nombre||'')+
+      '</td><td>'+(x.telefono||'')+'</td><td>'+est+'</td><td class="muted">'+(x.detalle||'')+'</td></tr>'
+  }).join('')
+}
+</script>
+</body>
+</html>

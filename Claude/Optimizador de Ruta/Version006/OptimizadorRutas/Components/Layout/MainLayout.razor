@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+
+<style>
+    /* ── Anula completamente el layout sidebar de Blazor ─── */
+    html, body       { margin:0; padding:0; overflow:hidden; }
+    .page            { display:block !important; }
+    .sidebar         { display:none !important; }
+    .top-row         { display:none !important; }
+    article.content  { padding:0 !important; max-width:none !important; margin:0 !important; }
+    main             { margin-left:0 !important; padding-top:0 !important; }
+
+    /* ── Shell de la aplicación ─────────────────────────── */
+    .app-shell  { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+    .app-body   { flex:1; overflow:hidden; min-height:0; }
+    .app-footer {
+        background:#1e1e2e; color:#6c7086; font-size:11px;
+        text-align:right; padding:3px 14px;
+        border-top:1px solid #313244; user-select:none; flex-shrink:0;
+    }
+</style>
+
+<div class="app-shell">
+    <div class="app-body">
+        @Body
+    </div>
+    <div class="app-footer">
+        📍 Optimizador de Rutas v006 &nbsp;·&nbsp; AM COMERCIAL &nbsp;·&nbsp; .NET 8
+    </div>
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

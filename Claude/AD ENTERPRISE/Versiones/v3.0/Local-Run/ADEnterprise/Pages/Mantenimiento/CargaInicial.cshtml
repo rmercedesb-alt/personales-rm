@@ -1,0 +1,182 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.CargaInicialModel
+@{ ViewData["Title"] = "Carga Inicial de Datos"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-upload"></i> Carga Inicial de Datos</div>
+        <div class="page-subtitle">Carga datos de apertura por tabla. Las secuencias se asignan en el orden en que se ingresen los registros.</div>
+    </div>
+</div>
+
+<div class="alert alert-info small mb-3">
+    <i class="bi bi-info-circle-fill me-1"></i>
+    <strong>Instrucciones:</strong> Pegue los datos en el área correspondiente a cada tabla.
+    Cada fila en una línea separada. Los campos se separan con <strong>punto y coma (;)</strong>.
+    Las líneas que comienzan con <code>#</code> se ignoran (comentarios).
+    Los identificadores (ID, secuencia) se asignan <strong>automáticamente</strong> en el orden de las filas.
+</div>
+
+<ul class="nav nav-tabs mb-3" id="tablasTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabCompanias">Compañías</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabClientes">Clientes</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabFacturas">Facturas</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabPagos">Pagos</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabEgresos">Egresos</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabIngresos">Ingresos Capital</a></li>
+</ul>
+
+<div class="tab-content">
+
+    @* ── Compañías ─────────────────────────────────────────────────────────── *@
+    <div class="tab-pane fade show active" id="tabCompanias">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-building"></i> Compañías
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>Nombre ; RNC ; Telefono ; Direccion ; Correo ; CondicionPagoDias</code><br/>
+                    El ID se genera automáticamente (EMP-0001, EMP-0002…)
+                </div>
+                <form method="post" asp-page-handler="Companias">
+                    <textarea name="DatosCompanias" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo:&#10;Mi Empresa S.A.;130123456-7;809-555-0000;Calle 1;info@mi.com;30&#10;Otra Empresa;130987654-3;809-555-0001;Calle 2;;60"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Compañías
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── Clientes ──────────────────────────────────────────────────────────── *@
+    <div class="tab-pane fade" id="tabClientes">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-people"></i> Clientes
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>NombreCompleto ; Cedula ; Telefono ; Correo</code><br/>
+                    El ID se genera automáticamente (CLI-0001, CLI-0002…)
+                </div>
+                <form method="post" asp-page-handler="Clientes">
+                    <textarea name="DatosClientes" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo:&#10;Juan Pérez;001-0000000-0;809-555-0000;juan@email.com&#10;María García;001-0000001-1;809-555-0001;"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Clientes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── Facturas ──────────────────────────────────────────────────────────── *@
+    <div class="tab-pane fade" id="tabFacturas">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-file-earmark-text"></i> Facturas
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>NumTicket ; EmpresaNombre ; ClienteNombre ; Monto ; FechaFactura ; Estado ; PagadoALaFecha ; Notas ; IdCompania ; IdCliente</code><br/>
+                    NumTransaccion se genera automáticamente (TXN-000001…). Estado por defecto: <em>Pendiente</em>.
+                </div>
+                <form method="post" asp-page-handler="Facturas">
+                    <textarea name="DatosFacturas" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo:&#10;T-001;Mi Empresa S.A.;Juan Pérez;50000;2024-01-15;Pendiente;0;;EMP-0001;CLI-0001"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Facturas
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── Pagos ─────────────────────────────────────────────────────────────── *@
+    <div class="tab-pane fade" id="tabPagos">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-credit-card"></i> Pagos Factoring
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>NumTransaccionFactura ; NumTicket ; FechaPago ; MontoPagado ; FormaPago ; NumChequeReferencia ; Notas ; IdCompania ; IdCliente ; NumRecibo ; MontoInstrumento ; EmpresaNombre ; ClienteNombre</code><br/>
+                    <strong>⚠️ Lógica de cheques:</strong> Las filas con el mismo <em>NumChequeReferencia</em> reciben el mismo número de pago (PAG-XXXXXX).
+                    Coloque las filas del mismo cheque juntas para mejor organización.
+                </div>
+                <form method="post" asp-page-handler="Pagos">
+                    <textarea name="DatosPagos" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo (cheque 1234 cubre 2 facturas):&#10;TXN-000001;T-001;2024-01-20;25000;Cheque;1234;;EMP-0001;CLI-0001;R-001;25000;Mi Empresa;Juan Pérez&#10;TXN-000002;T-002;2024-01-20;25000;Cheque;1234;;EMP-0001;CLI-0001;R-001;25000;Mi Empresa;Juan Pérez"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Pagos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── Egresos ───────────────────────────────────────────────────────────── *@
+    <div class="tab-pane fade" id="tabEgresos">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-arrow-up-circle"></i> Egresos
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>TipoEgreso ; ANombreDe ; Fecha ; Monto ; Nota</code><br/>
+                    Secuencia generada automáticamente (EGR-000001…).
+                </div>
+                <form method="post" asp-page-handler="Egresos">
+                    <textarea name="DatosEgresos" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo:&#10;Nómina;Empleados;2024-01-31;50000;Pago quincena&#10;Alquiler;Arrendador;2024-01-01;15000;Enero 2024"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Egresos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* ── Ingresos Capital ──────────────────────────────────────────────────── *@
+    <div class="tab-pane fade" id="tabIngresos">
+        <div class="card shadow-sm">
+            <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+                <i class="bi bi-cash-stack"></i> Ingresos de Capital
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary small py-2">
+                    <strong>Formato de columnas (separadas por ;):</strong><br/>
+                    <code>Nombre ; Fecha ; Monto ; Observaciones</code><br/>
+                    Secuencia generada automáticamente (ING-000001…).
+                </div>
+                <form method="post" asp-page-handler="IngresosCapital">
+                    <textarea name="DatosIngresosCapital" class="form-control font-monospace" rows="8"
+                              placeholder="# Ejemplo:&#10;Rosa Mercedes;2024-01-01;100000;Capital inicial&#10;Reinversión utilidades;2024-03-01;50000;"></textarea>
+                    <div class="mt-2">
+                        <button type="submit" class="btn btn-primary-app">
+                            <i class="bi bi-upload"></i> Cargar Ingresos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,164 @@
+@page
+@model ADEnterprise.Pages.Reportes.GeneralModel
+@{ ViewData["Title"] = "Reporte General"; }
+
+<div class="d-flex justify-content-between align-items-center mb-2 no-print">
+    <div>
+        <div class="page-title mb-0"><i class="bi bi-list-ul"></i> Reporte General de Facturas</div>
+        <div class="page-subtitle mb-0">Todas las facturas con filtros por período, compañía, cliente y estado</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="ExportarExcel">
+            <input type="hidden" name="desde"   value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="hasta"   value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="empresa" value="@Model.FiltroEmpresa"/>
+            <input type="hidden" name="cliente" value="@Model.FiltroCliente"/>
+            <input type="hidden" name="estado"  value="@Model.FiltroEstado"/>
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </button>
+        </form>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm">
+            <i class="bi bi-printer"></i> Imprimir / PDF
+        </button>
+    </div>
+</div>
+
+<!-- FILTROS -->
+<div class="card shadow-sm mb-3 no-print">
+<div class="card-body py-2">
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Desde</label>
+        <input type="date" name="FechaDesde" class="form-control form-control-sm" value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Hasta</label>
+        <input type="date" name="FechaHasta" class="form-control form-control-sm" value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Compañía</label>
+        <select name="FiltroEmpresa" class="form-select form-select-sm">
+            <option value="">— Todas —</option>
+            @foreach (var e in Model.Empresas)
+            {
+                if (e == Model.FiltroEmpresa) { <option value="@e" selected>@e</option> }
+                else { <option value="@e">@e</option> }
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Cliente</label>
+        <select name="FiltroCliente" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var c in Model.Clientes)
+            {
+                if (c == Model.FiltroCliente) { <option value="@c" selected>@c</option> }
+                else { <option value="@c">@c</option> }
+            }
+        </select>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Estado</label>
+        <select name="FiltroEstado" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var est in new[]{"Pendiente","PagadoParcial","Pagada","Vencida"})
+            {
+                if (est == Model.FiltroEstado) { <option value="@est" selected>@est</option> }
+                else { <option value="@est">@est</option> }
+            }
+        </select>
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-app"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="/Reportes/General" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+    </div>
+</form>
+</div>
+</div>
+
+<!-- ENCABEZADO DE IMPRESIÓN -->
+@inject Microsoft.Extensions.Configuration.IConfiguration _cfg
+@{ var _nomEmp = _cfg["Empresa:Nombre"] ?? "Fanny Mercedes & Asoc."; }
+<div class="print-only mb-3">
+    <h4 class="fw-bold">@_nomEmp — Reporte General de Facturas</h4>
+    <p class="text-muted small">
+        Período: @Model.FechaDesde.ToString("dd/MM/yyyy") al @Model.FechaHasta.ToString("dd/MM/yyyy")
+        @if (!string.IsNullOrEmpty(Model.FiltroEmpresa)) { <text> | Compañía: @Model.FiltroEmpresa</text> }
+        @if (!string.IsNullOrEmpty(Model.FiltroCliente)) { <text> | Cliente: @Model.FiltroCliente</text> }
+        | Generado: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+    </p>
+</div>
+
+<!-- TABLA -->
+<div class="card shadow-sm">
+<div class="card-body p-0">
+@if (!Model.Facturas.Any())
+{
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+        No se encontraron facturas con los filtros seleccionados.
+    </div>
+}
+else
+{
+<div class="table-responsive">
+<table class="table table-sm table-hover mb-0 tabla-reporte">
+    <thead style="background:var(--azul-marino);color:white">
+        <tr>
+            <th>Ticket</th><th>Compañía</th><th>Cliente</th><th>Fecha</th>
+            <th class="text-end">Monto</th><th class="text-end">Pagado</th>
+            <th class="text-end">Saldo</th><th class="text-center">Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var f in Model.Facturas)
+    {
+        <tr class="@(f.Estado == EstadoFactura.Vencida ? "table-danger" :
+                     f.Estado == EstadoFactura.Pagada  ? "table-success" :
+                     f.Estado == EstadoFactura.PagadoParcial ? "table-warning" : "")">
+            <td><strong>#@f.NumTicket</strong></td>
+            <td>@f.EmpresaNombre</td>
+            <td>@f.ClienteNombre</td>
+            <td>@f.FechaFactura.ToString("dd/MM/yyyy")</td>
+            <td class="text-end">@f.Monto.ToString("N2")</td>
+            <td class="text-end text-success">@f.PagadoALaFecha.ToString("N2")</td>
+            <td class="text-end fw-bold">@f.SaldoPendiente.ToString("N2")</td>
+            <td class="text-center">
+                <span class="badge @(f.Estado == EstadoFactura.Pagada ? "bg-success" :
+                                     f.Estado == EstadoFactura.Vencida ? "bg-danger" :
+                                     f.Estado == EstadoFactura.PagadoParcial ? "bg-warning text-dark" : "bg-secondary")">
+                    @f.Estado
+                </span>
+            </td>
+        </tr>
+    }
+    </tbody>
+    <tfoot style="background:var(--azul-marino);color:white;font-weight:bold">
+        <tr>
+            <td colspan="4" class="text-end">TOTALES (@Model.Facturas.Count registros):</td>
+            <td class="text-end">RD$ @Model.TotalMonto.ToString("N2")</td>
+            <td class="text-end">RD$ @Model.TotalPagado.ToString("N2")</td>
+            <td class="text-end">RD$ @Model.TotalPendiente.ToString("N2")</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+</div>
+}
+</div>
+</div>
+
+@section Scripts {
+<style>
+@@media print {
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    .app-header, .app-navbar, .app-footer { display: none !important; }
+    .main-content { padding: 0 !important; }
+    .card { border: none !important; box-shadow: none !important; }
+    .tabla-reporte thead { background: #1a3a5c !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+.print-only { display: none; }
+</style>
+}

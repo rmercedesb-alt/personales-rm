@@ -1,0 +1,3606 @@
+{
+  "kpi": {
+    "Presupuesto": 35099689.36,
+    "PresupuestoAlDia": 9449916.92,
+    "Ejecutado": 9345367.28,
+    "Proyectado": 34711364.31,
+    "DiasMes": 26,
+    "DiasTranscurridos": 7
+  },
+  "vendedores": [
+    {
+      "RepCodigo": "206",
+      "RepNombre": "Jonathan Contreras -ESP",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR2",
+      "Presupuesto": 3112117.02,
+      "PresupuestoAlDia": 837877.66,
+      "Ejecutado": 1095188.33,
+      "Proyectado": 4067842.35
+    },
+    {
+      "RepCodigo": "132",
+      "RepNombre": "Jhostin Olivo -JC",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR2",
+      "Presupuesto": 1918745.98,
+      "PresupuestoAlDia": 516585.48,
+      "Ejecutado": 552716.99,
+      "Proyectado": 2052948.81
+    },
+    {
+      "RepCodigo": "129",
+      "RepNombre": "Jhonny Rosario",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM2",
+      "Presupuesto": 1638425.56,
+      "PresupuestoAlDia": 441114.62,
+      "Ejecutado": 467986.24,
+      "Proyectado": 1738234.6
+    },
+    {
+      "RepCodigo": "130",
+      "RepNombre": "Alexander Bocio Martinez -ESP",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "OCO1",
+      "Presupuesto": 1732743.4,
+      "PresupuestoAlDia": 466507.88,
+      "Ejecutado": 424618.22,
+      "Proyectado": 1577153.4
+    },
+    {
+      "RepCodigo": "113",
+      "RepNombre": "Rosa M. Ogando - Lisardo",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR3",
+      "Presupuesto": 1449900.74,
+      "PresupuestoAlDia": 390357.91,
+      "Ejecutado": 415054.15,
+      "Proyectado": 1541629.69
+    },
+    {
+      "RepCodigo": "111",
+      "RepNombre": "Alejandro Solano",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR4",
+      "Presupuesto": 1628246.19,
+      "PresupuestoAlDia": 438374.03,
+      "Ejecutado": 404043.41,
+      "Proyectado": 1500732.64
+    },
+    {
+      "RepCodigo": "162",
+      "RepNombre": "Onny Gomez Piña (OM)",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR3",
+      "Presupuesto": 1388773.61,
+      "PresupuestoAlDia": 373900.63,
+      "Ejecutado": 389665.1,
+      "Proyectado": 1447327.53
+    },
+    {
+      "RepCodigo": "112",
+      "RepNombre": "Rubén D. Pérez Pimente  -ESP",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "BAN1",
+      "Presupuesto": 1944095.3,
+      "PresupuestoAlDia": 523410.3,
+      "Ejecutado": 386803.49,
+      "Proyectado": 1436698.7
+    },
+    {
+      "RepCodigo": "158",
+      "RepNombre": "Nectar de los Santos",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM3",
+      "Presupuesto": 1146519.24,
+      "PresupuestoAlDia": 308678.28,
+      "Ejecutado": 366605.52,
+      "Proyectado": 1361677.67
+    },
+    {
+      "RepCodigo": "88",
+      "RepNombre": "Cristofer Joaquin Nuñez -ESP",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "AZU1",
+      "Presupuesto": 1456751.1,
+      "PresupuestoAlDia": 392202.24,
+      "Ejecutado": 363697.1,
+      "Proyectado": 1350874.95
+    },
+    {
+      "RepCodigo": "157",
+      "RepNombre": "ODALIS GARCIAS ",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM2",
+      "Presupuesto": 1613299.36,
+      "PresupuestoAlDia": 434349.88,
+      "Ejecutado": 360309.48,
+      "Proyectado": 1338292.33
+    },
+    {
+      "RepCodigo": "6",
+      "RepNombre": "Humberto Herrera -ESP",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM1",
+      "Presupuesto": 1555252.58,
+      "PresupuestoAlDia": 418721.88,
+      "Ejecutado": 343257.33,
+      "Proyectado": 1274955.83
+    },
+    {
+      "RepCodigo": "128",
+      "RepNombre": "Paul de los Santos ",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM1",
+      "Presupuesto": 1358001.15,
+      "PresupuestoAlDia": 365615.7,
+      "Ejecutado": 319610.38,
+      "Proyectado": 1187124.26
+    },
+    {
+      "RepCodigo": "155",
+      "RepNombre": "Franciscol Felix Felix",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR1",
+      "Presupuesto": 1236901.14,
+      "PresupuestoAlDia": 333011.84,
+      "Ejecutado": 314286.95,
+      "Proyectado": 1167351.57
+    },
+    {
+      "RepCodigo": "114",
+      "RepNombre": "Franklin O. Castillo",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR1",
+      "Presupuesto": 1306577.64,
+      "PresupuestoAlDia": 351770.94,
+      "Ejecutado": 312593.56,
+      "Proyectado": 1161061.82
+    },
+    {
+      "RepCodigo": "77",
+      "RepNombre": "Lisardo A. Placencio - Marlon",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR3",
+      "Presupuesto": 898001.77,
+      "PresupuestoAlDia": 241769.7,
+      "Ejecutado": 308512.81,
+      "Proyectado": 1145904.74
+    },
+    {
+      "RepCodigo": "207",
+      "RepNombre": "Ronny Perez -ESP",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR1",
+      "Presupuesto": 1230552.32,
+      "PresupuestoAlDia": 331302.53,
+      "Ejecutado": 304338.14,
+      "Proyectado": 1130398.79
+    },
+    {
+      "RepCodigo": "24",
+      "RepNombre": "Ezequiel Beltre",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "AZU1",
+      "Presupuesto": 941567.63,
+      "PresupuestoAlDia": 253498.97,
+      "Ejecutado": 302247.47,
+      "Proyectado": 1122633.5
+    },
+    {
+      "RepCodigo": "98",
+      "RepNombre": "Jefry Candelario",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR4",
+      "Presupuesto": 812532.93,
+      "PresupuestoAlDia": 218758.89,
+      "Ejecutado": 286583.43,
+      "Proyectado": 1064452.79
+    },
+    {
+      "RepCodigo": "160",
+      "RepNombre": "Manuel Donal Tejada",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "OCO1",
+      "Presupuesto": 1032254.2,
+      "PresupuestoAlDia": 277914.61,
+      "Ejecutado": 268405.72,
+      "Proyectado": 996935.49
+    },
+    {
+      "RepCodigo": "115",
+      "RepNombre": "YERMIN ROSARIO",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR2",
+      "Presupuesto": 1288392.15,
+      "PresupuestoAlDia": 346874.85,
+      "Ejecutado": 261391.24,
+      "Proyectado": 970881.74
+    },
+    {
+      "RepCodigo": "131",
+      "RepNombre": "Brayan Lopez",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "BAR3",
+      "Presupuesto": 1046647.7,
+      "PresupuestoAlDia": 281789.78,
+      "Ejecutado": 259559.81,
+      "Proyectado": 964079.31
+    },
+    {
+      "RepCodigo": "118",
+      "RepNombre": "Elian Rosario Alcantara",
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Ruta": "SJM3",
+      "Presupuesto": 961282.34,
+      "PresupuestoAlDia": 258806.79,
+      "Ejecutado": 230353.54,
+      "Proyectado": 855598.85
+    },
+    {
+      "RepCodigo": "181",
+      "RepNombre": "Kelvin Bladimir Muñoz",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "BAN1",
+      "Presupuesto": 841789.86,
+      "PresupuestoAlDia": 226635.75,
+      "Ejecutado": 204717.11,
+      "Proyectado": 760377.83
+    },
+    {
+      "RepCodigo": "74",
+      "RepNombre": "Winston Rosario (A)",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR1",
+      "Presupuesto": 809372.14,
+      "PresupuestoAlDia": 217907.89,
+      "Ejecutado": 204349.77,
+      "Proyectado": 759013.44
+    },
+    {
+      "RepCodigo": "76",
+      "RepNombre": "Julio Cesar Sosa",
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Ruta": "SCR2",
+      "Presupuesto": 750946.31,
+      "PresupuestoAlDia": 202177.89,
+      "Ejecutado": 198471.99,
+      "Proyectado": 737181.68
+    }
+  ],
+  "supervisores": [
+    {
+      "Supervisor": "Narciso Piña Bello (Sur L",
+      "Presupuesto": 20604836.73,
+      "PresupuestoAlDia": 5547456.28,
+      "Ejecutado": 5669822.38,
+      "Proyectado": 21059340.35
+    },
+    {
+      "Supervisor": "Disponible Sur Corto (SC)",
+      "Presupuesto": 14494852.63,
+      "PresupuestoAlDia": 3902460.64,
+      "Ejecutado": 3675544.9,
+      "Proyectado": 13652023.96
+    }
+  ],
+  "suplidores": [
+    {
+      "Suplidor": "MOLINOS MODERNOS, SA",
+      "Presupuesto": 19960693.03,
+      "Ejecutado": 5208090.88,
+      "Proyectado": 19344337.6
+    },
+    {
+      "Suplidor": "Continental de Negocios",
+      "Presupuesto": 5803736.25,
+      "Ejecutado": 1524060.43,
+      "Proyectado": 5660795.91
+    },
+    {
+      "Suplidor": "COLOMBINA",
+      "Presupuesto": 4213878.91,
+      "Ejecutado": 921624.79,
+      "Proyectado": 3423177.79
+    },
+    {
+      "Suplidor": "Brinsa Dominicana",
+      "Presupuesto": 2033732.89,
+      "Ejecutado": 648890.87,
+      "Proyectado": 2410166.09
+    },
+    {
+      "Suplidor": "Comercial Fila",
+      "Presupuesto": 1168331.42,
+      "Ejecutado": 355621.33,
+      "Proyectado": 1320879.17
+    },
+    {
+      "Suplidor": "DIMAR DOMINICANA",
+      "Presupuesto": 759253.38,
+      "Ejecutado": 181635.63,
+      "Proyectado": 674646.64
+    },
+    {
+      "Suplidor": "Corporacion Poiroto SRL",
+      "Presupuesto": 380080.97,
+      "Ejecutado": 84838.84,
+      "Proyectado": 315115.73
+    },
+    {
+      "Suplidor": "Grupo Rodriguez Fernandez",
+      "Presupuesto": 231595.78,
+      "Ejecutado": 143895.37,
+      "Proyectado": 534468.53
+    },
+    {
+      "Suplidor": "Cesar Iglesias (Unilever)",
+      "Presupuesto": 218184.03,
+      "Ejecutado": 105512.88,
+      "Proyectado": 391905.01
+    },
+    {
+      "Suplidor": "AMPOULE",
+      "Presupuesto": 133274.24,
+      "Ejecutado": 69431.02,
+      "Proyectado": 257886.64
+    },
+    {
+      "Suplidor": "P.Q.P.",
+      "Presupuesto": 131655.11,
+      "Ejecutado": 59216.27,
+      "Proyectado": 219946.19
+    },
+    {
+      "Suplidor": "ETERNA",
+      "Presupuesto": 52502.32,
+      "Ejecutado": 2047.24,
+      "Proyectado": 7604.04
+    },
+    {
+      "Suplidor": "GALISA GROUP",
+      "Presupuesto": 12771.03,
+      "Ejecutado": 0.0,
+      "Proyectado": 0.0
+    },
+    {
+      "Suplidor": "MAXIMO GOMEZ P",
+      "Presupuesto": 0.0,
+      "Ejecutado": 26251.73,
+      "Proyectado": 97506.41
+    },
+    {
+      "Suplidor": "Pimentel & Co. SRL",
+      "Presupuesto": 0.0,
+      "Ejecutado": 14250.0,
+      "Proyectado": 52928.56
+    },
+    {
+      "Suplidor": "Nestle Dominicana",
+      "Presupuesto": 0.0,
+      "Ejecutado": 0.0,
+      "Proyectado": 0.0
+    },
+    {
+      "Suplidor": "F&T Industries, SRL",
+      "Presupuesto": 0.0,
+      "Ejecutado": 0.0,
+      "Proyectado": 0.0
+    }
+  ],
+  "historico": [
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 2377129.02
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 1781816.44
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 992662.46
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 922401.4
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 629292.03
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 518167.71
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 305496.85
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 64300.08
+    },
+    {
+      "Anio": 2024,
+      "Mes": 6,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 52858.18
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 3240150.91
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 2072890.51
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 1898560.63
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1319589.41
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 676935.69
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 546331.62
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 361759.57
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 347085.27
+    },
+    {
+      "Anio": 2024,
+      "Mes": 7,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 81150.65
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 2234087.96
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1318776.31
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1276056.83
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1161775.48
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 69548.48
+    },
+    {
+      "Anio": 2024,
+      "Mes": 8,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 13902.64
+    },
+    {
+      "Anio": 2024,
+      "Mes": 9,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1238794.89
+    },
+    {
+      "Anio": 2024,
+      "Mes": 9,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1119791.9
+    },
+    {
+      "Anio": 2024,
+      "Mes": 9,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 618159.18
+    },
+    {
+      "Anio": 2024,
+      "Mes": 9,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 53648.81
+    },
+    {
+      "Anio": 2024,
+      "Mes": 10,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1400454.84
+    },
+    {
+      "Anio": 2024,
+      "Mes": 10,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 466722.85
+    },
+    {
+      "Anio": 2024,
+      "Mes": 10,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 430838.47
+    },
+    {
+      "Anio": 2024,
+      "Mes": 10,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 318700.31
+    },
+    {
+      "Anio": 2024,
+      "Mes": 10,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 57970.25
+    },
+    {
+      "Anio": 2024,
+      "Mes": 11,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1667332.26
+    },
+    {
+      "Anio": 2024,
+      "Mes": 11,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1660682.81
+    },
+    {
+      "Anio": 2024,
+      "Mes": 11,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 958811.18
+    },
+    {
+      "Anio": 2024,
+      "Mes": 11,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 67973.36
+    },
+    {
+      "Anio": 2024,
+      "Mes": 12,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 2544990.83
+    },
+    {
+      "Anio": 2024,
+      "Mes": 12,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 2500287.32
+    },
+    {
+      "Anio": 2024,
+      "Mes": 12,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 955985.56
+    },
+    {
+      "Anio": 2024,
+      "Mes": 12,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 852250.25
+    },
+    {
+      "Anio": 2024,
+      "Mes": 12,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 800575.13
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 2518372.58
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1916138.45
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 1439100.5
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 1099557.31
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1096485.66
+    },
+    {
+      "Anio": 2025,
+      "Mes": 1,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 411633.01
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 10997447.24
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 2366655.3
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 1834711.12
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1310685.35
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 1151072.94
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 1063767.3
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 712954.48
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 439787.23
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 158621.46
+    },
+    {
+      "Anio": 2025,
+      "Mes": 2,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 71982.53
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 2577836.18
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 2170197.53
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 1759838.38
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 1678850.05
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1537263.66
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1079335.7
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 524112.97
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 407636.73
+    },
+    {
+      "Anio": 2025,
+      "Mes": 3,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 242035.54
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 2553319.81
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 1743384.6
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 1741229.59
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1275212.03
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 1274859.89
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 925365.3
+    },
+    {
+      "Anio": 2025,
+      "Mes": 4,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 402079.17
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 2531393.95
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1784994.58
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 1239842.61
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 795820.11
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 610206.02
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 494537.55
+    },
+    {
+      "Anio": 2025,
+      "Mes": 5,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 0.0
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 3643216.02
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 2059697.57
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1835246.64
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 1646593.41
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 1146638.49
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 1027828.82
+    },
+    {
+      "Anio": 2025,
+      "Mes": 6,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 967546.5
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 4605014.14
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 2929069.52
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 2261523.5
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 1869746.42
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 924115.7
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 674249.86
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 530506.98
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 333370.58
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 261092.91
+    },
+    {
+      "Anio": 2025,
+      "Mes": 7,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 1501.6
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 1664860.98
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 1273640.89
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 1120305.59
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 965604.74
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 762931.72
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 478785.18
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 440683.38
+    },
+    {
+      "Anio": 2025,
+      "Mes": 8,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 305190.82
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1497790.97
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 1430459.58
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 1236746.87
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1095197.85
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 462591.26
+    },
+    {
+      "Anio": 2025,
+      "Mes": 9,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 458837.74
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 1819029.83
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1814910.11
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 1571532.24
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 1506498.99
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1268280.21
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1208754.6
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 516489.62
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 429649.08
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 422591.14
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 288549.16
+    },
+    {
+      "Anio": 2025,
+      "Mes": 10,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 287133.89
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 10997447.24
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 1903767.35
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1872426.49
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1813680.16
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 1801189.53
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 1749123.42
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1433548.04
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 1398564.3
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 1249212.37
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 397663.24
+    },
+    {
+      "Anio": 2025,
+      "Mes": 11,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 25179.14
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 10997447.24
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 3086038.92
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1956746.92
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1792634.54
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 994522.44
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 831930.73
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 483425.86
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 418306.15
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 307916.39
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 137854.58
+    },
+    {
+      "Anio": 2025,
+      "Mes": 12,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 369.45
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 1091669.15
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 1087990.55
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 928906.45
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 887160.96
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 721485.47
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 707957.47
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 505334.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 485630.0
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 476191.77
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 426707.41
+    },
+    {
+      "Anio": 2026,
+      "Mes": 1,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 420157.27
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 3618467.42
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 3191756.06
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 2572499.64
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 1433682.92
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1262478.41
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 1251131.61
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1093240.02
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 897083.8
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 831298.98
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 809907.75
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 572789.29
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 213494.8
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 140863.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 2,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 88869.78
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 2503887.22
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 2451782.04
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 2388410.41
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 2188765.67
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 1890954.56
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 1827500.69
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1807525.79
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 1799740.96
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 1596800.88
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "Ventas": 1514252.07
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1397234.65
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "Ventas": 1176980.94
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 1123540.56
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 769526.74
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 570852.1
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 173750.95
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 158423.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "Ventas": 138112.34
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 137716.42
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 132257.42
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 104628.69
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "Ventas": 94713.51
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 92978.6
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 79907.61
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 72012.39
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 65568.93
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 61670.44
+    },
+    {
+      "Anio": 2026,
+      "Mes": 3,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 59460.0
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "Ventas": 5448583.38
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 4632769.76
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "Ventas": 3465730.54
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 3411123.78
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 2783131.98
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 2746501.17
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 2331142.39
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 2184323.72
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 1810587.86
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 1751715.93
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "Ventas": 1750162.88
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1721980.09
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 1698930.82
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 1528481.85
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 1490711.74
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1451104.65
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1239778.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 1225127.54
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 1079420.04
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 1067096.36
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "Ventas": 1060250.4
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 1042251.17
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 1021515.83
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 1006903.99
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 975415.16
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 955029.27
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 881464.76
+    },
+    {
+      "Anio": 2026,
+      "Mes": 4,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 810613.0
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "Ventas": 5361275.65
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 4869307.52
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 4016709.21
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "Ventas": 3200454.67
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "Ventas": 2894555.2
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 2804965.71
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 2639970.76
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1843863.48
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 1797512.08
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 1758330.2
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 1580174.23
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 1475412.54
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 1444994.92
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 1389420.09
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 1374083.39
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "Ventas": 1318643.11
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 1275678.61
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 1270244.81
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 1159907.79
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 1152846.45
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 1080009.7
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 1039492.84
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 923222.56
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 920437.7
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 853111.97
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 847649.75
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 835293.8
+    },
+    {
+      "Anio": 2026,
+      "Mes": 5,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 758251.18
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 1540257.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 1001827.76
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 924517.86
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 852821.18
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "Ventas": 792440.37
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "Ventas": 747549.49
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 691062.36
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "Ventas": 545323.43
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 544320.19
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 534850.17
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 520313.94
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 495272.46
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 454734.24
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "Ventas": 449246.21
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 437109.57
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 431748.14
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 428325.65
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 378842.71
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 375174.59
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 374437.24
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 358026.1
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 348306.9
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 340424.88
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 316505.4
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 262840.58
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 245361.09
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 229006.59
+    },
+    {
+      "Anio": 2026,
+      "Mes": 6,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 228711.14
+    }
+  ],
+  "ytd": [
+    {
+      "Anio": 2026,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "Ventas": 11986839.97
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 10997447.24
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "Ventas": 10707468.02
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "Ventas": 10072929.38
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "Ventas": 9730826.07
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "Ventas": 8180437.28
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "Ventas": 8158113.32
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "Ventas": 8009745.77
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "Ventas": 7694185.87
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "Ventas": 7601583.94
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 7284129.73
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "Ventas": 7230823.76
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 6785671.15
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "Ventas": 6780598.88
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "Ventas": 6304486.91
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 6096936.27
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 5982161.06
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 5471886.98
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 5024397.72
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "Ventas": 4782830.42
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "Ventas": 4593983.31
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "Ventas": 4511314.32
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "Ventas": 4096712.73
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 3925194.18
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "Ventas": 3696187.59
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "Ventas": 3575069.77
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 3522829.95
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "Ventas": 3501067.97
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 3390615.52
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "Ventas": 3229309.4
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 3111193.19
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "Ventas": 2817994.66
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "Ventas": 2683024.83
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "Ventas": 2473607.02
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "Ventas": 2377917.39
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "Ventas": 2165207.91
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "Ventas": 2023105.15
+    },
+    {
+      "Anio": 2026,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 1778429.0
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "Ventas": 1171539.84
+    },
+    {
+      "Anio": 2025,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "Ventas": 963900.2
+    }
+  ],
+  "clientes_ruta": [
+    {
+      "RepCodigo": "88",
+      "RepNombre": "Cristofer Joaquin Nuñez -ESP",
+      "ClientesEnRuta": 515
+    },
+    {
+      "RepCodigo": "24",
+      "RepNombre": "Ezequiel Beltre",
+      "ClientesEnRuta": 515
+    },
+    {
+      "RepCodigo": "115",
+      "RepNombre": "YERMIN ROSARIO",
+      "ClientesEnRuta": 477
+    },
+    {
+      "RepCodigo": "76",
+      "RepNombre": "Julio Cesar Sosa",
+      "ClientesEnRuta": 477
+    },
+    {
+      "RepCodigo": "77",
+      "RepNombre": "Lisardo A. Placencio - Marlon",
+      "ClientesEnRuta": 474
+    },
+    {
+      "RepCodigo": "113",
+      "RepNombre": "Rosa M. Ogando - Lisardo",
+      "ClientesEnRuta": 473
+    },
+    {
+      "RepCodigo": "98",
+      "RepNombre": "Jefry Candelario",
+      "ClientesEnRuta": 466
+    },
+    {
+      "RepCodigo": "111",
+      "RepNombre": "Alejandro Solano",
+      "ClientesEnRuta": 466
+    },
+    {
+      "RepCodigo": "181",
+      "RepNombre": "Kelvin Bladimir Muñoz",
+      "ClientesEnRuta": 458
+    },
+    {
+      "RepCodigo": "112",
+      "RepNombre": "Rubén D. Pérez Pimente  -ESP",
+      "ClientesEnRuta": 457
+    },
+    {
+      "RepCodigo": "74",
+      "RepNombre": "Winston Rosario (A)",
+      "ClientesEnRuta": 456
+    },
+    {
+      "RepCodigo": "114",
+      "RepNombre": "Franklin O. Castillo",
+      "ClientesEnRuta": 455
+    },
+    {
+      "RepCodigo": "130",
+      "RepNombre": "Alexander Bocio Martinez -ESP",
+      "ClientesEnRuta": 437
+    },
+    {
+      "RepCodigo": "160",
+      "RepNombre": "Manuel Donal Tejada",
+      "ClientesEnRuta": 435
+    },
+    {
+      "RepCodigo": "207",
+      "RepNombre": "Ronny Perez -ESP",
+      "ClientesEnRuta": 394
+    },
+    {
+      "RepCodigo": "155",
+      "RepNombre": "Franciscol Felix Felix",
+      "ClientesEnRuta": 393
+    },
+    {
+      "RepCodigo": "132",
+      "RepNombre": "Jhostin Olivo -JC",
+      "ClientesEnRuta": 392
+    },
+    {
+      "RepCodigo": "206",
+      "RepNombre": "Jonathan Contreras -ESP",
+      "ClientesEnRuta": 391
+    },
+    {
+      "RepCodigo": "128",
+      "RepNombre": "Paul de los Santos ",
+      "ClientesEnRuta": 389
+    },
+    {
+      "RepCodigo": "6",
+      "RepNombre": "Humberto Herrera -ESP",
+      "ClientesEnRuta": 387
+    },
+    {
+      "RepCodigo": "131",
+      "RepNombre": "Brayan Lopez",
+      "ClientesEnRuta": 382
+    },
+    {
+      "RepCodigo": "162",
+      "RepNombre": "Onny Gomez Piña (OM)",
+      "ClientesEnRuta": 382
+    },
+    {
+      "RepCodigo": "129",
+      "RepNombre": "Jhonny Rosario",
+      "ClientesEnRuta": 380
+    },
+    {
+      "RepCodigo": "157",
+      "RepNombre": "ODALIS GARCIAS ",
+      "ClientesEnRuta": 379
+    },
+    {
+      "RepCodigo": "118",
+      "RepNombre": "Elian Rosario Alcantara",
+      "ClientesEnRuta": 347
+    },
+    {
+      "RepCodigo": "158",
+      "RepNombre": "Nectar de los Santos",
+      "ClientesEnRuta": 346
+    },
+    {
+      "RepCodigo": "25",
+      "RepNombre": "Luis Ml. Feliz",
+      "ClientesEnRuta": 105
+    },
+    {
+      "RepCodigo": "36",
+      "RepNombre": "Hanel Giron (Jorge E)",
+      "ClientesEnRuta": 91
+    },
+    {
+      "RepCodigo": "161",
+      "RepNombre": "Disponible 7 (FOC)",
+      "ClientesEnRuta": 1
+    },
+    {
+      "RepCodigo": "S8",
+      "RepNombre": "Disponible Sur Corto (SC)",
+      "ClientesEnRuta": 0
+    },
+    {
+      "RepCodigo": "S9",
+      "RepNombre": "Narciso Piña Bello (Sur L",
+      "ClientesEnRuta": 0
+    },
+    {
+      "RepCodigo": "301",
+      "RepNombre": "Domingo Montero",
+      "ClientesEnRuta": 0
+    },
+    {
+      "RepCodigo": "210",
+      "RepNombre": "Yvan Antonio pimentel",
+      "ClientesEnRuta": 0
+    },
+    {
+      "RepCodigo": "184",
+      "RepNombre": "Disponible",
+      "ClientesEnRuta": 0
+    }
+  ],
+  "clientes_ventas_2026": [
+    {
+      "Mes": 1,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 396
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 196
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 255
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 361
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "ClientesDistintos": 204
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 261
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 650
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 428
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 271
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 518
+    },
+    {
+      "Mes": 1,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 335
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 875
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 771
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "ClientesDistintos": 392
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 389
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "ClientesDistintos": 320
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 353
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 392
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 753
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "ClientesDistintos": 100
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 412
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 125
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "ClientesDistintos": 344
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 582
+    },
+    {
+      "Mes": 2,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 92
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 618
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "ClientesDistintos": 500
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 537
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "ClientesDistintos": 516
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "ClientesDistintos": 82
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 93
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "ClientesDistintos": 418
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "ClientesDistintos": 126
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "ClientesDistintos": 58
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "ClientesDistintos": 69
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 479
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "ClientesDistintos": 117
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 940
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "ClientesDistintos": 118
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 677
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "ClientesDistintos": 483
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 105
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "ClientesDistintos": 154
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "ClientesDistintos": 126
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 470
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "ClientesDistintos": 12
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "ClientesDistintos": 17
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "ClientesDistintos": 60
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "ClientesDistintos": 100
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "ClientesDistintos": 440
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 795
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "ClientesDistintos": 56
+    },
+    {
+      "Mes": 3,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 479
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 469
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "ClientesDistintos": 810
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 358
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "ClientesDistintos": 736
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "ClientesDistintos": 655
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 365
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "ClientesDistintos": 349
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "ClientesDistintos": 379
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "ClientesDistintos": 405
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "ClientesDistintos": 306
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 662
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "ClientesDistintos": 369
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 770
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "ClientesDistintos": 352
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 449
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "ClientesDistintos": 712
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 431
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "ClientesDistintos": 396
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "ClientesDistintos": 350
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 797
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "ClientesDistintos": 54
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "ClientesDistintos": 67
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "ClientesDistintos": 353
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "ClientesDistintos": 383
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "ClientesDistintos": 559
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 720
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "ClientesDistintos": 354
+    },
+    {
+      "Mes": 4,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 495
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 490
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "ClientesDistintos": 754
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 310
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "ClientesDistintos": 753
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "ClientesDistintos": 754
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 345
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "ClientesDistintos": 313
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "ClientesDistintos": 360
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "ClientesDistintos": 355
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "ClientesDistintos": 286
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 463
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "ClientesDistintos": 337
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 735
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "ClientesDistintos": 317
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 394
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "ClientesDistintos": 331
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 391
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "ClientesDistintos": 662
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "ClientesDistintos": 379
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 322
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "ClientesDistintos": 44
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "ClientesDistintos": 64
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "ClientesDistintos": 352
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "ClientesDistintos": 383
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "ClientesDistintos": 303
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 501
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "ClientesDistintos": 325
+    },
+    {
+      "Mes": 5,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 326
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "111",
+      "Vendedor": "Alejandro Solano",
+      "ClientesDistintos": 242
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "112",
+      "Vendedor": "Rubén D. Pérez Pimente  -ESP",
+      "ClientesDistintos": 278
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "113",
+      "Vendedor": "Rosa M. Ogando - Lisardo",
+      "ClientesDistintos": 171
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "114",
+      "Vendedor": "Franklin O. Castillo",
+      "ClientesDistintos": 464
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "115",
+      "Vendedor": "YERMIN ROSARIO",
+      "ClientesDistintos": 378
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "118",
+      "Vendedor": "Elian Rosario Alcantara",
+      "ClientesDistintos": 175
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "128",
+      "Vendedor": "Paul de los Santos ",
+      "ClientesDistintos": 155
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "129",
+      "Vendedor": "Jhonny Rosario",
+      "ClientesDistintos": 228
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "130",
+      "Vendedor": "Alexander Bocio Martinez -ESP",
+      "ClientesDistintos": 201
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "131",
+      "Vendedor": "Brayan Lopez",
+      "ClientesDistintos": 298
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "132",
+      "Vendedor": "Jhostin Olivo -JC",
+      "ClientesDistintos": 466
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "155",
+      "Vendedor": "Franciscol Felix Felix",
+      "ClientesDistintos": 192
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "157",
+      "Vendedor": "ODALIS GARCIAS ",
+      "ClientesDistintos": 227
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "158",
+      "Vendedor": "Nectar de los Santos",
+      "ClientesDistintos": 196
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "160",
+      "Vendedor": "Manuel Donal Tejada",
+      "ClientesDistintos": 219
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "162",
+      "Vendedor": "Onny Gomez Piña (OM)",
+      "ClientesDistintos": 194
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "181",
+      "Vendedor": "Kelvin Bladimir Muñoz",
+      "ClientesDistintos": 168
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "206",
+      "Vendedor": "Jonathan Contreras -ESP",
+      "ClientesDistintos": 489
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "207",
+      "Vendedor": "Ronny Perez -ESP",
+      "ClientesDistintos": 190
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "24",
+      "Vendedor": "Ezequiel Beltre",
+      "ClientesDistintos": 195
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "25",
+      "Vendedor": "Luis Ml. Feliz",
+      "ClientesDistintos": 17
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "36",
+      "Vendedor": "Hanel Giron (Jorge E)",
+      "ClientesDistintos": 27
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "6",
+      "Vendedor": "Humberto Herrera -ESP",
+      "ClientesDistintos": 269
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "74",
+      "Vendedor": "Winston Rosario (A)",
+      "ClientesDistintos": 192
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "76",
+      "Vendedor": "Julio Cesar Sosa",
+      "ClientesDistintos": 175
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "77",
+      "Vendedor": "Lisardo A. Placencio - Marlon",
+      "ClientesDistintos": 168
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "88",
+      "Vendedor": "Cristofer Joaquin Nuñez -ESP",
+      "ClientesDistintos": 218
+    },
+    {
+      "Mes": 6,
+      "CodVendedor": "98",
+      "Vendedor": "Jefry Candelario",
+      "ClientesDistintos": 188
+    }
+  ]
+}

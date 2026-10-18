@@ -1,0 +1,768 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PLAN DE TRABAJO SEMANAL DEL SUPERVISOR (2026-10-10)
+     Supervisión Dinámica → Plan → «Crear Plan de Trabajo semanal» + «Ejecución del plan»
+     y Reportes → catálogo + informes del plan (plan / avance / cierre / consolidado).
+     Backend: Controllers/ApiSupervisionPlanController.cs (/apisuperv/plan/…) · Tablas: SQL/SupervisionPlanTrabajo_RM.sql
+     Este parcial se incluye al final de Index.cshtml: usa $, $$, api, toast, escA, BASE, ppExportarPDF.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<style>
+.pt-box{max-width:1180px}
+.pt-hd{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.pt-hd h3{margin:0}
+.pt-rec{border:1px solid var(--warn);background:var(--warn-bg);border-radius:11px;padding:10px 13px;font-size:12.5px;margin:6px 0 10px;line-height:1.6}
+.pt-rec b{color:var(--text)}
+.pt-day{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 4px;padding:8px 12px;border-radius:10px;background:var(--panel2);border:1px solid var(--border)}
+.pt-day .nm{font-weight:800;font-size:13.5px}
+.pt-chip{display:inline-flex;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pt-chip.calle{background:var(--calle-bg);color:var(--calle)}.pt-chip.virtual{background:var(--virt-bg);color:var(--virt)}.pt-chip.cobros{background:var(--good-bg);color:var(--good)}
+.pt-chip.reunion{background:var(--audit-bg);color:var(--audit)}.pt-chip.gestion,.pt-chip.capacitacion,.pt-chip.otro,.pt-chip.libre{background:var(--panel2);color:var(--muted);border:1px solid var(--border)}
+.pt-chip.Realizada{background:var(--good-bg);color:var(--good)}.pt-chip.Parcial{background:var(--warn-bg);color:var(--warn)}.pt-chip.Pendiente{background:var(--panel2);color:var(--muted);border:1px solid var(--border)}
+.pt-chip.Norealizada{background:var(--bad-bg);color:var(--bad)}.pt-chip.Reprogramada{background:var(--virt-bg);color:var(--virt)}.pt-chip.Cancelada{background:var(--panel2);color:var(--muted);text-decoration:line-through}
+.pt-chip.Borrador{background:var(--panel2);color:var(--muted);border:1px solid var(--border)}.pt-chip.Poraprobar{background:var(--warn-bg);color:var(--warn)}.pt-chip.Sincerrar{background:var(--bad-bg);color:var(--bad)}.pt-chip.Tardio{background:var(--warn-bg);color:var(--warn)}.pt-chip.Activo{background:var(--virt-bg);color:var(--virt)}.pt-chip.Cerrado{background:var(--good-bg);color:var(--good)}
+.pt-tb{width:100%;font-size:12.5px}
+.pt-tb td,.pt-tb th{padding:5px 6px;text-align:left;white-space:normal;vertical-align:middle}
+.pt-tb input,.pt-tb select{width:100%;font-size:12.5px;padding:5px 6px;border-radius:6px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-family:inherit}
+.pt-tb input[type=time]{width:92px}.pt-tb input[type=number]{width:62px}
+.pt-tb tr.fijo td{background:var(--panel2)}
+.pt-tb .x{border:0;background:transparent;cursor:pointer;font-size:14px}
+.pt-warn{margin-top:12px;border-radius:11px;padding:10px 13px;font-size:12.5px;line-height:1.55;border:1px solid var(--border);background:var(--panel2)}
+.pt-warn.w{border-color:var(--warn);background:var(--warn-bg)}.pt-warn.ok{border-color:var(--good);background:var(--good-bg)}
+.pt-foot{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.pt-foot .sp{flex:1}
+.pt-bar{height:8px;border-radius:6px;background:var(--panel2);border:1px solid var(--border);min-width:90px;overflow:hidden}
+.pt-bar i{display:block;height:100%}
+.pt-lt tr{cursor:pointer}.pt-lt tr:hover td{background:var(--panel2)}
+.pt-ex tr.row{cursor:pointer}.pt-ex tr.row:hover td{background:var(--panel2)}
+.pt-ex td,.pt-ex th{white-space:normal;text-align:left;vertical-align:top}
+.pt-fri{border:1px solid var(--bad);background:var(--bad-bg);border-radius:11px;padding:10px 13px;font-size:13px;margin:10px 0}
+.pt-f2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}@@media(max-width:700px){.pt-f2{grid-template-columns:1fr}}
+.pt-f2 .full{grid-column:1/-1}
+.pt-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px;margin:10px 0 14px}
+.pt-card{border:1px solid var(--border);background:var(--panel);border-radius:13px;padding:14px 15px;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.pt-card:hover{border-color:var(--accent2)}
+.pt-card .t{font-weight:800;font-size:14px}.pt-card .d{font-size:12px;color:var(--muted)}.pt-card .f{font-size:11px;color:var(--muted)}
+.pt-card.soon{opacity:.6;cursor:default}
+#view-plan.pt-ejec-on>.schemebar,#view-plan.pt-ejec-on>.note,#view-plan.pt-ejec-on>.filtros{display:none}
+.pt-badge{display:inline-block;background:var(--bad);color:#fff;border-radius:999px;font-size:10px;font-weight:800;padding:1px 7px;margin-left:6px;vertical-align:middle}
+.pt-badge:empty{display:none}
+.pt-ok .big{font-size:44px;line-height:1}.pt-ok .num{font-size:30px;font-weight:800;color:var(--accent);margin:6px 0 2px;letter-spacing:.02em}
+.pt-ok .est{display:inline-block;font-size:12px;font-weight:800;border-radius:999px;padding:4px 14px;margin:4px 0 10px}
+.pt-hist{font-size:12px;border-left:3px solid var(--border);padding:2px 0 2px 9px;margin:6px 0}
+.pt-pre{white-space:pre-wrap;font-family:Consolas,monospace;font-size:12.5px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:12px}
+</style>
+
+<!-- ── Asistente: crear / editar el plan ── -->
+<div class="modal" id="pt-wiz"><div class="modalbox pt-box">
+  <div class="pt-hd"><h3 id="pt-wiz-t">🗂 Crear Plan de Trabajo semanal</h3><button class="rbtn" id="pt-wiz-x">✕ Cerrar</button></div>
+  <div id="pt-wiz-aviso"></div>
+  <div class="filtros">
+    <div class="fl"><label>Supervisor</label><select id="pt-w-sup" style="min-width:210px"></select></div>
+    <div class="fl"><label>Desde</label><input type="date" id="pt-w-desde"></div>
+    <div class="fl"><label>Hasta</label><input type="date" id="pt-w-hasta"></div>
+    <div class="fl" style="flex:1;min-width:220px"><label>Objetivo de la semana</label><input type="text" id="pt-w-obj" maxlength="500" placeholder="Ej.: Recuperar cobertura y cerrar la semana por encima del presupuesto" style="width:100%"></div>
+    <div class="fl"><label>Opción de plan</label><select id="pt-w-opc">
+      <option value="equilibrado">⚖️ Equilibrado</option><option value="riesgo">🚨 Foco en riesgo</option><option value="cobertura">🔁 Cobertura total</option><option value="blanco">📄 En blanco</option></select></div>
+    <button class="go" id="pt-w-gen">⚡ Generar propuesta</button>
+  </div>
+  <div class="hint" id="pt-w-opdesc" style="padding:0 0 6px;text-align:left"></div>
+  <div class="pt-rec" id="pt-w-rec"></div>
+  <div class="pt-warn" id="pt-w-recs" style="margin:0 0 8px"></div>
+  <div id="pt-w-grid"></div>
+  <div id="pt-w-warn"></div>
+  <div class="pt-foot">
+    <button class="rbtn" id="pt-w-tpl">📥 Plantilla Excel</button>
+    <button class="rbtn" id="pt-w-up">📤 Cargar plan desde Excel</button>
+    <input type="file" id="pt-w-file" accept=".xlsx" class="hide">
+    <span class="sp"></span>
+    <button class="rbtn" id="pt-w-cancel">Cancelar</button>
+    <button class="rbtn" id="pt-w-draft">💾 Guardar borrador</button>
+    <button class="go" id="pt-w-save">✅ Guardar y activar</button>
+  </div>
+</div></div>
+
+<!-- ── Vista previa de la carga por Excel ── -->
+<div class="modal" id="pt-imp"><div class="modalbox" style="max-width:860px">
+  <div class="pt-hd"><h3>📤 Carga del plan desde Excel</h3><button class="rbtn" id="pt-imp-x">✕</button></div>
+  <div id="pt-imp-body"></div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-imp-cancel">Cancelar</button><button class="go" id="pt-imp-ok" disabled>Confirmar carga</button></div>
+</div></div>
+
+<!-- ── Registrar el trabajo realizado de una actividad ── -->
+<div class="modal" id="pt-eje"><div class="modalbox" style="max-width:760px">
+  <div class="pt-hd"><h3>✍️ Ejecución de la actividad</h3><button class="rbtn" id="pt-eje-x">✕</button></div>
+  <div id="pt-eje-info" class="note" style="margin-bottom:10px"></div>
+  <div id="pt-eje-hist"></div>
+  <div class="pt-f2" style="margin-top:8px">
+    <div class="fl"><label>Estado</label><select id="pt-e-estado"><option>Realizada</option><option>Parcial</option><option>No realizada</option><option>Reprogramada</option><option>Cancelada</option></select></div>
+    <div class="fl"><label>Fecha realizada</label><input type="date" id="pt-e-fecha"></div>
+    <div class="fl"><label>Hora</label><input type="time" id="pt-e-hora"></div>
+    <div class="fl"><label>Vendedor atendido</label><select id="pt-e-rep"></select></div>
+    <div class="fl full"><label>Cliente atendido (código o nombre, opcional)</label><input type="text" id="pt-e-cli" maxlength="150" style="width:100%"></div>
+    <div class="fl full"><label>Trabajo realizado</label><textarea id="pt-e-trab" rows="3" maxlength="1000" placeholder="Qué se hizo…"></textarea></div>
+    <div class="fl full"><label>Resultado obtenido</label><textarea id="pt-e-res" rows="3" maxlength="1000" placeholder="Qué se logró / compromisos acordados…"></textarea></div>
+  </div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-e-cancel">Cancelar</button><button class="go" id="pt-e-save">💾 Guardar ejecución</button></div>
+</div></div>
+
+<!-- ── Actividad adicional (no planificada) ── -->
+<div class="modal" id="pt-add"><div class="modalbox" style="max-width:640px">
+  <div class="pt-hd"><h3>➕ Actividad adicional</h3><button class="rbtn" id="pt-add-x">✕</button></div>
+  <div class="hint" style="text-align:left;padding:0 0 8px">Actividades que surgieron durante la semana y no estaban en el plan. Se registran como <b>extra</b>: no suman ni restan al % de logro.</div>
+  <div class="pt-f2">
+    <div class="fl"><label>Fecha</label><input type="date" id="pt-a-fecha"></div>
+    <div class="fl"><label>Tipo</label><select id="pt-a-tipo"></select></div>
+    <div class="fl"><label>Hora inicio</label><input type="time" id="pt-a-hi"></div>
+    <div class="fl"><label>Hora fin</label><input type="time" id="pt-a-hf"></div>
+    <div class="fl full"><label>Actividad</label><input type="text" id="pt-a-tit" maxlength="200" style="width:100%"></div>
+    <div class="fl full"><label>Vendedor (opcional)</label><select id="pt-a-rep"></select></div>
+  </div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-a-cancel">Cancelar</button><button class="go" id="pt-a-save">Agregar</button></div>
+</div></div>
+
+<!-- ── Confirmación de guardado / envío ── -->
+<div class="modal" id="pt-ok"><div class="modalbox pt-ok" style="max-width:540px;text-align:center">
+  <div class="big" id="pt-ok-i">✅</div>
+  <h3 id="pt-ok-t" style="margin-top:6px"></h3>
+  <div class="num" id="pt-ok-n"></div>
+  <div><span class="est" id="pt-ok-e"></span></div>
+  <div class="hint" id="pt-ok-d" style="text-align:left;padding:0 6px 6px;line-height:1.55"></div>
+  <div class="pt-foot" style="justify-content:center"><button class="go" id="pt-ok-ver">Ver mi plan</button><button class="rbtn" id="pt-ok-x">Cerrar</button></div>
+</div></div>
+
+<!-- ── Reunión fija semanal ── -->
+<div class="modal" id="pt-recm"><div class="modalbox" style="max-width:640px">
+  <div class="pt-hd"><h3>📌 Reunión fija semanal</h3><button class="rbtn" id="pt-rm-x">✕</button></div>
+  <div class="hint" style="text-align:left;padding:0 0 8px">Se incluye <b>sola</b> en cada plan que armes (p. ej. «todos los jueves 5:00 pm por Teams con mis vendedores»). También se agrega al plan que estás armando.</div>
+  <div class="pt-f2">
+    <div class="fl"><label>Día</label><select id="pt-rm-dia"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option></select></div>
+    <div class="fl"><label>Modalidad</label><select id="pt-rm-mod"><option value="presencial">Presencial</option><option value="virtual" selected>Virtual (Teams / Meet)</option><option value="llamada">Llamada colectiva</option></select></div>
+    <div class="fl"><label>Hora inicio</label><input type="time" id="pt-rm-hi" value="17:00"></div>
+    <div class="fl"><label>Hora fin</label><input type="time" id="pt-rm-hf" value="17:25"></div>
+    <div class="fl full"><label>Nombre de la reunión</label><input type="text" id="pt-rm-tit" maxlength="200" style="width:100%" value="Reunión de seguimiento con vendedores"></div>
+    <div class="fl full"><label>Con quién</label><select id="pt-rm-quien"></select></div>
+    <div class="fl full"><label>Qué se busca (opcional)</label><input type="text" id="pt-rm-meta" maxlength="300" style="width:100%"></div>
+  </div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-rm-cancel">Cancelar</button><button class="go" id="pt-rm-save">💾 Guardar reunión fija</button></div>
+</div></div>
+
+<!-- ── Aprobar / devolver (Gerencia) ── -->
+<div class="modal" id="pt-apr"><div class="modalbox" style="max-width:560px">
+  <div class="pt-hd"><h3 id="pt-apr-t">Aprobar plan</h3><button class="rbtn" id="pt-apr-x">✕</button></div>
+  <div class="hint" id="pt-apr-d" style="text-align:left;padding:0 0 8px"></div>
+  <div class="fl"><label id="pt-apr-l">Comentario</label><textarea id="pt-apr-c" rows="4" maxlength="500"></textarea></div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-apr-cancel">Cancelar</button><button class="go" id="pt-apr-ok">Confirmar</button></div>
+</div></div>
+
+<!-- ── Cierre semanal ── -->
+<div class="modal" id="pt-cie"><div class="modalbox" style="max-width:700px">
+  <div class="pt-hd"><h3>🔒 Cerrar el plan de trabajo</h3><button class="rbtn" id="pt-cie-x">✕</button></div>
+  <div id="pt-cie-res" class="note" style="margin-bottom:10px"></div>
+  <div class="fl" style="margin-bottom:8px"><label>Logros de la semana</label><textarea id="pt-c-log" rows="3" maxlength="1000"></textarea></div>
+  <div class="fl" style="margin-bottom:8px"><label>Aprendizajes / dificultades</label><textarea id="pt-c-apr" rows="3" maxlength="1000"></textarea></div>
+  <div class="fl"><label>Compromisos para la próxima semana</label><textarea id="pt-c-com" rows="3" maxlength="1000"></textarea></div>
+  <div class="hint" style="text-align:left;padding:8px 0 0">Al cerrar se congela el <b>% de logro</b> y el plan ya no se puede modificar (Gerencia puede reabrirlo).</div>
+  <div class="pt-foot"><span class="sp"></span><button class="rbtn" id="pt-c-cancel">Cancelar</button><button class="go" id="pt-c-save">🔒 Cerrar plan y calcular logro</button></div>
+</div></div>
+
+<script>
+/* ═══ Plan de Trabajo semanal — front ═══ */
+const PT={ctx:null, ctxSup:{}, W:null, L:{sup:'',desde:'',hasta:'',estatus:''}, D:null, lista:[], booted:false, R:{booted:false,tipo:'plan',lista:[],pre:null,txt:''}, impFile:null, ejeAct:null};
+const PT_DIAS=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'], PT_MES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const PT_TIPOS=[['calle','🚗 Calle'],['virtual','🖥 Telemática'],['cobros','💰 Cobros'],['reunion','👥 Reunión'],['gestion','🗂 Gestión'],['capacitacion','🎓 Capacitación'],['otro','• Otro']];
+const PT_TNOM=Object.fromEntries(PT_TIPOS.map(t=>[t[0],t[1]]));
+const PT_OPC={equilibrado:'Primero los vendedores prioritarios y, después, los de menor AMCO-GT de la semana anterior; desempata quien lleva más tiempo sin acompañamiento (2 por día de calle).',
+  riesgo:'Dedica la calle a los vendedores en riesgo: los prioritarios y los de AMCO-GT menor a 70 (2 visitas a cada uno en la semana); luego completa con los demás por prioridad y AMCO-GT.',
+  cobertura:'Rota por TODO el equipo: 3 visitas más cortas por día de calle, empezando por quien lleva más tiempo sin acompañamiento.',
+  blanco:'Solo las actividades fijas (cobros, reuniones); tú agregas el resto.'};
+function ptD(s){const p=String(s).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function ptY(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function ptFmt(s){const d=ptD(s);return PT_DIAS[d.getDay()]+' '+d.getDate()+' '+PT_MES[d.getMonth()];}
+function ptFmtC(s){const d=ptD(s);return PT_DIAS[d.getDay()].slice(0,3)+' '+d.getDate()+'/'+(d.getMonth()+1);}
+function ptRango(a,b){return ptFmt(a)+' al '+ptFmt(b);}
+function ptPost(p,b){return api(p,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});}
+function ptSel(opts,val,vac){return (vac!=null?'<option value="">'+vac+'</option>':'')+opts.map(o=>'<option value="'+escA(o[0])+'"'+(String(o[0])===String(val)?' selected':'')+'>'+escA(o[1])+'</option>').join('');}
+function ptRangoDef(){const h=new Date();h.setHours(0,0,0,0);let dow=h.getDay();let lun=new Date(h);
+  if(dow===0)lun.setDate(h.getDate()+1);else if(dow>=5)lun.setDate(h.getDate()+(8-dow));else lun.setDate(h.getDate()-(dow-1));
+  const sab=new Date(lun);sab.setDate(lun.getDate()+5);return [ptY(lun),ptY(sab)];}
+function ptColLogro(n){return n==null?'#6b7280':n>=90?'#2E9E4A':n>=75?'#3357C4':n>=50?'#D29922':'#C0392B';}
+function ptNivelCalc(p){ const m=p.metricas||{}; if(p.estatus==='Cerrado')return m.nivel||''; const a=m.logroAFechaPct; if(a==null)return 'En curso (aún sin actividades vencidas)'; return a>=90?'Excelente':a>=75?'En ruta':a>=50?'Atrasado':'Crítico'; }
+function ptBar(p){const v=p==null?0:Math.max(0,Math.min(100,p));return '<div class="pt-bar"><i style="width:'+v+'%;background:'+ptColLogro(p)+'"></i></div>';}
+function ptEstCls(e){return String(e).replace(/ /g,'');}
+function ptEstLbl(p){return p.sinCerrar?'Sin cerrar':p.estatus;}
+function ptEstChip(p){return '<span class="pt-chip '+ptEstCls(ptEstLbl(p))+'">'+escA(ptEstLbl(p))+'</span>'+(p.cierreTardio?' <span class="pt-chip Tardio">cierre tardío</span>':'');}
+const PT_MOD={presencial:'🏢 Presencial',virtual:'💻 Virtual',llamada:'📞 Llamada colectiva'};
+function ptQuienVal(a){return a.alcance==='todos'?'todos':a.alcance==='grupo'?'grupo:'+a.alcanceCod:a.alcance==='division'?'division:'+a.alcanceCod:(a.repCodigo?'vend:'+a.repCodigo:'');}
+function ptQuienSet(a,v){
+  const c=PT.ctx; a.alcance=null; a.alcanceCod=null; a.alcanceNombre=null; a.repCodigo=''; a.repNombre='';
+  if(v==='todos'){a.alcance='todos';a.alcanceNombre='Todo el equipo';}
+  else if(v.startsWith('grupo:')){const cod=v.slice(6),g=(c.grupos||[]).find(x=>x.cod===cod);a.alcance='grupo';a.alcanceCod=cod;a.alcanceNombre='Grupo '+(g?g.etiqueta:cod);}
+  else if(v.startsWith('division:')){const cod=v.slice(9);a.alcance='division';a.alcanceCod=cod;a.alcanceNombre='División '+cod;}
+  else if(v.startsWith('vend:')){const cod=v.slice(5),x=c.vendedores.find(y=>y.rep===cod);a.alcance='vendedor';a.repCodigo=cod;a.repNombre=x?x.nombre:'';}
+}
+function ptQuienHtml(sel){
+  const c=PT.ctx, o=(v,t)=>'<option value="'+escA(v)+'"'+(v===sel?' selected':'')+'>'+escA(t)+'</option>';
+  let h='<option value="">— sin vendedor —</option>'+o('todos','👥 Todo el equipo ('+c.vendedores.length+')');
+  if(c.grupos&&c.grupos.length)h+='<optgroup label="Grupos">'+c.grupos.map(g=>o('grupo:'+g.cod,'Grupo '+g.etiqueta+' ('+g.vendedores+')')).join('')+'</optgroup>';
+  if(c.divisiones&&c.divisiones.length)h+='<optgroup label="Divisiones">'+c.divisiones.map(d=>o('division:'+d.cod,'División '+d.cod+' ('+d.vendedores+')')).join('')+'</optgroup>';
+  return h+'<optgroup label="Vendedores">'+c.vendedores.map(v=>o('vend:'+v.rep,v.nombre+' ('+v.rep+')')).join('')+'</optgroup>';
+}
+function ptQuienTxt(a){return a.repNombre||a.alcanceNombre||'';}
+function ptModTxt(a){return a.modalidad?(PT_MOD[a.modalidad]||''):'';}
+/* Confirmación visible (no solo un aviso que desaparece): número del plan + estado + qué sigue */
+function ptConfirma(numero,estatus,planId,extra){
+  const M={
+    'Por aprobar':{i:'📨',t:'Plan enviado a Gerencia',c:'background:var(--warn-bg);color:var(--warn)',e:'POR APROBAR',d:'Tu plan quedó <b>guardado</b> y está <b>esperando la aprobación de Gerencia</b>. Mientras tanto no se puede registrar ejecución; si necesitas cambiarlo, ábrelo y usa «Retirar a borrador». Si Gerencia lo devuelve, verás su comentario en el plan. Búscalo siempre en <b>Plan → ✅ Ejecución del plan</b> con el número de arriba.'},
+    'Borrador':{i:'📝',t:'Plan guardado como borrador',c:'background:var(--panel2);color:var(--muted)',e:'BORRADOR — NO ENVIADO',d:'Tu plan quedó guardado pero <b>todavía NO ha sido enviado a Gerencia</b>. Ábrelo y presiona <b>«📨 Enviar a aprobación»</b> cuando esté listo.'},
+    'Activo':{i:'✅',t:'Plan aprobado y activo',c:'background:var(--good-bg);color:var(--good)',e:'ACTIVO',d:'El plan está <b>activo</b>: ya se puede registrar su ejecución día a día y cerrarlo el viernes.'}
+  }[estatus]||{i:'✅',t:'Plan guardado',c:'',e:estatus,d:''};
+  $('#pt-ok-i').textContent=M.i; $('#pt-ok-t').textContent=M.t; $('#pt-ok-n').textContent=numero; $('#pt-ok-e').textContent=M.e; $('#pt-ok-e').setAttribute('style',M.c);
+  $('#pt-ok-d').innerHTML=M.d+(extra?'<div style="margin-top:6px">'+extra+'</div>':''); PT.okPlan=planId; $('#pt-ok').classList.add('on'); ptBadge();
+}
+/* Insignia roja en «Plan» y «Ejecución del plan»: Gerencia = planes por aprobar; supervisor = sus planes por aprobar, en borrador o sin cerrar */
+function ptBadge(){
+  api('/plan/lista?estatus='+encodeURIComponent('Borrador,Por aprobar,Activo')).then(j=>{
+    if(!j||!j.ok)return; const ger=j.rol==='Gerencia', pa=j.planes.filter(p=>p.estatus==='Por aprobar').length, bo=j.planes.filter(p=>p.estatus==='Borrador').length, sc=j.planes.filter(p=>p.sinCerrar).length;
+    const n=ger?pa:pa+bo+sc; const tip=ger?pa+' plan(es) esperan tu aprobación':[pa&&pa+' por aprobar (enviados a Gerencia)',bo&&bo+' en borrador sin enviar',sc&&sc+' sin cerrar'].filter(Boolean).join(' · ');
+    ['#pt-badge-sub','#pt-badge-seg'].forEach(id=>{ const b=$(id); if(b){ b.textContent=n||''; b.title=tip; } });
+  }).catch(()=>{});
+}
+(function(){
+  const mk=(sel,id)=>{ const b=$(sel); if(b&&!$(id)){ const s=document.createElement('span'); s.className='pt-badge'; s.id=id.slice(1); b.appendChild(s); } };
+  mk('#view-plan .subtabs button[data-pv=ejec]','#pt-badge-sub'); mk('.seg button[data-v=plan]','#pt-badge-seg');
+  setTimeout(ptBadge,1500); setInterval(ptBadge,120000);
+  $('#pt-ok-x').onclick=()=>$('#pt-ok').classList.remove('on');
+  $('#pt-ok-ver').onclick=()=>{ $('#pt-ok').classList.remove('on'); if(PT.okPlan)ptIrEjec(PT.okPlan); };
+})();
+function ptEsGer(){return !!(PT.ctx&&PT.ctx.rol==='Gerencia');}
+function ptLogroPlan(p){return p.estatus==='Cerrado'&&p.logroCongelado!=null?p.logroCongelado:(p.metricas?p.metricas.logroPct:null);}
+function ptErr(j){return (j&&j.error)||'Error desconocido';}
+function ptCtx(sup,desde,hasta,cb){
+  const q='?supcod='+encodeURIComponent(sup||'')+(desde?'&desde='+desde:'')+(hasta?'&hasta='+hasta:'');
+  api('/plan/contexto'+q).then(j=>{ if(!j||!j.ok){toast(ptErr(j));return;} cb(j); }).catch(e=>toast('Error: '+e));
+}
+
+/* ───────── Asistente de creación ───────── */
+function ptNuevo(planId){
+  const W=PT.W={planId:planId||null,sup:'',desde:'',hasta:'',objetivo:'',opcion:'equilibrado',estatus:'Borrador',acts:[],_k:1};
+  $('#pt-wiz').classList.add('on'); $('#pt-wiz-aviso').innerHTML=''; $('#pt-w-grid').innerHTML='<div class="hint">Cargando…</div>'; $('#pt-w-warn').innerHTML='';
+  $('#pt-wiz-t').textContent=planId?'✏️ Editar plan de trabajo':'🗂 Crear Plan de Trabajo semanal';
+  ['#pt-w-sup','#pt-w-opc'].forEach(s=>$(s).disabled=!!planId); $('#pt-w-gen').classList.toggle('hide',!!planId); $('#pt-w-opc').parentNode.classList.toggle('hide',!!planId); $('#pt-w-opdesc').classList.toggle('hide',!!planId);
+  $('#pt-w-up').classList.toggle('hide',!!planId);
+  if(planId){
+    api('/plan/detalle?id='+planId).then(j=>{ if(!j||!j.ok){toast(ptErr(j));$('#pt-wiz').classList.remove('on');return;}
+      const p=j.plan; W.sup=p.supCod; W.desde=p.desde; W.hasta=p.hasta; W.objetivo=p.objetivo||''; W.opcion=p.opcion||'equilibrado'; W.estatus=p.estatus;
+      W.acts=j.actividades.map(a=>({_k:W._k++,actId:a.actId,fecha:a.fecha,horaIni:a.horaIni||'',horaFin:a.horaFin||'',tipo:a.tipo,subtipo:a.subtipo,titulo:a.titulo,detalle:a.detalle,repCodigo:a.repCodigo||'',repNombre:a.repNombre||'',modalidad:a.modalidad||'',alcance:a.alcance||null,alcanceCod:a.alcanceCod||null,alcanceNombre:a.alcanceNombre||null,cliId:a.cliId,cliNombre:a.cliNombre,meta:a.meta||'',prioridad:a.prioridad,peso:a.peso,fijo:a.fijo,origen:a.origen,estado:a.estado}));
+      $('#pt-w-desde').value=W.desde; $('#pt-w-hasta').value=W.hasta; $('#pt-w-obj').value=W.objetivo;
+      ptCtx(W.sup,W.desde,W.hasta,c=>{PT.ctx=c; ptWSupSel(); ptWBotones(); ptWRender(); ptWComentario(p);});
+    }).catch(e=>toast('Error: '+e));
+    return;
+  }
+  const [d,h]=ptRangoDef(); W.desde=d; W.hasta=h; $('#pt-w-desde').value=d; $('#pt-w-hasta').value=h; $('#pt-w-obj').value=''; $('#pt-w-opc').value='equilibrado';
+  $('#pt-w-opdesc').textContent=PT_OPC.equilibrado;
+  ptCtx('',d,h,c=>{PT.ctx=c; W.sup=c.supcod; ptWSupSel(); ptWBotones(); ptWAvisos(); ptWGenerar(true);});
+}
+/* Botones según rol y estado: el supervisor arma y ENVÍA; Gerencia ajusta y APRUEBA. */
+function ptWBotones(){
+  const W=PT.W, ger=ptEsGer(), d=$('#pt-w-draft'), sv=$('#pt-w-save'); d.classList.remove('hide');
+  if(ger){
+    if(W.estatus==='Activo'){ d.classList.add('hide'); sv.textContent='💾 Guardar cambios'; W.tDraft='Activo'; W.tSave='Activo'; }
+    else if(W.estatus==='Por aprobar'){ d.textContent='💾 Guardar cambios'; sv.textContent='✅ Guardar y aprobar'; W.tDraft='Por aprobar'; W.tSave='Activo'; }
+    else { d.textContent='💾 Guardar borrador'; sv.textContent='✅ Guardar y aprobar'; W.tDraft='Borrador'; W.tSave='Activo'; }
+  } else { d.textContent='💾 Guardar borrador'; sv.textContent='📨 Enviar a aprobación'; W.tDraft='Borrador'; W.tSave='Por aprobar'; }
+}
+function ptWComentario(p){
+  if(p&&p.comentarioGerencia&&p.estatus==='Borrador')$('#pt-wiz-aviso').insertAdjacentHTML('beforeend','<div class="pt-warn w">💬 <b>Gerencia pidió ajustes:</b> '+escA(p.comentarioGerencia)+'</div>');
+}
+const PT_DIAN=['','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+function ptWRecs(){
+  const c=PT.ctx, box=$('#pt-w-recs'); if(!box)return; const r=c.recurrentes||[];
+  box.innerHTML='<b>📌 Reuniones fijas semanales</b> <span class="sub">(se incluyen solas en cada plan)</span> <button class="rbtn" style="padding:4px 10px;font-size:12px;margin-left:8px" id="pt-w-recadd">➕ Agregar reunión fija</button>'
+    +(r.length?'<ul style="margin:6px 0 0 18px">'+r.map(x=>'<li>'+PT_DIAN[x.dia]+' '+escA(x.horaIni||'')+(x.horaFin?'–'+escA(x.horaFin):'')+' · <b>'+escA(x.titulo)+'</b> · '+escA(PT_MOD[x.modalidad]||'')+' · '+escA(x.alcanceNombre||'')+' <button class="x" data-recdel="'+x.recId+'" title="Quitar">🗑</button></li>').join('')+'</ul>':'<div class="sub">Ninguna todavía. Ej.: «todos los jueves 5:00 pm reunión virtual por Teams con mis vendedores».</div>');
+  $('#pt-w-recadd').onclick=()=>ptRecAbrir();
+  $$('#pt-w-recs [data-recdel]').forEach(b=>b.onclick=()=>{ if(!confirm('¿Quitar esta reunión fija? (no cambia los planes ya creados)'))return; ptPost('/plan/recurrente-eliminar',{id:+b.dataset.recdel}).then(j=>{ if(j&&j.ok){ ptCtx(PT.W.sup,PT.W.desde,PT.W.hasta,c2=>{PT.ctx=c2;ptWRecs();}); } else toast(ptErr(j)); }); });
+}
+function ptRecAbrir(){ $('#pt-rm-quien').innerHTML=ptQuienHtml('todos'); $('#pt-recm').classList.add('on'); }
+(function(){
+  const cerrar=()=>$('#pt-recm').classList.remove('on'); $('#pt-rm-x').onclick=$('#pt-rm-cancel').onclick=cerrar;
+  $('#pt-rm-save').onclick=()=>{
+    const W=PT.W, a={}; ptQuienSet(a,$('#pt-rm-quien').value);
+    const b={supCod:W.sup,dia:+$('#pt-rm-dia').value,horaIni:$('#pt-rm-hi').value||null,horaFin:$('#pt-rm-hf').value||null,titulo:$('#pt-rm-tit').value.trim(),modalidad:$('#pt-rm-mod').value,alcance:a.alcance,alcanceCod:a.alcanceCod,alcanceNombre:a.alcanceNombre||a.repNombre||null,meta:$('#pt-rm-meta').value.trim()||null};
+    ptPost('/plan/recurrente',b).then(j=>{ if(!j||!j.ok){toast(ptErr(j));return;}
+      toast('Reunión fija guardada'); cerrar();
+      // también se agrega al plan que se está armando (si ese día no la tiene ya)
+      PT.ctx.dias.filter(d=>d.dow===b.dia).forEach(d=>{ if(!W.acts.some(x=>x.fecha===d.fecha&&x.titulo===b.titulo&&x.horaIni===(b.horaIni||''))) W.acts.push(ptWNueva(d.fecha,{horaIni:b.horaIni||'',horaFin:b.horaFin||'',tipo:'reunion',titulo:b.titulo,modalidad:b.modalidad,alcance:a.alcance,alcanceCod:a.alcanceCod,alcanceNombre:a.alcanceNombre,repCodigo:a.repCodigo||'',repNombre:a.repNombre||'',meta:b.meta||'',fijo:true,peso:1})); });
+      ptCtx(W.sup,W.desde,W.hasta,c2=>{PT.ctx=c2;ptWRecs();ptWRender();});
+    });
+  };
+})();
+function ptWSupSel(){
+  const c=PT.ctx, W=PT.W; $('#pt-w-sup').innerHTML=ptSel(c.supervisores.map(s=>[s.supcod,s.nombre+(s.codigos.length>1?' ('+s.codigos.join(' + ')+')':' ('+s.supcod+')')]),W.sup);
+  if(!c.supervisores.some(s=>s.supcod===W.sup)&&W.sup)$('#pt-w-sup').insertAdjacentHTML('afterbegin','<option value="'+escA(W.sup)+'" selected>'+escA(W.sup)+'</option>');
+  ptWAvisos();
+}
+function ptWAvisos(){
+  const c=PT.ctx; let h='';
+  if(c.avisoTablas)h+='<div class="pt-warn w">⚠️ '+escA(c.avisoTablas)+'</div>';
+  if(c.existentes&&c.existentes.length&&!PT.W.planId)h+='<div class="pt-warn w">ℹ️ Ya existe(n) plan(es) de este supervisor que se cruzan con las fechas: '+c.existentes.map(e=>escA(e.numero)+' ('+e.estatus+', '+ptFmtC(e.desde)+' – '+ptFmtC(e.hasta)+')').join(' · ')+'.</div>';
+  $('#pt-wiz-aviso').innerHTML=h;
+  const calle=c.dias.filter(d=>d.calle).map(d=>ptFmtC(d.fecha)), tel=c.dias.filter(d=>d.tipo==='virtual').map(d=>ptFmtC(d.fecha));
+  ptWRecs();
+  $('#pt-w-rec').innerHTML='<b>⚠️ Protege tus días de calle y de supervisión telemática.</b><br>'
+    +'🚗 <b>Días de calle:</b> '+(calle.length?calle.join(', '):'—')+' &nbsp;·&nbsp; 🖥 <b>Días de supervisión telemática:</b> '+(tel.length?tel.join(', '):'—')+'<br>'
+    +'👥 <b>Equipo:</b> '+c.vendedores.length+' vendedor(es)'+(c.grupos&&c.grupos.length>1?' en '+c.grupos.length+' grupos ('+c.grupos.map(g=>escA(g.etiqueta)).join(', ')+')':'')+(c.divisiones&&c.divisiones.length?' · divisiones '+c.divisiones.map(d=>d.cod).join(', '):'')+' — <b>un solo plan para todos tus grupos y divisiones</b>.<br>'
+    +'🌅 <b>7:30 – 7:55 am (Lun–Vie)</b> reunión matinal con todo el equipo (presencial, virtual o llamada colectiva) &nbsp;·&nbsp; 💰 Desde las <b>3:30 pm</b> inician los <b>cobros dinámicos</b> &nbsp;·&nbsp; 👥 <b>5:30 pm</b> reunión diaria (Lun–Vie) &nbsp;·&nbsp; 🏢 <b>Sábados 8:30 am</b> reunión con Gerencia &nbsp;·&nbsp; 🔒 El <b>viernes</b> se cierra el plan.';
+}
+function ptWNueva(fecha,o){const a=Object.assign({_k:PT.W._k++,actId:null,fecha,horaIni:'',horaFin:'',tipo:'otro',subtipo:null,titulo:'',detalle:null,repCodigo:'',repNombre:'',cliId:null,cliNombre:null,meta:'',prioridad:'M',peso:1,fijo:false,origen:'plan',modalidad:'',alcance:null,alcanceCod:null,alcanceNombre:null},o||{}); if(a.repCodigo&&!a.alcance)a.alcance='vendedor'; return a;}
+function ptWFijos(d){
+  const W=PT.W;
+  if(d.dow>=1&&d.dow<=5)W.acts.push(ptWNueva(d.fecha,{horaIni:'07:30',horaFin:'07:55',tipo:'reunion',titulo:'Reunión matinal con todo el equipo',meta:'Arrancar el día: metas, ruta y alertas',fijo:true,peso:.5,modalidad:'llamada',alcance:'todos',alcanceNombre:'Todo el equipo'}));
+  if(d.dow>=1&&d.dow<=6)W.acts.push(ptWNueva(d.fecha,{horaIni:'15:30',horaFin:'16:55',tipo:'cobros',titulo:'Cobros dinámicos con el equipo (seguimiento de metas de cobro)',meta:'Cierre del día con cobros al ritmo de la meta',fijo:true}));
+  if(d.dow>=1&&d.dow<=5)W.acts.push(ptWNueva(d.fecha,{horaIni:'17:30',horaFin:'18:00',tipo:'reunion',titulo:'Reunión de seguimiento (cierre del día)',meta:'Resultados del día y compromisos del siguiente',fijo:true}));
+  if(d.dow===6)W.acts.push(ptWNueva(d.fecha,{horaIni:'08:30',horaFin:'10:00',tipo:'reunion',titulo:'Reunión con Gerencia (cierre de la semana)',meta:'Presentar resultados y plan de la próxima semana',fijo:true}));
+  ((PT.ctx&&PT.ctx.recurrentes)||[]).filter(r=>r.dia===d.dow).forEach(r=>W.acts.push(ptWNueva(d.fecha,{horaIni:r.horaIni||'',horaFin:r.horaFin||'',tipo:'reunion',titulo:r.titulo,meta:r.meta||'',modalidad:r.modalidad||'',alcance:r.alcance,alcanceCod:r.alcanceCod,alcanceNombre:r.alcanceNombre,fijo:true})));
+  if(d.dow===5)W.acts.push(ptWNueva(d.fecha,{horaIni:'18:15',horaFin:'18:45',tipo:'gestion',titulo:'Cierre del plan de trabajo: registrar ejecución y % de logro',meta:'Plan cerrado el viernes',fijo:true,peso:.5}));
+}
+/* AMCO-GT (IEGT) de la semana anterior al plan, por vendedor — misma fórmula y datos que la Priorización (iegtDe + /apiseg/semana). */
+function ptAmcoAsegurar(cb){
+  const W=PT.W,c=PT.ctx, key=W.sup+'|'+W.desde; if(PT.amcoKey===key){cb();return;}
+  const d=ptD(W.desde), lun=new Date(d); lun.setDate(d.getDate()-((d.getDay()+6)%7)-7); const sab=new Date(lun); sab.setDate(lun.getDate()+5);
+  const sp=new URLSearchParams({fechaIni:ptY(lun),fechaFin:ptY(sab)}); if(c.codigos&&c.codigos.length)sp.set('supervisores',c.codigos.join(','));
+  fetch(BASE+'/apiseg/semana?'+sp.toString()).then(r=>r.json()).then(j=>{
+    const vend=(j&&j.vendedores)||[], med=median(vend.map(v=>v.PromSeg)); PT.amco={}; vend.forEach(v=>{PT.amco[v.RepCodigo]=Math.round(iegtDe(v,med)*10)/10;});
+    PT.amcoKey=key; PT.amcoRango=ptFmtC(ptY(lun))+' – '+ptFmtC(ptY(sab)); cb();
+  }).catch(()=>{PT.amco={};PT.amcoKey=null;PT.amcoRango='';cb();});
+}
+function ptWGenerar(silencioso){
+  const op=$('#pt-w-opc').value; if(op==='cobertura'||op==='blanco'||!PT.W||!PT.ctx){ptWGenerarCore(silencioso);return;}
+  ptAmcoAsegurar(()=>ptWGenerarCore(silencioso));
+}
+function ptWGenerarCore(silencioso){
+  const W=PT.W,c=PT.ctx; if(!c||!c.dias.length){toast('Elige supervisor y un rango de fechas válido (máx. 21 días).');return;}
+  if(!silencioso&&W.acts.length&&!confirm('Esto reemplaza las actividades actuales por una propuesta nueva. ¿Continuar?'))return;
+  const op=$('#pt-w-opc').value; W.opcion=op; W.acts=[]; W._k=1;
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const amco=PT.amco||{};
+  let vs=c.vendedores.map(v=>({v,dd:v.ultPresencial?Math.round((hoy-ptD(v.ultPresencial))/864e5):60,am:amco[v.rep]!=null?amco[v.rep]:null}))
+    .sort((a,b)=>{ if(op==='cobertura')return b.dd-a.dd;                                  // cobertura: rota por quien lleva más tiempo sin acompañamiento
+      if(a.v.prioritario!==b.v.prioritario)return a.v.prioritario?-1:1;                    // 1.º la prioridad
+      if(a.am!==b.am){ if(a.am==null)return 1; if(b.am==null)return -1; return a.am-b.am; } // 2.º el AMCO-GT (el más bajo primero; sin dato al final)
+      return b.dd-a.dd; });                                                               // 3.º más tiempo sin acompañamiento
+  if(op==='riesgo'){ const r=vs.filter(x=>x.v.prioritario||(x.am!=null&&x.am<70)); if(r.length)vs=[...r,...r,...vs.filter(x=>!r.includes(x))]; }   // 2 visitas a cada vendedor en riesgo y luego el resto
+  vs=vs.map(x=>x.v);
+  let idx=0; const next=()=>vs.length?vs[idx++%vs.length]:null;
+  if(op!=='blanco'){
+    c.dias.forEach(d=>{
+      if(d.tipo==='libre')return;
+      if(d.calle){
+        const sab=d.dow===6; const slots=sab?[['10:15','12:30'],['13:30','15:00']]:op==='cobertura'?[['08:00','10:30'],['10:45','12:45'],['13:30','15:00']]:[['08:00','11:30'],['12:30','15:00']];
+        slots.forEach(s=>{const v=next(), aud=d.tipo==='auditoria';
+          W.acts.push(ptWNueva(d.fecha,{horaIni:s[0],horaFin:s[1],tipo:'calle',subtipo:aud?'audit':'acomp',titulo:(aud?'Auditoría de ruta a ':'Acompañamiento a ')+(v?v.nombre:'(definir vendedor)'),repCodigo:v?v.rep:'',repNombre:v?v.nombre:'',
+            meta:aud?'Auditar ruta, ejecución en PDV y cumplimiento de visitas':'Evaluar ejecución en PDV y acordar compromisos',prioridad:v&&v.prioritario?'A':'M',peso:2}));});
+      } else {
+        const sab=d.dow===6; W.acts.push(ptWNueva(d.fecha,{horaIni:sab?'10:15':'08:00',horaFin:sab?'11:00':'09:00',tipo:'virtual',titulo:'Revisión de indicadores del equipo (AMCO-GT, ventas vs presupuesto, visitas)',meta:'Detectar desvíos antes de salir a hablar con el equipo'}));
+        for(let i=0;i<(sab?1:2);i++){const v=next(); W.acts.push(ptWNueva(d.fecha,{horaIni:sab?'11:00':(i?'11:00':'09:15'),horaFin:sab?'12:30':(i?'12:30':'10:45'),tipo:'virtual',titulo:'Seguimiento telemático a '+(v?v.nombre:'(definir vendedor)'),repCodigo:v?v.rep:'',repNombre:v?v.nombre:'',meta:'Revisar ruta, visitas y pedidos; acordar acciones',prioridad:v&&v.prioritario?'A':'M'}));}
+        W.acts.push(ptWNueva(d.fecha,{horaIni:'13:30',horaFin:'15:00',tipo:'gestion',titulo:'Gestión de clientes sin compra / pedidos pendientes del día',meta:'Recuperar ventas del periodo'}));
+      }
+    });
+  }
+  W.acts.forEach(a=>{ if(a.repCodigo&&amco[a.repCodigo]!=null&&(a.tipo==='calle'||a.tipo==='virtual'))a.meta=(a.meta?a.meta+' ':'')+'(AMCO-GT '+amco[a.repCodigo]+')'; });
+  c.dias.forEach(d=>{ if(d.tipo!=='libre'||d.dow!==0)ptWFijos(d); });
+  $('#pt-w-opdesc').textContent=PT_OPC[op]+(op!=='cobertura'&&op!=='blanco'&&PT.amcoRango?' AMCO-GT de la semana '+PT.amcoRango+'.':'');
+  ptWRender();
+}
+function ptWRender(){
+  const W=PT.W,c=PT.ctx; const g=$('#pt-w-grid'); if(!c){return;}
+  const vopts=c.vendedores.map(v=>[v.rep,v.nombre+' ('+v.rep+')']);
+  const dias=c.dias.filter(d=>d.dow!==0||W.acts.some(a=>a.fecha===d.fecha));
+  let h='';
+  dias.forEach(d=>{
+    const chip=d.calle?'<span class="pt-chip calle">🚗 Día de CALLE · '+(d.tipo==='auditoria'?'auditoría':'acompañamiento')+'</span>':d.tipo==='virtual'?'<span class="pt-chip virtual">🖥 Día de SUPERVISIÓN TELEMÁTICA</span>':'<span class="pt-chip libre">Libre</span>';
+    const acts=W.acts.filter(a=>a.fecha===d.fecha).sort((a,b)=>(a.horaIni||'99:99').localeCompare(b.horaIni||'99:99'));
+    h+='<div class="pt-day"><span class="nm">'+ptFmt(d.fecha)+'</span>'+chip+'<button class="rbtn" style="margin-left:auto;padding:5px 10px;font-size:12px" data-add="'+d.fecha+'">+ Actividad</button></div>';
+    h+='<div class="scroller"><table class="pt-tb"><thead><tr><th style="width:96px">Inicio</th><th style="width:96px">Fin</th><th style="width:130px">Tipo</th><th>Actividad (escribe lo que quieras)</th><th style="width:190px">Con quién (todos / grupo / división / vendedor)</th><th style="width:118px">Modalidad</th><th style="width:150px">Cliente / lugar</th><th style="width:180px">Meta / qué se espera</th><th style="width:96px">Día</th><th style="width:62px">Prio.</th><th style="width:66px">Peso</th><th style="width:34px"></th></tr></thead><tbody>';
+    if(!acts.length)h+='<tr><td colspan="12" class="hint" style="text-align:center">Sin actividades este día.</td></tr>';
+    acts.forEach(a=>{
+      h+='<tr data-k="'+a._k+'"'+(a.fijo?' class="fijo"':'')+'><td><input type="time" data-f="horaIni" value="'+escA(a.horaIni)+'"></td><td><input type="time" data-f="horaFin" value="'+escA(a.horaFin)+'"></td>'
+        +'<td><select data-f="tipo">'+ptSel(PT_TIPOS,a.tipo)+'</select></td><td><input type="text" data-f="titulo" maxlength="200" value="'+escA(a.titulo)+'"></td>'
+        +'<td><select data-f="quien">'+ptQuienHtml(ptQuienVal(a))+'</select></td><td><select data-f="modalidad">'+ptSel([['presencial','Presencial'],['virtual','Virtual'],['llamada','Llamada']],a.modalidad,'—')+'</select></td><td><input type="text" data-f="cliNombre" maxlength="150" value="'+escA(a.cliNombre||'')+'"></td><td><input type="text" data-f="meta" maxlength="300" value="'+escA(a.meta)+'"></td><td><select data-f="fecha">'+ptSel(c.dias.map(x=>[x.fecha,ptFmtC(x.fecha)]),a.fecha)+'</select></td>'
+        +'<td><select data-f="prioridad">'+ptSel([['A','A'],['M','M'],['B','B']],a.prioridad)+'</select></td><td><input type="number" data-f="peso" min="0" max="10" step="0.5" value="'+a.peso+'"></td>'
+        +'<td><button class="x" data-del="'+a._k+'" title="Quitar">🗑</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  g.innerHTML=h||'<div class="hint">Elige un rango de fechas válido para armar el plan.</div>';
+  ptWWarn();
+}
+function ptWAvisosLista(){
+  const W=PT.W,c=PT.ctx,av=[]; if(!c)return av;
+  c.dias.forEach(d=>{
+    const as=W.acts.filter(a=>a.fecha===d.fecha), nm=ptFmt(d.fecha);
+    if(d.tipo==='libre'&&as.length)return;
+    if(d.calle){
+      if(!as.some(a=>a.tipo==='calle'))av.push('🚗 '+nm+' es día de <b>CALLE</b> y no tiene actividades de calle: protégelo.');
+      if(as.some(a=>a.tipo==='virtual'&&!a.fijo))av.push('🚗 '+nm+' es día de calle y hay actividades telemáticas: ¿seguro? Protege el día de calle.');
+    } else if(d.tipo==='virtual'){
+      if(!as.some(a=>a.tipo==='virtual'))av.push('🖥 '+nm+' es día de <b>SUPERVISIÓN TELEMÁTICA</b> y no tiene actividades telemáticas: protégelo.');
+      if(as.some(a=>a.tipo==='calle'))av.push('🖥 '+nm+' es día telemático y hay actividades de calle: ¿seguro? Protege el día telemático.');
+    }
+    if(d.dow>=1&&d.dow<=6){ const co=as.find(a=>a.tipo==='cobros'); if(!co)av.push('💰 '+nm+': falta «cobros dinámicos» (inician 3:30 pm).'); else if(co.horaIni&&co.horaIni<'15:30')av.push('💰 '+nm+': los cobros dinámicos inician a las 3:30 pm (hoy '+co.horaIni+').'); }
+    if(d.dow>=1&&d.dow<=5&&!as.some(a=>a.tipo==='reunion'&&a.horaIni==='07:30'))av.push('🌅 '+nm+': falta la reunión matinal (7:30 – 7:55 am).');
+    if(d.dow>=1&&d.dow<=5&&!as.some(a=>a.tipo==='reunion'&&a.horaIni>='17:00'))av.push('👥 '+nm+': falta la reunión de seguimiento de las 5:30 pm.');
+    if(d.dow===6&&!as.some(a=>a.tipo==='reunion'&&a.horaIni>='08:00'))av.push('🏢 '+nm+': falta la reunión con Gerencia.');
+    const ord=as.filter(a=>a.horaIni&&a.horaFin).sort((a,b)=>a.horaIni.localeCompare(b.horaIni));
+    for(let i=1;i<ord.length;i++) if(ord[i].horaIni<ord[i-1].horaFin)av.push('⏱ '+nm+': se traslapan «'+escA(ord[i-1].titulo)+'» y «'+escA(ord[i].titulo)+'».');
+  });
+  W.acts.forEach(a=>{ if(a.horaIni&&a.horaFin&&a.horaFin<=a.horaIni)av.push('⏱ «'+escA(a.titulo)+'» ('+ptFmtC(a.fecha)+'): la hora fin no es posterior al inicio.'); if(!String(a.titulo).trim())av.push('📝 Hay una actividad ('+ptFmtC(a.fecha)+') sin descripción.'); });
+  const asig=new Set(); W.acts.filter(a=>a.estado!=='Cancelada').forEach(a=>{ if(a.repCodigo)asig.add(a.repCodigo); else if(a.alcance==='grupo')c.vendedores.filter(v=>v.grupo===a.alcanceCod).forEach(v=>asig.add(v.rep)); else if(a.alcance==='division')c.vendedores.filter(v=>v.division===a.alcanceCod).forEach(v=>asig.add(v.rep)); }); const sin=c.vendedores.filter(v=>!asig.has(v.rep));
+  if(sin.length&&sin.length<=12&&W.acts.length)av.push('👤 Vendedores sin ninguna actividad dirigida en el plan: '+sin.map(v=>escA(v.nombre)).join(', ')+'.');
+  else if(sin.length>12&&W.acts.length)av.push('👤 '+sin.length+' de '+c.vendedores.length+' vendedores sin ninguna actividad dirigida en el plan.');
+  return av;
+}
+function ptWWarn(){
+  const av=ptWAvisosLista(), n=PT.W.acts.length;
+  const peso=PT.W.acts.filter(a=>a.origen!=='extra').reduce((s,a)=>s+(+a.peso||0),0);
+  $('#pt-w-warn').innerHTML='<div class="pt-warn '+(av.length?'w':'ok')+'"><b>'+n+' actividad(es) · peso total '+peso+'</b>'+(av.length?' — revisa estos puntos antes de guardar:<ul style="margin:6px 0 0 18px">'+av.map(x=>'<li>'+x+'</li>').join('')+'</ul>':' — ✅ el plan protege los días de calle y telemáticos y respeta cobros y reuniones.')+'</div>';
+}
+function ptWGuardar(estObj){
+  const W=PT.W; W.desde=$('#pt-w-desde').value; W.hasta=$('#pt-w-hasta').value; W.objetivo=$('#pt-w-obj').value.trim(); W.sup=$('#pt-w-sup').value||W.sup;
+  if(!W.sup){toast('Elige el supervisor.');return;} if(!W.desde||!W.hasta||W.hasta<W.desde){toast('Revisa el rango de fechas.');return;}
+  if(!W.acts.length){toast('El plan no tiene actividades.');return;}
+  const sinTit=W.acts.find(a=>!String(a.titulo).trim()); if(sinTit){toast('Toda actividad necesita una descripción.');return;}
+  const av=ptWAvisosLista(); if(av.length&&!confirm('El plan tiene '+av.length+' aviso(s):\n\n'+av.map(x=>'• '+x.replace(/<[^>]+>/g,'')).join('\n')+'\n\n¿Guardar de todos modos?'))return;
+  const body={planId:W.planId,supCod:W.sup,desde:W.desde,hasta:W.hasta,objetivo:W.objetivo,opcion:W.opcion,estatus:estObj,origen:'linea',
+    actividades:W.acts.map((a,i)=>({actId:a.actId||null,fecha:a.fecha,horaIni:a.horaIni||null,horaFin:a.horaFin||null,tipo:a.tipo,subtipo:a.subtipo||null,titulo:String(a.titulo).trim(),detalle:a.detalle||null,repCodigo:a.repCodigo||null,repNombre:a.repNombre||null,modalidad:a.modalidad||null,alcance:a.alcance||(a.repCodigo?'vendedor':null),alcanceCod:a.alcanceCod||null,alcanceNombre:a.alcanceNombre||null,cliId:a.cliId||null,cliNombre:a.cliNombre||null,meta:a.meta||null,prioridad:a.prioridad||'M',peso:+a.peso||0,fijo:!!a.fijo,origen:a.origen||'plan',orden:i+1}))};
+  ['#pt-w-save','#pt-w-draft'].forEach(s=>$(s).disabled=true);
+  ptPost('/plan/guardar',body).then(j=>{ ['#pt-w-save','#pt-w-draft'].forEach(s=>$(s).disabled=false);
+    if(!j||!j.ok){ const m='No se guardó el plan: '+ptErr(j); toast(m); $('#pt-w-warn').insertAdjacentHTML('afterbegin','<div class="pt-warn w" style="border-color:var(--bad);background:var(--bad-bg)">❌ <b>'+escA(m)+'</b></div>'); alert(m); return; }
+    $('#pt-wiz').classList.remove('on'); ptIrEjec(j.planId); ptConfirma(j.numero,j.estatus,j.planId);
+  }).catch(e=>{ ['#pt-w-save','#pt-w-draft'].forEach(s=>$(s).disabled=false); toast('Error: '+e); alert('No se guardó el plan (error de conexión o del servidor): '+e); });
+}
+(function(){
+  const g=$('#pt-w-grid');
+  g.addEventListener('input',ptWEdit); g.addEventListener('change',ptWEdit);
+  function ptWEdit(ev){ const el=ev.target, f=el.dataset&&el.dataset.f; if(!f)return; const tr=el.closest('tr'); const a=PT.W.acts.find(x=>String(x._k)===tr.dataset.k); if(!a)return;
+    if(f==='quien'){ ptQuienSet(a,el.value); }
+    else if(f==='peso')a.peso=el.value===''?0:+el.value; else if(f==='cliNombre'){a.cliNombre=el.value; a.cliId=null;} else a[f]=el.value;
+    if(f==='fecha'&&ev.type==='change'){ ptWRender(); return; }
+    if(f==='tipo'&&a.fijo&&ev.type==='change'){}
+    ptWWarn(); }
+  g.addEventListener('click',ev=>{ const add=ev.target.closest('[data-add]'), del=ev.target.closest('[data-del]');
+    if(add){ PT.W.acts.push(ptWNueva(add.dataset.add,{tipo:(PT.ctx.dias.find(d=>d.fecha===add.dataset.add)||{}).calle?'calle':'virtual',horaIni:'',horaFin:''})); ptWRender(); }
+    if(del){ const a=PT.W.acts.find(x=>String(x._k)===del.dataset.del); if(a&&a.fijo&&!confirm('Es una actividad fija del plan (cobros/reunión). ¿Quitarla de todos modos?'))return; PT.W.acts=PT.W.acts.filter(x=>String(x._k)!==del.dataset.del); ptWRender(); } });
+  $('#pt-wiz-x').onclick=$('#pt-w-cancel').onclick=()=>{ if(PT.W&&PT.W.acts.length&&!confirm('¿Cerrar sin guardar los cambios?'))return; $('#pt-wiz').classList.remove('on'); };
+  $('#pt-w-gen').onclick=()=>ptWGenerar(false);
+  $('#pt-w-opc').onchange=()=>{ $('#pt-w-opdesc').textContent=PT_OPC[$('#pt-w-opc').value]; };
+  const recargar=()=>{ const W=PT.W; W.sup=$('#pt-w-sup').value; W.desde=$('#pt-w-desde').value; W.hasta=$('#pt-w-hasta').value; if(!W.desde||!W.hasta||W.hasta<W.desde)return;
+    ptCtx(W.sup,W.desde,W.hasta,c=>{PT.ctx=c; ptWAvisos(); if(!W.planId){ W.acts=[]; ptWGenerar(true);} else ptWRender(); }); };
+  $('#pt-w-sup').onchange=recargar; $('#pt-w-desde').onchange=recargar; $('#pt-w-hasta').onchange=recargar;
+  $('#pt-w-save').onclick=()=>ptWGuardar(PT.W.tSave); $('#pt-w-draft').onclick=()=>ptWGuardar(PT.W.tDraft);
+  $('#pt-w-tpl').onclick=()=>{ window.location=BASE+'/apisuperv/plan/plantilla?supcod='+encodeURIComponent($('#pt-w-sup').value||''); };
+  $('#pt-w-up').onclick=()=>$('#pt-w-file').click();
+  $('#pt-w-file').onchange=ev=>{ const f=ev.target.files[0]; ev.target.value=''; if(f)ptImpPreview(f); };
+})();
+
+/* ───────── Carga desde Excel ───────── */
+function ptImpEnviar(file,confirmar){
+  const fd=new FormData(); fd.append('archivo',file);
+  return fetch(BASE+'/apisuperv/plan/importar?confirmar='+confirmar,{method:'POST',body:fd}).then(r=>r.json());
+}
+function ptImpPreview(file){
+  PT.impFile=file; $('#pt-imp').classList.add('on'); $('#pt-imp-ok').disabled=true; $('#pt-imp-body').innerHTML='<div class="hint">Validando «'+escA(file.name)+'»…</div>';
+  ptImpEnviar(file,0).then(j=>{
+    if(!j||(!j.errores&&!j.ok)){ $('#pt-imp-body').innerHTML='<div class="pt-warn w">'+escA(ptErr(j))+'</div>'; return; }
+    const r=j.resumen||{}; let h='<div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="panel kpi"><div class="k">Actividades</div><div class="v">'+(r.actividades||0)+'</div></div><div class="panel kpi"><div class="k">De calle</div><div class="v">'+(r.calle||0)+'</div></div><div class="panel kpi"><div class="k">Telemáticas</div><div class="v">'+(r.virtualesN||0)+'</div></div><div class="panel kpi"><div class="k">Ya ejecutadas</div><div class="v">'+(r.ejecutadas||0)+'</div></div></div>';
+    h+='<div class="hint" style="text-align:left;padding:0 0 8px">Supervisor <b>'+escA(r.supervisor||'')+'</b> · '+escA(r.desde||'')+' al '+escA(r.hasta||'')+' · el plan se creará como <b>'+escA(r.estatus||'Activo')+'</b>.</div>';
+    if(j.errores&&j.errores.length)h+='<div class="pt-warn w"><b>Corrige estos puntos en el Excel y vuelve a cargarlo:</b><ul style="margin:6px 0 0 18px">'+j.errores.slice(0,60).map(e=>'<li>'+escA(e)+'</li>').join('')+'</ul></div>';
+    if(j.filas&&j.filas.length)h+='<div class="scroller" style="max-height:34vh;margin-top:10px"><table class="pt-tb"><thead><tr><th>Fila</th><th>Fecha</th><th>Hora</th><th>Tipo</th><th>Actividad</th><th>Vend.</th><th>Estado</th></tr></thead><tbody>'+j.filas.slice(0,80).map(f=>'<tr><td>'+f.fila+'</td><td>'+escA(f.fecha)+'</td><td>'+escA((f.horaIni||'')+(f.horaFin?'–'+f.horaFin:''))+'</td><td>'+escA(f.tipo)+'</td><td>'+escA(f.titulo)+'</td><td>'+escA(f.rep||'')+'</td><td>'+escA(f.estado)+'</td></tr>').join('')+'</tbody></table></div>';
+    $('#pt-imp-body').innerHTML=h; $('#pt-imp-ok').disabled=!j.ok;
+  }).catch(e=>{ $('#pt-imp-body').innerHTML='<div class="pt-warn w">Error: '+escA(e)+'</div>'; });
+}
+(function(){
+  const cerrar=()=>$('#pt-imp').classList.remove('on'); $('#pt-imp-x').onclick=$('#pt-imp-cancel').onclick=cerrar;
+  $('#pt-imp-ok').onclick=()=>{ $('#pt-imp-ok').disabled=true; ptImpEnviar(PT.impFile,1).then(j=>{ if(!j||!j.ok){toast('No se cargó: '+ptErr(j));$('#pt-imp-ok').disabled=false;return;}
+    cerrar(); $('#pt-wiz').classList.remove('on'); ptIrEjec(j.planId); ptConfirma(j.numero,j.estatus||'Activo',j.planId,'Cargado desde Excel.'); }).catch(e=>{toast('Error: '+e);$('#pt-imp-ok').disabled=false;}); };
+})();
+
+/* ───────── Ejecución del plan ───────── */
+function ptIrEjec(planId){
+  const b=$('#view-plan .subtabs button[data-pv=ejec]'); if(b)b.click();
+  $$('.seg button').forEach(x=>x.classList.remove('on')); $('.seg button[data-v=plan]').classList.add('on'); $$('.view').forEach(v=>v.classList.remove('on')); $('#view-plan').classList.add('on');
+  setTimeout(()=>{ ptLista(()=>{ if(planId)ptAbrir(planId); }); const e=$('#pl-ejec'); if(e)e.scrollIntoView({behavior:'smooth',block:'start'}); },0);
+}
+function ptEjecBoot(){
+  if(!PT.booted){ PT.booted=true;
+    const [d,h]=ptRangoDef(); const a=ptD(d);a.setDate(a.getDate()-14); PT.L.desde=ptY(a); PT.L.hasta=h;
+    $('#pl-ejec').innerHTML='<div class="note"><span>✅</span><div>Aquí das <b>seguimiento al plan</b>: abre un plan, <b>doble clic</b> sobre una actividad para registrar el <b>trabajo realizado</b>, la fecha, el vendedor o cliente atendido y el resultado. El <b>viernes</b> se cierra el plan y se congela el <b>% de logro</b>.</div></div>'
+      +'<div id="pt-l-aviso"></div><div class="filtros"><div class="fl"><label>Supervisor</label><select id="pt-l-sup" style="min-width:200px"></select></div>'
+      +'<div class="fl"><label>Desde</label><input type="date" id="pt-l-desde"></div><div class="fl"><label>Hasta</label><input type="date" id="pt-l-hasta"></div>'
+      +'<div class="fl"><label>Estatus</label><select id="pt-l-est"><option value="">Todos</option><option>Borrador</option><option>Por aprobar</option><option>Activo</option><option>Sin cerrar</option><option>Cerrado</option></select></div>'
+      +'<button class="go" id="pt-l-go">Buscar</button><button class="rbtn primary" id="pt-l-new" style="margin-left:auto">🗂 Crear Plan de Trabajo semanal</button></div>'
+      +'<div id="pt-l-glob"></div><div id="pt-l-box"></div><div id="pt-d-box" class="hide"></div>';
+    $('#pt-l-desde').value=PT.L.desde; $('#pt-l-hasta').value=PT.L.hasta;
+    $('#pt-l-go').onclick=()=>ptLista(); $('#pt-l-new').onclick=()=>ptNuevo(); $('#pt-l-sup').onchange=()=>ptLista();
+    ptCtx('','','',c=>{ PT.ctx=c; $('#pt-l-sup').innerHTML=ptSel(c.supervisores.map(s=>[s.supcod,s.nombre]),'', 'Todos los supervisores'); if(c.avisoTablas)$('#pt-l-aviso').innerHTML='<div class="pt-warn w">⚠️ '+escA(c.avisoTablas)+'</div>'; ptGlobales(); });
+  }
+  ptLista(); ptGlobales();
+}
+/* Avisos que no dependen del filtro: planes por aprobar (Gerencia) y planes sin cerrar */
+function ptGlobales(){
+  const g=$('#pt-l-glob'); if(!g)return;
+  api('/plan/lista?estatus='+encodeURIComponent('Por aprobar,Activo')).then(j=>{ if(!j||!j.ok){g.innerHTML='';return;}
+    const pa=j.planes.filter(p=>p.estatus==='Por aprobar'), sc=j.planes.filter(p=>p.sinCerrar); let h='';
+    if(ptEsGer()&&pa.length)h+='<div class="pt-warn w">⏳ <b>'+pa.length+' plan(es) esperan tu aprobación:</b> '+pa.map(p=>escA(p.numero)+' ('+escA(p.supNombre||p.supCod)+')').join(', ')+' <button class="rbtn" style="padding:4px 10px;font-size:12px" id="pt-g-pa">Ver por aprobar</button></div>';
+    if(sc.length)h+='<div class="pt-warn w" style="margin-top:8px">🔴 <b>'+sc.length+' plan(es) SIN CERRAR</b> (el cierre era el viernes): '+sc.map(p=>escA(p.numero)+' ('+escA(p.supNombre||p.supCod)+', limite '+ptFmtC(p.limiteCierre)+')').join(', ')+' <button class="rbtn" style="padding:4px 10px;font-size:12px" id="pt-g-sc">Ver sin cerrar</button></div>';
+    g.innerHTML=h; const f=(id,v)=>{const b=$(id); if(b)b.onclick=()=>{ $('#pt-l-est').value=v; $('#pt-l-desde').value=''; $('#pt-l-hasta').value=''; ptLista(); };}; f('#pt-g-pa','Por aprobar'); f('#pt-g-sc','Sin cerrar');
+  }).catch(()=>{});
+}
+function ptLista(cb){
+  const box=$('#pt-l-box'); if(!box)return;
+  $('#pt-d-box').classList.add('hide'); box.classList.remove('hide'); box.innerHTML='<div class="hint">Cargando planes…</div>';
+  const q='?supcod='+encodeURIComponent($('#pt-l-sup').value||'')+'&desde='+$('#pt-l-desde').value+'&hasta='+$('#pt-l-hasta').value+'&estatus='+encodeURIComponent(({'Sin cerrar':'Activo'}[$('#pt-l-est').value])||$('#pt-l-est').value||'');
+  api('/plan/lista'+q).then(j=>{ if(!j||!j.ok){box.innerHTML='<div class="pt-warn w">'+escA(ptErr(j))+'</div>';return;}
+    const fe=$('#pt-l-est').value; if(fe==='Sin cerrar')j.planes=j.planes.filter(p=>p.sinCerrar); else if(fe==='Activo')j.planes=j.planes.filter(p=>!p.sinCerrar);
+    PT.lista=j.planes; if(!j.planes.length){box.innerHTML='<div class="hint">No hay planes en ese rango. Usa «Crear Plan de Trabajo semanal» o cambia las fechas.</div>';if(cb)cb();return;}
+    box.innerHTML='<div class="scroller"><table class="pt-tb pt-lt"><thead><tr><th>Plan</th><th>Supervisor</th><th>Semana</th><th>Estatus</th><th>Aprobación</th><th style="min-width:150px">% de logro</th><th>A la fecha</th><th>Act.</th><th>Realiz.</th><th>Pend.</th></tr></thead><tbody>'
+      +j.planes.map(p=>{const m=p.metricas||{},l=ptLogroPlan(p); return '<tr data-id="'+p.planId+'"><td><b>'+escA(p.numero)+'</b></td><td>'+escA(p.supNombre||p.supCod)+'</td><td>'+escA(ptRango(p.desde,p.hasta))+'</td><td>'+ptEstChip(p)+(p.origen==='excel'?' <span class="sub">📤 Excel</span>':'')+'</td><td class="sub">'+(p.estatus==='Por aprobar'?'Enviado por '+escA(p.enviadoPor||''):p.aprobadoPor?'Aprobó '+escA(p.aprobadoPor):'—')+'</td>'
+        +'<td><div style="display:flex;gap:8px;align-items:center">'+ptBar(l)+'<b style="color:'+ptColLogro(l)+'">'+(l==null?'—':l+'%')+'</b></div></td><td>'+(m.logroAFechaPct==null?'—':m.logroAFechaPct+'%')+'</td><td>'+(m.total||0)+'</td><td>'+(m.realizadas||0)+'</td><td>'+((m.pendientes||0)+(m.vencidas?0:0))+'</td></tr>';}).join('')+'</tbody></table></div>';
+    $$('#pt-l-box tbody tr').forEach(tr=>tr.onclick=()=>ptAbrir(+tr.dataset.id)); if(cb)cb();
+  }).catch(e=>{box.innerHTML='<div class="pt-warn w">Error: '+escA(e)+'</div>';});
+}
+function ptAbrir(id){
+  const box=$('#pt-d-box'); $('#pt-l-box').classList.add('hide'); box.classList.remove('hide'); box.innerHTML='<div class="hint">Cargando plan…</div>';
+  api('/plan/detalle?id='+id).then(j=>{ if(!j||!j.ok){box.innerHTML='<div class="pt-warn w">'+escA(ptErr(j))+'</div>';return;}
+    PT.D=j; const sup=j.plan.supCod;
+    const pintar=c=>{ PT.ctxSup[sup]=c; ptDetPintar(); };
+    if(PT.ctxSup[sup])pintar(PT.ctxSup[sup]); else ptCtx(sup,'','',pintar);
+  }).catch(e=>{box.innerHTML='<div class="pt-warn w">Error: '+escA(e)+'</div>';});
+}
+function ptDetPintar(){
+  const D=PT.D,p=D.plan,m=p.metricas||{},l=ptLogroPlan(p),box=$('#pt-d-box'),cerr=p.estatus==='Cerrado',ger=ptEsGer();
+  let h='<button class="pp-back" id="pt-d-back">← Volver a la lista de planes</button>';
+  h+='<div class="vhead"><div><div style="font-weight:800;font-size:16px">'+escA(p.numero)+' · '+escA(p.supNombre||p.supCod)+' '+ptEstChip(p)+'</div><div class="sub">'+escA(ptRango(p.desde,p.hasta))+' · Semana '+escA(p.semana||'')+(p.objetivo?' · Objetivo: '+escA(p.objetivo):'')+'</div></div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  if(D.puedeEditar)h+='<button class="rbtn" id="pt-d-edit">'+(ger&&p.estatus!=='Borrador'?'✏️ Ajustar plan (Gerencia)':'✏️ Editar')+'</button>';
+  if(D.puedeEnviar)h+='<button class="go" id="pt-d-send">📨 Enviar a aprobación</button>';
+  if(D.puedeAprobar)h+='<button class="go" id="pt-d-apr">✅ Aprobar plan</button><button class="rbtn" id="pt-d-dev">↩ Devolver con comentarios</button>';
+  else if(D.puedeRetirar)h+='<button class="rbtn" id="pt-d-ret">↩ Retirar a borrador</button>';
+  if(D.puedeEliminar)h+='<button class="rbtn" id="pt-d-del">🗑 Eliminar</button>';
+  if(D.puedeEjecutar)h+='<button class="rbtn" id="pt-d-extra">➕ Actividad adicional</button>';
+  if(p.estatus==='Activo')h+=D.puedeCerrar?'<button class="go" id="pt-d-close">🔒 Cerrar plan</button>':'<button class="rbtn" disabled title="El cierre lo hace el supervisor el viernes">🔒 Cierre: viernes '+escA(ptFmtC(p.limiteCierre))+'</button>';
+  if(D.puedeReabrir)h+='<button class="rbtn" id="pt-d-reopen">↩ Reabrir (Gerencia)</button>';
+  h+='<button class="rbtn" id="pt-d-xls">📥 Excel</button><button class="rbtn" id="pt-d-rep">📊 Reportes del plan</button></div></div>';
+  if(p.estatus==='Borrador')h+='<div class="pt-warn w">📝 Plan en <b>Borrador</b>'+(p.comentarioGerencia?' — 💬 <b>Gerencia pidió ajustes:</b> '+escA(p.comentarioGerencia):'')+'. Ajústalo y envíalo a aprobación de Gerencia para empezar a registrar su ejecución.</div>';
+  if(p.estatus==='Por aprobar')h+='<div class="pt-warn w">⏳ <b>Pendiente de aprobación de Gerencia</b> (enviado por '+escA(p.enviadoPor||'')+' el '+escA(p.fechaEnvio||'')+'). '+(ger?'Puedes <b>ajustarlo</b> y luego <b>aprobarlo</b>, o devolverlo con comentarios.':'Aún no se puede registrar ejecución; Gerencia puede hacerle ajustes antes de aprobarlo.')+'</div>';
+  if(p.aprobadoPor&&p.estatus!=='Borrador'&&p.estatus!=='Por aprobar')h+='<div class="sub" style="margin:6px 0">✅ Aprobado por <b>'+escA(p.aprobadoPor)+'</b> el '+escA(p.fechaAprobacion||'')+(p.comentarioGerencia?' · 💬 '+escA(p.comentarioGerencia):'')+'</div>';
+  if(p.sinCerrar)h+='<div class="pt-fri">🔴 <b>Plan SIN CERRAR:</b> el cierre debía hacerse el viernes '+escA(ptFmtC(p.limiteCierre))+'. '+(D.puedeCerrar?'Registra lo pendiente y ciérralo ya.':'')+'</div>';
+  else if(p.estatus==='Activo'&&D.puedeCerrar&&!ger)h+='<div class="pt-fri">📅 <b>Hoy toca cerrar el plan</b> (día de cierre: viernes). Registra lo pendiente y usa «Cerrar plan» para congelar el % de logro y generar el reporte de cierre.</div>';
+  h+='<div class="kpis"><div class="panel kpi"><div class="k">% de logro '+(cerr?'(final)':'(vivo)')+'</div><div class="v" style="color:'+ptColLogro(l)+'">'+(l==null?'—':l+'%')+'</div><div class="s">'+escA(ptNivelCalc(p))+(cerr?'':' (a la fecha)')+'</div></div>'
+    +'<div class="panel kpi"><div class="k">Logro a la fecha</div><div class="v">'+(m.logroAFechaPct==null?'—':m.logroAFechaPct+'%')+'</div><div class="s">solo lo programado hasta hoy</div></div>'
+    +'<div class="panel kpi"><div class="k">Realizadas / Parciales</div><div class="v">'+(m.realizadas||0)+' / '+(m.parciales||0)+'</div><div class="s">de '+(m.total||0)+' actividades</div></div>'
+    +'<div class="panel kpi"><div class="k">Pendientes / vencidas</div><div class="v">'+(m.pendientes||0)+' / '+(m.vencidas||0)+'</div><div class="s">vencida = fecha pasada sin registro</div></div>'
+    +'<div class="panel kpi"><div class="k">No realiz. / Reprog.</div><div class="v">'+(m.noRealizadas||0)+' / '+(m.reprogramadas||0)+'</div><div class="s">+ '+(m.extras||0)+' extra(s)</div></div></div>';
+  h+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 10px">'+D.porDia.map(x=>'<div class="panel" style="padding:7px 11px;min-width:105px"><div style="font-size:11px;font-weight:700">'+ptFmtC(x.clave)+'</div>'+ptBar(x.metricas.logroPct)+'<div style="font-size:11px;color:var(--muted)">'+(x.metricas.logroPct==null?'—':x.metricas.logroPct+'%')+' · '+x.metricas.realizadas+'/'+x.metricas.total+'</div></div>').join('')+'</div>';
+  if(cerr)h+='<div class="note" style="flex-direction:column;gap:4px"><div><b>Logros:</b> '+escA(p.cierreLogros||'—')+'</div><div><b>Aprendizajes:</b> '+escA(p.cierreAprendizajes||'—')+'</div><div><b>Compromisos:</b> '+escA(p.cierreCompromisos||'—')+'</div><div class="sub">Cerrado por '+escA(p.cerradoPor)+' el '+escA(p.fechaCierre||'')+'</div></div>';
+  h+='<div class="hint" style="text-align:left;padding:0 0 6px">'+(D.puedeEjecutar?'💡 <b>Doble clic</b> sobre una actividad (o el botón ✍) para registrar el trabajo realizado; puedes ir registrando día a día.':'La ejecución se registra cuando el plan está aprobado (Activo).')+'</div>';
+  const dias=[...new Set(D.actividades.map(a=>a.fecha))].sort();
+  dias.forEach(f=>{
+    h+='<div class="pt-day"><span class="nm">'+ptFmt(f)+'</span></div><div class="scroller"><table class="pt-tb pt-ex"><thead><tr><th style="width:92px">Hora</th><th style="width:110px">Tipo</th><th>Actividad</th><th>Objetivo</th><th style="width:44px">Prio.</th><th style="width:110px">Estado</th><th>Trabajo realizado / resultado</th><th style="width:34px"></th></tr></thead><tbody>';
+    D.actividades.filter(a=>a.fecha===f).forEach(a=>{
+      const ej=a.ejecuciones||[], u=ej[ej.length-1], venc=a.estado==='Pendiente'&&a.origen==='plan'&&f<ptY(new Date());
+      h+='<tr class="row" data-act="'+a.actId+'"><td>'+escA((a.horaIni||'')+(a.horaFin?'–'+a.horaFin:'')||'—')+'</td><td><span class="pt-chip '+a.tipo+'">'+escA(PT_TNOM[a.tipo]||a.tipo)+'</span></td><td><b>'+escA(a.titulo)+'</b>'+(a.origen==='extra'?' <span class="pt-chip libre">extra</span>':'')+(a.meta?'<div class="sub">'+escA(a.meta)+'</div>':'')+'</td>'
+        +'<td>'+escA(ptQuienTxt(a))+(a.modalidad?'<div class="sub">'+escA(ptModTxt(a))+'</div>':'')+(a.cliNombre?'<div class="sub">'+escA(a.cliNombre)+'</div>':'')+'</td><td>'+escA(a.prioridad)+'</td><td><span class="pt-chip '+ptEstCls(a.estado)+'">'+escA(a.estado)+'</span>'+(venc?'<div class="sub" style="color:var(--bad)">vencida</div>':'')+'</td>'
+        +'<td>'+(u?'<div>'+escA(u.trabajo||'')+'</div>'+(u.resultado?'<div class="sub">➜ '+escA(u.resultado)+'</div>':'')+'<div class="sub">'+escA(ptFmtC(u.fechaRealizada))+(u.repAtendidoNombre?' · '+escA(u.repAtendidoNombre):'')+(u.cliNombre?' · '+escA(u.cliNombre):'')+(ej.length>1?' · '+ej.length+' registros':'')+'</div>':'<span class="sub">—</span>')+'</td><td><button class="x" data-eje="'+a.actId+'" title="Registrar ejecución">✍</button></td></tr>';
+    });
+    h+='</tbody></table></div>';
+  });
+  box.innerHTML=h;
+  $('#pt-d-back').onclick=()=>ptLista();
+  const on=(id,fn)=>{const e=$(id);if(e)e.onclick=fn;};
+  on('#pt-d-edit',()=>ptNuevo(p.planId)); on('#pt-d-xls',()=>{window.location=BASE+'/apisuperv/plan/excel?id='+p.planId;});
+  on('#pt-d-send',()=>{ if(confirm('¿Enviar el plan a aprobación de Gerencia? Después no podrás editarlo hasta que lo devuelva o lo retires.'))ptCambiarEstatus(p.planId,'Por aprobar'); });
+  on('#pt-d-ret',()=>{ if(confirm('¿Retirar el plan a borrador para seguir editándolo?'))ptCambiarEstatus(p.planId,'Borrador'); });
+  on('#pt-d-apr',()=>ptApr('aprobar')); on('#pt-d-dev',()=>ptApr('devolver'));
+  on('#pt-d-reopen',()=>{ if(confirm('¿Reabrir el plan cerrado? El % de logro se recalculará al cerrarlo de nuevo.'))ptCambiarEstatus(p.planId,'Activo'); });
+  on('#pt-d-del',()=>{ if(!confirm('¿Eliminar este plan en borrador?'))return; ptPost('/plan/eliminar',{id:p.planId}).then(j=>{ if(j&&j.ok){toast('Plan eliminado');ptLista();} else toast(ptErr(j)); }); });
+  on('#pt-d-extra',()=>ptExtra()); on('#pt-d-close',()=>ptCierre()); on('#pt-d-rep',()=>ptVerReporte(p.planId,'avance'));
+  $$('#pt-d-box tr.row').forEach(tr=>{ tr.ondblclick=()=>ptEje(+tr.dataset.act); });
+  $$('#pt-d-box [data-eje]').forEach(b=>b.onclick=ev=>{ev.stopPropagation();ptEje(+b.dataset.eje);});
+}
+function ptCambiarEstatus(id,est,coment){ ptPost('/plan/estatus',{id,estatus:est,comentario:coment||null}).then(j=>{ if(j&&j.ok){ptAbrir(id);ptGlobales();ptBadge(); const num=(PT.D&&PT.D.plan&&PT.D.plan.planId===id)?PT.D.plan.numero:''; if(est==='Por aprobar')ptConfirma(num||('#'+id),'Por aprobar',id); else if(est==='Borrador')toast('Plan devuelto a borrador'); else toast('Plan actualizado');} else toast(ptErr(j)); }); }
+/* Aprobar o devolver (solo Gerencia) */
+function ptApr(modo){
+  const ap=modo==='aprobar'; PT.aprModo=modo;
+  $('#pt-apr-t').textContent=ap?'✅ Aprobar plan de trabajo':'↩ Devolver plan al supervisor';
+  $('#pt-apr-d').textContent=ap?'Al aprobar, el plan queda Activo y el supervisor empieza a registrar su ejecución. Si hiciste ajustes con «Ajustar plan», quedan incluidos.':'El plan vuelve a Borrador para que el supervisor lo ajuste y lo reenvíe.';
+  $('#pt-apr-l').textContent=ap?'Comentario (opcional)':'¿Qué debe ajustar? (obligatorio)'; $('#pt-apr-c').value=''; $('#pt-apr-ok').textContent=ap?'✅ Aprobar':'↩ Devolver'; $('#pt-apr').classList.add('on');
+}
+(function(){
+  const cerrar=()=>$('#pt-apr').classList.remove('on'); $('#pt-apr-x').onclick=$('#pt-apr-cancel').onclick=cerrar;
+  $('#pt-apr-ok').onclick=()=>{ const ap=PT.aprModo==='aprobar', c=$('#pt-apr-c').value.trim(); if(!ap&&!c){toast('Escribe qué debe ajustar el supervisor.');return;} cerrar(); ptCambiarEstatus(PT.D.plan.planId,ap?'Activo':'Borrador',c); };
+})();
+
+/* Registrar ejecución */
+function ptEje(actId){
+  const D=PT.D,p=D.plan; if(p.estatus==='Borrador'){toast('El plan es un borrador: envíalo a aprobación de Gerencia primero.');return;} if(p.estatus==='Por aprobar'){toast('El plan está pendiente de aprobación de Gerencia.');return;} if(p.estatus==='Cerrado'){toast('El plan está cerrado (Gerencia puede reabrirlo).');return;}
+  const a=D.actividades.find(x=>x.actId===actId); if(!a)return; PT.ejeAct=a;
+  const hoy=ptY(new Date()), c=PT.ctxSup[p.supCod]||{vendedores:[]};
+  $('#pt-eje-info').innerHTML='<div><b>'+escA(ptFmt(a.fecha))+' '+escA((a.horaIni||'')+(a.horaFin?'–'+a.horaFin:''))+'</b> · '+escA(PT_TNOM[a.tipo]||a.tipo)+' · <b>'+escA(a.titulo)+'</b>'+(a.meta?'<div class="sub">Meta: '+escA(a.meta)+'</div>':'')+'</div>';
+  $('#pt-e-estado').value='Realizada'; $('#pt-e-fecha').value=a.fecha<=hoy?a.fecha:hoy; $('#pt-e-hora').value=a.horaIni||''; $('#pt-e-cli').value=a.cliNombre||''; $('#pt-e-trab').value=''; $('#pt-e-res').value='';
+  $('#pt-e-rep').innerHTML=ptSel(c.vendedores.map(v=>[v.rep,v.nombre+' ('+v.rep+')']),a.repCodigo||'','— ninguno / varios —');
+  ptEjeHist(); $('#pt-eje').classList.add('on');
+}
+function ptEjeHist(){
+  const a=PT.ejeAct, ej=a.ejecuciones||[];
+  $('#pt-eje-hist').innerHTML=ej.length?'<b style="font-size:12px">Registros anteriores</b>'+ej.map(e=>'<div class="pt-hist"><span class="pt-chip '+ptEstCls(e.estado)+'">'+escA(e.estado)+'</span> '+escA(ptFmtC(e.fechaRealizada))+(e.horaRealizada?' '+escA(e.horaRealizada):'')+' · '+escA(e.registradoPor)+' <button class="x" data-delejec="'+e.ejeId+'" title="Eliminar registro">🗑</button><div>'+escA(e.trabajo||'')+'</div>'+(e.resultado?'<div class="sub">➜ '+escA(e.resultado)+'</div>':'')+((e.repAtendidoNombre||e.cliNombre)?'<div class="sub">'+escA([e.repAtendidoNombre,e.cliNombre].filter(Boolean).join(' · '))+'</div>':'')+'</div>').join(''):'';
+  $$('#pt-eje-hist [data-delejec]').forEach(b=>b.onclick=()=>{ if(!confirm('¿Eliminar este registro de ejecución?'))return; ptPost('/plan/ejecucion-eliminar',{id:0,ejeId:+b.dataset.delejec}).then(j=>{ if(j&&j.ok){toast('Registro eliminado');$('#pt-eje').classList.remove('on');ptAbrir(PT.D.plan.planId);} else toast(ptErr(j)); }); });
+}
+(function(){
+  const cerrar=()=>$('#pt-eje').classList.remove('on'); $('#pt-eje-x').onclick=$('#pt-e-cancel').onclick=cerrar;
+  $('#pt-e-save').onclick=()=>{
+    const a=PT.ejeAct, rep=$('#pt-e-rep').value, c=PT.ctxSup[PT.D.plan.supCod]||{vendedores:[]}, v=c.vendedores.find(x=>x.rep===rep);
+    const b={actId:a.actId,fechaRealizada:$('#pt-e-fecha').value||null,horaRealizada:$('#pt-e-hora').value||null,trabajo:$('#pt-e-trab').value.trim(),repAtendido:rep||null,repAtendidoNombre:v?v.nombre:null,cliId:null,cliNombre:$('#pt-e-cli').value.trim()||null,resultado:$('#pt-e-res').value.trim(),estado:$('#pt-e-estado').value};
+    $('#pt-e-save').disabled=true;
+    ptPost('/plan/ejecucion',b).then(j=>{ $('#pt-e-save').disabled=false; if(!j||!j.ok){toast(ptErr(j));return;} toast('Ejecución guardada · logro '+(j.metricas&&j.metricas.logroPct!=null?j.metricas.logroPct+'%':'—')); cerrar(); ptAbrir(PT.D.plan.planId); }).catch(e=>{$('#pt-e-save').disabled=false;toast('Error: '+e);});
+  };
+})();
+
+/* Actividad adicional */
+function ptExtra(){
+  const p=PT.D.plan, c=PT.ctxSup[p.supCod]||{vendedores:[]}; const hoy=ptY(new Date());
+  $('#pt-a-fecha').value=hoy>=p.desde&&hoy<=p.hasta?hoy:p.desde; $('#pt-a-fecha').min=p.desde; $('#pt-a-fecha').max=p.hasta;
+  $('#pt-a-tipo').innerHTML=ptSel(PT_TIPOS,'otro'); $('#pt-a-hi').value=''; $('#pt-a-hf').value=''; $('#pt-a-tit').value='';
+  $('#pt-a-rep').innerHTML=ptSel(c.vendedores.map(v=>[v.rep,v.nombre+' ('+v.rep+')']),'','— ninguno —'); $('#pt-add').classList.add('on');
+}
+(function(){
+  const cerrar=()=>$('#pt-add').classList.remove('on'); $('#pt-add-x').onclick=$('#pt-a-cancel').onclick=cerrar;
+  $('#pt-a-save').onclick=()=>{
+    const p=PT.D.plan, c=PT.ctxSup[p.supCod]||{vendedores:[]}, rep=$('#pt-a-rep').value, v=c.vendedores.find(x=>x.rep===rep);
+    if(!$('#pt-a-tit').value.trim()){toast('Describe la actividad.');return;}
+    const act={actId:null,fecha:$('#pt-a-fecha').value,horaIni:$('#pt-a-hi').value||null,horaFin:$('#pt-a-hf').value||null,tipo:$('#pt-a-tipo').value,titulo:$('#pt-a-tit').value.trim(),repCodigo:rep||null,repNombre:v?v.nombre:null,prioridad:'M',peso:0,fijo:false,origen:'extra'};
+    ptPost('/plan/actividad',{planId:p.planId,act}).then(j=>{ if(!j||!j.ok){toast(ptErr(j));return;} toast('Actividad agregada (extra)'); cerrar(); ptAbrir(p.planId); });
+  };
+})();
+
+/* Cierre semanal */
+function ptCierre(){
+  const D=PT.D,m=D.plan.metricas; const l=m.logroPct;
+  $('#pt-cie-res').innerHTML='<div class="sub" style="margin-bottom:4px">El cierre lo hace el supervisor el viernes; si no se cierra, el plan queda «Sin cerrar».</div><div>Logro actual: <b style="color:'+ptColLogro(l)+'">'+(l==null?'—':l+'%')+'</b> ('+escA(m.nivel)+') · '+m.realizadas+' realizadas · '+m.parciales+' parciales · <b>'+m.pendientes+' pendientes</b> · '+m.noRealizadas+' no realizadas'+(m.pendientes?'<div class="sub" style="color:var(--bad)">Las actividades pendientes cuentan como 0%. Regístralas o márcalas como no realizadas/reprogramadas antes de cerrar.</div>':'')+'</div>';
+  ['#pt-c-log','#pt-c-apr','#pt-c-com'].forEach(s=>$(s).value=''); $('#pt-cie').classList.add('on');
+}
+(function(){
+  const cerrar=()=>$('#pt-cie').classList.remove('on'); $('#pt-cie-x').onclick=$('#pt-c-cancel').onclick=cerrar;
+  $('#pt-c-save').onclick=()=>{ const id=PT.D.plan.planId; $('#pt-c-save').disabled=true;
+    ptPost('/plan/cerrar',{id,logros:$('#pt-c-log').value.trim(),aprendizajes:$('#pt-c-apr').value.trim(),compromisos:$('#pt-c-com').value.trim()}).then(j=>{ $('#pt-c-save').disabled=false; if(!j||!j.ok){toast(ptErr(j));return;}
+      toast('Plan cerrado · logro final '+(j.logroPct!=null?j.logroPct+'%':'—')); cerrar(); ptAbrir(id); setTimeout(()=>{ if(confirm('Plan cerrado. ¿Abrir el reporte de cierre?'))ptVerReporte(id,'cierre'); },300); }).catch(e=>{$('#pt-c-save').disabled=false;toast('Error: '+e);}); };
+})();
+
+/* ───────── Reportes: catálogo + informes del plan ───────── */
+const PT_CAT=[
+  {ic:'🗂',t:'Plan de trabajo',d:'Programación semanal del supervisor: agenda por día, por vendedor o ejecutivo.',f:'Agenda por día · Por vendedor · Ejecutivo (1 pág.)',acc:()=>ptRepAbrir('plan')},
+  {ic:'📈',t:'Avance del plan',d:'Nivel de logro a la fecha, pendientes y vencidas, estado por día y por tipo de actividad.',f:'Ejecutivo · Detallado por día · Pendientes y vencidas',acc:()=>ptRepAbrir('avance')},
+  {ic:'🔒',t:'Cierre del plan',d:'Resultado final de la semana con % de logro, logros, aprendizajes y compromisos.',f:'Cierre completo · Resumen para Gerencia · Mensaje corto (WhatsApp)',acc:()=>ptRepAbrir('cierre')},
+  {ic:'📋',t:'Consolidado de planes',d:'Todos los planes del periodo con su % de logro, por supervisor.',f:'Tabla comparativa + promedio por supervisor',acc:()=>ptRepAbrir('consol')},
+  {ic:'💰',t:'Cobros del día',d:'Estado y alertas de cobros por vendedor, con cortes 9:50 / 11:50 / 15:30.',f:'Ya disponible en Cobros del día → Reportes',acc:()=>{ptGoTab('cobros');setTimeout(()=>{const b=$('#view-cobros .subtabs button[data-cv=reportes]');if(b)b.click();},50);}},
+  {ic:'📊',t:'Supervisión dinámica',d:'Historial por rango con IEGT, calle e Índice Global; resumen por supervisor/centro.',f:'Detallado · Resumido · PDF · Excel',acc:()=>ptRepSub('hist')},
+  {ic:'🚗',t:'Supervisión de calle',d:'Resultado de las evaluaciones de calle por supervisor, vendedor y factor.',f:'Se obtiene en Análisis (agrupar por Tipo / Supervisor)',acc:()=>ptGoTab('analisis')},
+  {ic:'🤝',t:'Acompañamientos',d:'Acompañamientos realizados y su calificación por vendedor.',f:'Análisis → agrupar por Tipo = Acompañamiento',acc:()=>ptGoTab('analisis')},
+  {ic:'🔎',t:'Auditorías',d:'Auditorías de ruta realizadas y hallazgos.',f:'Análisis → agrupar por Tipo = Auditoría',acc:()=>ptGoTab('analisis')},
+  {ic:'✅',t:'Compromisos realizados',d:'Compromisos acordados en las evaluaciones y su detalle.',f:'Detalle en Análisis (vista Detallada). Reporte dedicado: próximamente',acc:()=>ptGoTab('analisis')}
+];
+function ptGoTab(v){ const b=$('.seg button[data-v='+v+']'); if(b)b.click(); }
+function ptRepSub(w){ $('#rg-cat').classList.toggle('hide',w!=='cat'); $('#rg-main').classList.toggle('hide',w!=='hist'); $('#rg-plan').classList.toggle('hide',w!=='plan'); $$('#rg-tabs button').forEach(b=>b.classList.toggle('on',b.dataset.rs===w)); }
+function ptRepBootCat(){
+  if(PT.R.booted)return; PT.R.booted=true;
+  $('#rg-cat').innerHTML='<div class="note"><span>📚</span><div><b>Catálogo de reportes.</b> Elige el informe que necesitas; cada tarjeta indica los formatos disponibles. Los de <b>planes de trabajo</b> se generan aquí mismo (PDF/Excel); los demás te llevan a su pantalla.</div></div><div class="pt-cards">'
+    +PT_CAT.map((c,i)=>'<div class="pt-card" data-i="'+i+'"><div style="font-size:22px">'+c.ic+'</div><div class="t">'+escA(c.t)+'</div><div class="d">'+escA(c.d)+'</div><div class="f">📄 '+escA(c.f)+'</div></div>').join('')+'</div>';
+  $$('#rg-cat .pt-card').forEach(el=>el.onclick=()=>PT_CAT[+el.dataset.i].acc());
+  $$('#rg-tabs button').forEach(b=>b.onclick=()=>ptRepSub(b.dataset.rs));
+  $('#rg-plan').innerHTML='<button class="pp-back" id="pt-r-back">← Catálogo de reportes</button><div class="filtros">'
+    +'<div class="fl"><label>Informe</label><select id="pt-r-tipo"><option value="plan">🗂 Plan de trabajo</option><option value="avance">📈 Avance del plan</option><option value="cierre">🔒 Cierre del plan</option><option value="consol">📋 Consolidado de planes</option></select></div>'
+    +'<div class="fl"><label>Formato</label><select id="pt-r-fmt"></select></div>'
+    +'<div class="fl"><label>Supervisor</label><select id="pt-r-sup" style="min-width:190px"></select></div><div class="fl"><label>Desde</label><input type="date" id="pt-r-desde"></div><div class="fl"><label>Hasta</label><input type="date" id="pt-r-hasta"></div>'
+    +'<div class="fl" id="pt-r-planwrap"><label>Plan</label><select id="pt-r-plan" style="min-width:260px"></select></div>'
+    +'<button class="go" id="pt-r-go">Generar</button><button class="rbtn" id="pt-r-pdf">🖨 PDF</button><button class="rbtn" id="pt-r-xls">📥 Excel</button><button class="rbtn hide" id="pt-r-copy">📋 Copiar mensaje</button></div>'
+    +'<div id="pt-r-out"><div class="hint">Elige el plan y presiona <b>Generar</b>.</div></div>';
+  const [d,h]=ptRangoDef(); const a=ptD(d);a.setDate(a.getDate()-35); $('#pt-r-desde').value=ptY(a); $('#pt-r-hasta').value=h;
+  $('#pt-r-back').onclick=()=>ptRepSub('cat'); $('#pt-r-tipo').onchange=()=>{PT.R.tipo=$('#pt-r-tipo').value;ptRepFmt();ptRepPlanes();};
+  $('#pt-r-sup').onchange=ptRepPlanes; $('#pt-r-desde').onchange=ptRepPlanes; $('#pt-r-hasta').onchange=ptRepPlanes; $('#pt-r-go').onclick=ptRepGenerar;
+  $('#pt-r-xls').onclick=()=>{ const id=+$('#pt-r-plan').value; if(PT.R.tipo==='consol'||!id){toast('Elige un plan para bajar su Excel.');return;} window.location=BASE+'/apisuperv/plan/excel?id='+id; };
+  $('#pt-r-copy').onclick=()=>{ navigator.clipboard.writeText(PT.R.txt).then(()=>toast('Mensaje copiado'),()=>toast('No se pudo copiar')); };
+  ptCtx('','','',c=>{ PT.ctx=c; $('#pt-r-sup').innerHTML=ptSel(c.supervisores.map(s=>[s.supcod,s.nombre]),'','Todos'); ptRepFmt(); ptRepPlanes(); });
+}
+function ptRepAbrir(tipo){ ptRepSub('plan'); $('#pt-r-tipo').value=tipo; PT.R.tipo=tipo; ptRepFmt(); ptRepPlanes(); }
+const PT_FMT={plan:[['agenda','Agenda por día'],['vendedor','Por vendedor'],['ejecutivo','Ejecutivo (1 página)']],avance:[['ejecutivo','Ejecutivo'],['dia','Detallado por día'],['pendientes','Pendientes y vencidas']],cierre:[['completo','Cierre completo'],['gerencia','Resumen para Gerencia'],['texto','Mensaje corto (WhatsApp)']],consol:[['tabla','Tabla comparativa']]};
+function ptRepFmt(){ const t=$('#pt-r-tipo').value; $('#pt-r-fmt').innerHTML=ptSel(PT_FMT[t],''); $('#pt-r-planwrap').classList.toggle('hide',t==='consol'); }
+function ptRepPlanes(){
+  const q='?supcod='+encodeURIComponent($('#pt-r-sup').value||'')+'&desde='+$('#pt-r-desde').value+'&hasta='+$('#pt-r-hasta').value;
+  api('/plan/lista'+q).then(j=>{ if(!j||!j.ok){$('#pt-r-out').innerHTML='<div class="pt-warn w">'+escA(ptErr(j))+'</div>';return;}
+    PT.R.lista=j.planes; let pl=j.planes; if(PT.R.tipo==='avance')pl=pl.filter(p=>p.estatus==='Activo'||p.estatus==='Cerrado'); if(PT.R.tipo==='cierre')pl=pl.filter(p=>p.estatus==='Cerrado');
+    const sel=PT.R.pre&&j.planes.some(p=>p.planId===PT.R.pre)?PT.R.pre:'';
+    $('#pt-r-plan').innerHTML=ptSel(pl.map(p=>[p.planId,p.numero+' · '+(p.supNombre||p.supCod)+' · '+ptFmtC(p.desde)+'–'+ptFmtC(p.hasta)+' · '+ptEstLbl(p)]),sel,pl.length?'— elige —':'(sin planes para este informe)');
+    if(PT.R.pre){ if(sel)$('#pt-r-plan').value=sel; PT.R.pre=null; if(sel&&PT.R.tipo!=='consol')ptRepGenerar(); }
+  }).catch(e=>$('#pt-r-out').innerHTML='<div class="pt-warn w">Error: '+escA(e)+'</div>');
+}
+function ptVerReporte(id,tipo){ ptGoTab('repgen'); setTimeout(()=>{ ptRepBootCat(); PT.R.pre=id; ptRepAbrir(tipo); },30); }
+function ptBlk(t,inner){return '<div class="pp-block"><div class="sec-title"><h3>'+t+'</h3></div>'+inner+'</div>';}
+function ptKpi(k,v,c){return '<div class="pp-kpi"><div class="k">'+k+'</div><div class="v"'+(c?' style="color:'+c+'"':'')+'>'+v+'</div></div>';}
+function ptKpis(p,fin){ const m=p.metricas||{}, l=fin&&p.logroCongelado!=null?p.logroCongelado:m.logroPct;
+  return '<div class="pp-resumen">'+ptKpi('% de logro'+(fin?' (final)':''),l==null?'—':l+'%',ptColLogro(l))+ptKpi('Nivel',escA(ptNivelCalc(p)),ptColLogro(fin?l:m.logroAFechaPct))+ptKpi('Logro a la fecha',m.logroAFechaPct==null?'—':m.logroAFechaPct+'%')+ptKpi('Realizadas / Parciales',(m.realizadas||0)+' / '+(m.parciales||0))+ptKpi('Pendientes / Vencidas',(m.pendientes||0)+' / '+(m.vencidas||0))+ptKpi('No realiz. / Reprog.',(m.noRealizadas||0)+' / '+(m.reprogramadas||0))+'</div>'; }
+function ptTbl(head,rows){return '<div class="scroller"><table class="pt-tb" style="font-size:12px"><thead><tr>'+head.map(h=>'<th>'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.join('')+'</tbody></table></div>';}
+function ptHoraT(a){return escA((a.horaIni||'')+(a.horaFin?'–'+a.horaFin:'')||'—');}
+function ptUlt(a){const e=a.ejecuciones||[];return e[e.length-1];}
+function ptTablaTipo(D){return ptTbl(['Tipo','Actividades','Realizadas','Parciales','Pendientes','% logro'],D.porTipo.map(x=>{const m=x.metricas;return '<tr><td>'+escA(PT_TNOM[x.clave]||x.clave)+'</td><td>'+m.total+'</td><td>'+m.realizadas+'</td><td>'+m.parciales+'</td><td>'+m.pendientes+'</td><td><b style="color:'+ptColLogro(m.logroPct)+'">'+(m.logroPct==null?'—':m.logroPct+'%')+'</b></td></tr>';}));}
+function ptTablaDia(D){return ptTbl(['Día','Actividades','Realizadas','Parciales','Pendientes','% logro'],D.porDia.map(x=>{const m=x.metricas;return '<tr><td>'+escA(ptFmt(x.clave))+'</td><td>'+m.total+'</td><td>'+m.realizadas+'</td><td>'+m.parciales+'</td><td>'+m.pendientes+'</td><td><b style="color:'+ptColLogro(m.logroPct)+'">'+(m.logroPct==null?'—':m.logroPct+'%')+'</b></td></tr>';}));}
+function ptRepTexto(D){ const p=D.plan,m=p.metricas,l=p.logroCongelado!=null?p.logroCongelado:m.logroPct;
+  return '*CIERRE DEL PLAN DE TRABAJO '+p.numero+(p.cierreTardio?' (cierre tardío)':'')+'*\nSupervisor: '+(p.supNombre||p.supCod)+'\nSemana: '+ptRango(p.desde,p.hasta)+'\n% de logro: *'+(l==null?'—':l+'%')+'* ('+m.nivel+')\nRealizadas '+m.realizadas+' · Parciales '+m.parciales+' · No realizadas '+m.noRealizadas+' · Reprogramadas '+m.reprogramadas+' · Pendientes '+m.pendientes
+    +'\n\n*Logros:* '+(p.cierreLogros||'—')+'\n*Aprendizajes:* '+(p.cierreAprendizajes||'—')+'\n*Compromisos próxima semana:* '+(p.cierreCompromisos||'—'); }
+function ptRepConstruir(D,tipo,fmt){
+  const p=D.plan,acts=D.actividades,dias=[...new Set(acts.map(a=>a.fecha))].sort(); const fin=p.estatus==='Cerrado';
+  const titulo={plan:'Plan de Trabajo Semanal',avance:'Avance del Plan de Trabajo',cierre:'Cierre del Plan de Trabajo'}[tipo];
+  let b=[];
+  if(tipo==='plan'){
+    if(fmt==='agenda')dias.forEach(f=>b.push(ptBlk(escA(ptFmt(f)),ptTbl(['Hora','Tipo','Actividad','Vendedor / cliente','Meta','Prio.'],acts.filter(a=>a.fecha===f&&a.estado!=='Cancelada').map(a=>'<tr><td>'+ptHoraT(a)+'</td><td>'+escA(PT_TNOM[a.tipo]||a.tipo)+'</td><td>'+escA(a.titulo)+'</td><td>'+escA(ptQuienTxt(a)||a.cliNombre||'')+(a.modalidad?' <span class="sub">('+escA(ptModTxt(a))+')</span>':'')+'</td><td>'+escA(a.meta||'')+'</td><td>'+escA(a.prioridad)+'</td></tr>')))));
+    else if(fmt==='vendedor'){ const g={}; acts.filter(a=>a.estado!=='Cancelada').forEach(a=>{const k=a.repNombre||(a.alcance==='todos'?'👥 Todo el equipo (reuniones colectivas)':a.alcanceNombre)||'(Sin vendedor: cobros y gestión)';(g[k]=g[k]||[]).push(a);});
+      Object.keys(g).sort().forEach(k=>b.push(ptBlk(escA(k),ptTbl(['Fecha','Hora','Actividad','Meta'],g[k].map(a=>'<tr><td>'+escA(ptFmtC(a.fecha))+'</td><td>'+ptHoraT(a)+'</td><td>'+escA(a.titulo)+'</td><td>'+escA(a.meta||'')+'</td></tr>'))))); }
+    else { b.push(ptBlk('Resumen del plan',ptTablaTipo(D))); b.push(ptBlk('Distribución por día',ptTablaDia(D))); }
+  } else if(tipo==='avance'){
+    b.push(ptKpis(p,false).replace(/^/,'<div class="pp-block">')+'</div>');
+    if(fmt==='ejecutivo'){ b.push(ptBlk('Avance por tipo de actividad',ptTablaTipo(D))); b.push(ptBlk('Avance por día',ptTablaDia(D))); }
+    else if(fmt==='dia')dias.forEach(f=>b.push(ptBlk(escA(ptFmt(f)),ptTbl(['Hora','Actividad','Estado','Trabajo realizado','Resultado'],acts.filter(a=>a.fecha===f).map(a=>{const u=ptUlt(a);return '<tr><td>'+ptHoraT(a)+'</td><td>'+escA(a.titulo)+'</td><td>'+escA(a.estado)+'</td><td>'+escA(u?u.trabajo||'':'')+'</td><td>'+escA(u?u.resultado||'':'')+'</td></tr>';})))));
+    else { const hoy=ptY(new Date()); const pend=acts.filter(a=>a.origen==='plan'&&['Pendiente','No realizada','Reprogramada'].includes(a.estado));
+      b.push(ptBlk('Pendientes, no realizadas y reprogramadas ('+pend.length+')',pend.length?ptTbl(['Fecha','Hora','Actividad','Con quién','Estado','Situación'],pend.map(a=>'<tr><td>'+escA(ptFmtC(a.fecha))+'</td><td>'+ptHoraT(a)+'</td><td>'+escA(a.titulo)+'</td><td>'+escA(ptQuienTxt(a))+'</td><td>'+escA(a.estado)+'</td><td>'+(a.estado==='Pendiente'&&a.fecha<hoy?'<b style="color:#C0392B">Vencida</b>':a.fecha<hoy?'Revisar':'En fecha')+'</td></tr>')):'<div class="hint">✅ No hay actividades pendientes.</div>')); }
+  } else {
+    if(!fin)b.push('<div class="pp-block"><div class="hint" style="color:#C0392B">⚠️ Este plan aún no está cerrado: el % de logro mostrado es el actual (no definitivo).</div></div>');
+    b.push('<div class="pp-block">'+ptKpis(p,fin)+'</div>');
+    if(fmt==='texto')return {texto:ptRepTexto(D)};
+    b.push(ptBlk('Cierre de la semana','<div style="font-size:13px;line-height:1.6"><p><b>Logros:</b> '+escA(p.cierreLogros||'—')+'</p><p><b>Aprendizajes:</b> '+escA(p.cierreAprendizajes||'—')+'</p><p><b>Compromisos próxima semana:</b> '+escA(p.cierreCompromisos||'—')+'</p></div>'));
+    b.push(ptBlk('Resultado por tipo de actividad',ptTablaTipo(D)));
+    if(fmt==='completo'){ b.push(ptBlk('Resultado por día',ptTablaDia(D)));
+      b.push(ptBlk('Trabajo realizado y resultados',ptTbl(['Fecha','Actividad','Estado','Atendió a','Trabajo realizado','Resultado'],acts.flatMap(a=>(a.ejecuciones||[]).map(e=>'<tr><td>'+escA(ptFmtC(e.fechaRealizada))+'</td><td>'+escA(a.titulo)+'</td><td>'+escA(e.estado)+'</td><td>'+escA([e.repAtendidoNombre,e.cliNombre].filter(Boolean).join(' · '))+'</td><td>'+escA(e.trabajo||'')+'</td><td>'+escA(e.resultado||'')+'</td></tr>')))));
+    }
+  }
+  const sub=escA((p.supNombre||p.supCod)+' · '+ptRango(p.desde,p.hasta)+' · '+p.numero+' · '+ptEstLbl(p)+(p.cierreTardio?' (cierre tardío)':'')+(p.aprobadoPor?' · aprobó '+p.aprobadoPor:'')+(p.objetivo?' · Objetivo: '+p.objetivo:''));
+  return {html:'<div class="pp-report" id="pt-rep"><div class="pp-band"><div class="rt">'+titulo+'</div><div class="rs">'+sub+'</div></div><div class="bd">'+b.join('')+'</div><div class="pp-foot">Generado el '+new Date().toLocaleString('es-DO')+' · <b>Supervisión Dinámica</b></div></div>',titulo,numero:p.numero};
+}
+function ptRepGenerar(){
+  const tipo=$('#pt-r-tipo').value, fmt=$('#pt-r-fmt').value, out=$('#pt-r-out'); $('#pt-r-copy').classList.add('hide');
+  if(tipo==='consol'){
+    const pl=PT.R.lista; if(!pl.length){out.innerHTML='<div class="hint">No hay planes en ese rango.</div>';return;}
+    const por={}; pl.filter(p=>p.estatus==='Activo'||p.estatus==='Cerrado').forEach(p=>{const l=ptLogroPlan(p); if(l==null)return; (por[p.supNombre||p.supCod]=por[p.supNombre||p.supCod]||[]).push(l);});
+    const prom=Object.keys(por).sort().map(k=>'<tr><td>'+escA(k)+'</td><td>'+por[k].length+'</td><td><b style="color:'+ptColLogro(por[k].reduce((s,x)=>s+x,0)/por[k].length)+'">'+(Math.round(por[k].reduce((s,x)=>s+x,0)/por[k].length*10)/10)+'%</b></td></tr>');
+    const rows=pl.map(p=>{const m=p.metricas||{},l=ptLogroPlan(p);return '<tr><td>'+escA(p.numero)+'</td><td>'+escA(p.supNombre||p.supCod)+'</td><td>'+escA(ptFmtC(p.desde)+' – '+ptFmtC(p.hasta))+'</td><td>'+escA(ptEstLbl(p))+(p.cierreTardio?' (tardío)':'')+'</td><td>'+escA(p.aprobadoPor||'—')+'</td><td>'+(m.realizadas||0)+' / '+(m.total||0)+'</td><td><b style="color:'+ptColLogro(l)+'">'+(l==null?'—':l+'%')+'</b></td><td>'+escA(m.nivel||'')+'</td></tr>';});
+    out.innerHTML='<div class="pp-report" id="pt-rep"><div class="pp-band"><div class="rt">Consolidado de Planes de Trabajo</div><div class="rs">'+escA(ptFmtC($('#pt-r-desde').value)+' – '+ptFmtC($('#pt-r-hasta').value))+'</div></div><div class="bd">'+ptBlk('Planes del periodo',ptTbl(['Plan','Supervisor','Semana','Estatus','Aprobó','Realizadas / total','% logro','Nivel'],rows))+ptBlk('Promedio de logro por supervisor (planes activos o cerrados)',ptTbl(['Supervisor','Planes','Logro promedio'],prom))+'</div><div class="pp-foot">Generado el '+new Date().toLocaleString('es-DO')+'</div></div>';
+    PT.R.titulo='consolidado_planes'; return;
+  }
+  const id=+$('#pt-r-plan').value; if(!id){toast('Elige el plan.');return;}
+  out.innerHTML='<div class="hint">Generando…</div>';
+  api('/plan/detalle?id='+id).then(j=>{ if(!j||!j.ok){out.innerHTML='<div class="pt-warn w">'+escA(ptErr(j))+'</div>';return;}
+    const r=ptRepConstruir(j,tipo,fmt);
+    if(r.texto){ PT.R.txt=r.texto; out.innerHTML='<div class="pt-pre">'+escA(r.texto)+'</div>'; $('#pt-r-copy').classList.remove('hide'); return; }
+    out.innerHTML=r.html; PT.R.titulo=(tipo+'_'+r.numero).toLowerCase();
+  }).catch(e=>{out.innerHTML='<div class="pt-warn w">Error: '+escA(e)+'</div>';});
+}
+function ptRepPdf(){
+  if(!$('#pt-rep')){toast('Primero genera el informe.');return;}
+  ppExportarPDF({containerSel:'#pt-rep',botonIds:['pt-r-pdf'],footerTxt:'Plan de Trabajo · Supervisión Dinámica',filename:(PT.R.titulo||'plan_de_trabajo')+'.pdf',jpeg:true});
+}
+document.addEventListener('click',ev=>{ if(ev.target&&ev.target.id==='pt-r-pdf')ptRepPdf(); });
+</script>

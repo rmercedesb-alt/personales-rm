@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Torre de Control — Presentación Ejecutiva · AM Comercial</title>
+<style>
+  :root{
+    --bg:#eef2f8; --panel:#ffffff; --panel-2:#f7f9fd;
+    --ink:#0b1220; --text:#26344c; --mist:#5c6c88; --line:#d8e0ee;
+    --beacon:#1f6feb; --beacon-2:#0ea5e9; --beacon-soft:rgba(31,111,235,.10);
+    --ok:#1a7f37; --warn:#9a6700; --crit:#cf222e;
+    --ok-bg:rgba(26,127,55,.12); --warn-bg:rgba(154,103,0,.14); --crit-bg:rgba(207,34,46,.12);
+    --radar:#1f6feb;
+    --shadow:0 1px 2px rgba(16,26,48,.06),0 8px 30px rgba(16,26,48,.08);
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#070c16; --panel:#0d1626; --panel-2:#0a1120;
+      --ink:#eaf1fb; --text:#c6d3e8; --mist:#8497b6; --line:#1b2942;
+      --beacon:#38bdf8; --beacon-2:#2f81f7; --beacon-soft:rgba(56,189,248,.10);
+      --ok:#3fb950; --warn:#e3b341; --crit:#f85149;
+      --ok-bg:rgba(63,185,80,.13); --warn-bg:rgba(227,179,65,.14); --crit-bg:rgba(248,81,73,.13);
+      --radar:#38bdf8;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="light"]{
+    --bg:#eef2f8; --panel:#ffffff; --panel-2:#f7f9fd;
+    --ink:#0b1220; --text:#26344c; --mist:#5c6c88; --line:#d8e0ee;
+    --beacon:#1f6feb; --beacon-2:#0ea5e9; --beacon-soft:rgba(31,111,235,.10);
+    --ok:#1a7f37; --warn:#9a6700; --crit:#cf222e;
+    --ok-bg:rgba(26,127,55,.12); --warn-bg:rgba(154,103,0,.14); --crit-bg:rgba(207,34,46,.12);
+    --radar:#1f6feb; --shadow:0 1px 2px rgba(16,26,48,.06),0 8px 30px rgba(16,26,48,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#070c16; --panel:#0d1626; --panel-2:#0a1120;
+    --ink:#eaf1fb; --text:#c6d3e8; --mist:#8497b6; --line:#1b2942;
+    --beacon:#38bdf8; --beacon-2:#2f81f7; --beacon-soft:rgba(56,189,248,.10);
+    --ok:#3fb950; --warn:#e3b341; --crit:#f85149;
+    --ok-bg:rgba(63,185,80,.13); --warn-bg:rgba(227,179,65,.14); --crit-bg:rgba(248,81,73,.13);
+    --radar:#38bdf8; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 34px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55;-webkit-font-smoothing:antialiased}
+  .mono{font-family:ui-monospace,"SF Mono","Cascadia Mono",Consolas,"Roboto Mono",monospace;
+    font-variant-numeric:tabular-nums}
+  h1,h2,h3{color:var(--ink);text-wrap:balance;line-height:1.12;letter-spacing:-.02em;margin:0}
+  p{margin:0}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+  section{padding:64px 0;border-top:1px solid var(--line)}
+  .eyebrow{font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--beacon);font-weight:600}
+  .lead{font-size:19px;color:var(--text);max-width:62ch}
+  .muted{color:var(--mist)}
+
+  /* ── Hero ── */
+  .hero{position:relative;overflow:hidden;border-top:none;
+    background:
+      radial-gradient(1200px 520px at 78% -10%,var(--beacon-soft),transparent 60%),
+      linear-gradient(180deg,var(--panel-2),var(--bg));
+    padding:0}
+  .hero-inner{display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center;
+    min-height:clamp(440px,72vh,620px);padding:56px 0}
+  .kicker{display:inline-flex;align-items:center;gap:9px;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--line);background:var(--panel);color:var(--mist);
+    font-family:ui-monospace,Consolas,monospace;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+  .beacon-dot{width:8px;height:8px;border-radius:50%;background:var(--beacon);
+    box-shadow:0 0 0 0 var(--beacon);animation:ping 2.4s infinite}
+  @keyframes ping{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--beacon) 60%,transparent)}
+    70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+  .hero h1{font-size:clamp(38px,6.2vw,68px);font-weight:800;margin:20px 0 16px}
+  .hero h1 .hl{color:var(--beacon)}
+  .radar-wrap{justify-self:center;position:relative;width:min(360px,80vw);aspect-ratio:1}
+  canvas#radar{width:100%;height:100%;display:block}
+  .radar-cap{position:absolute;inset:auto 0 -6px 0;text-align:center;font-family:ui-monospace,Consolas,monospace;
+    font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mist)}
+
+  /* ── generic blocks ── */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;box-shadow:var(--shadow)}
+  h2{font-size:clamp(26px,3.4vw,36px);font-weight:800}
+  .sec-head{margin-bottom:26px;max-width:64ch}
+  .sec-head h2{margin:8px 0 10px}
+
+  /* ── antes / después ── */
+  .ba{border-radius:14px;padding:22px;border:1px solid var(--line)}
+  .ba.before{background:var(--panel);}
+  .ba.after{background:linear-gradient(180deg,var(--beacon-soft),var(--panel));border-color:color-mix(in srgb,var(--beacon) 35%,var(--line))}
+  .ba h3{font-size:15px;letter-spacing:.02em;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .ba ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+  .ba li{display:flex;gap:10px;font-size:14.5px}
+  .ba li .mk{flex:none;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
+  .before .mk{background:var(--crit-bg);color:var(--crit)}
+  .after .mk{background:var(--ok-bg);color:var(--ok)}
+
+  /* ── timeline jornada ── */
+  .timeline{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 22px 18px;box-shadow:var(--shadow)}
+  .track{position:relative;height:64px;margin:18px 4px 6px}
+  .track .rail{position:absolute;left:0;right:0;top:30px;height:3px;border-radius:3px;
+    background:linear-gradient(90deg,var(--beacon),var(--beacon-2))}
+  .tick{position:absolute;top:22px;width:2px;height:19px;background:var(--mist);opacity:.5;transform:translateX(-50%)}
+  .tick.big{height:27px;top:18px;width:3px;background:var(--beacon);opacity:1;border-radius:2px}
+  .tlab{position:absolute;top:44px;transform:translateX(-50%);font-family:ui-monospace,Consolas,monospace;font-size:11px;color:var(--mist);white-space:nowrap}
+  .track .snap{position:absolute;top:8px;transform:translateX(-50%);width:9px;height:9px;border-radius:50%;
+    background:var(--panel);border:2px solid var(--beacon)}
+
+  /* ── monitores panel ── */
+  .panelgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mon{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:15px 15px 15px 18px;overflow:hidden;box-shadow:var(--shadow)}
+  .mon::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--stripe,var(--beacon))}
+  .mon .mt{font-size:14.5px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+  .mon .md{font-size:12.5px;color:var(--mist);margin-top:4px}
+  .mon .code{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;letter-spacing:.06em;color:var(--beacon);margin-top:9px;text-transform:uppercase}
+  .s-crit{--stripe:var(--crit)} .s-warn{--stripe:var(--warn)} .s-ok{--stripe:var(--ok)} .s-beacon{--stripe:var(--beacon)}
+
+  /* ── ciclo de acción ── */
+  .loop{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:6px}
+  .step{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 14px;box-shadow:var(--shadow)}
+  .step .n{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--beacon);font-weight:700}
+  .step h4{margin:6px 0 4px;font-size:14.5px;color:var(--ink)}
+  .step p{font-size:12.5px;color:var(--mist)}
+  .step .arrow{position:absolute;right:-9px;top:50%;transform:translateY(-50%);color:var(--mist);z-index:2;font-size:15px}
+  .step:last-child .arrow{display:none}
+
+  /* ── mock screen ── */
+  .screen{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+  .screen-bar{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:var(--panel-2)}
+  .dot{width:10px;height:10px;border-radius:50%}
+  .screen-bar .t{margin-left:8px;font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--mist);letter-spacing:.04em}
+  .screen-scroll{overflow-x:auto}
+  table.mv{width:100%;border-collapse:collapse;min-width:640px;font-size:13px}
+  table.mv th{background:var(--panel-2);color:var(--mist);font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;
+    font-weight:700;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.mv td{padding:8px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.mv td.n{text-align:center;font-family:ui-monospace,Consolas,monospace;font-weight:600}
+  .cell-ok{background:var(--ok-bg);color:var(--ok)}
+  .cell-warn{background:var(--warn-bg);color:var(--warn)}
+  .cell-crit{background:var(--crit-bg);color:var(--crit)}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-weight:700}
+  .pill.a{background:var(--crit-bg);color:var(--crit)}
+  .pill.z{background:var(--ok-bg);color:var(--ok)}
+  .cap{font-size:12px;color:var(--mist);margin-top:8px;font-style:italic}
+
+  /* ── report visuals ── */
+  .charts{display:grid;grid-template-columns:1.2fr 1fr;gap:16px}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:6px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;box-shadow:var(--shadow)}
+  .kpi .v{font-family:ui-monospace,Consolas,monospace;font-size:30px;font-weight:700;color:var(--ink);line-height:1}
+  .kpi .l{font-size:12px;color:var(--mist);margin-top:6px}
+  .kpi .v.beacon{color:var(--beacon)}
+  .bars{display:flex;align-items:flex-end;gap:12px;height:150px;padding-top:8px}
+  .bar{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
+  .bar .b{width:100%;max-width:34px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,var(--beacon),var(--beacon-2))}
+  .bar .bl{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;color:var(--mist)}
+  .hbar{display:flex;align-items:center;gap:10px;margin:8px 0;font-size:12.5px}
+  .hbar .nm{width:120px;color:var(--text);flex:none}
+  .hbar .track2{flex:1;height:14px;border-radius:7px;background:var(--panel-2);overflow:hidden;border:1px solid var(--line)}
+  .hbar .fill{height:100%;border-radius:7px;background:var(--crit)}
+  .hbar .vv{width:36px;text-align:right;font-family:ui-monospace,Consolas,monospace;color:var(--ink);font-weight:600;flex:none}
+
+  /* ── value list ── */
+  .values{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .val{display:flex;gap:14px;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .val .ic{flex:none;width:38px;height:38px;border-radius:10px;background:var(--beacon-soft);color:var(--beacon);
+    display:grid;place-items:center;font-size:19px}
+  .val h4{margin:0 0 3px;font-size:15px;color:var(--ink)}
+  .val p{font-size:13px;color:var(--mist)}
+
+  /* ── close ── */
+  .close{background:linear-gradient(180deg,var(--panel-2),var(--bg));text-align:center}
+  .close h2{margin-bottom:12px}
+  .close .lead{margin:0 auto}
+
+  footer{border-top:1px solid var(--line);padding:26px 0;color:var(--mist);font-size:12.5px}
+  .foot{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:center}
+  .note{font-size:11.5px;color:var(--mist);margin-top:10px;max-width:70ch}
+
+  @media (max-width:860px){
+    .hero-inner{grid-template-columns:1fr;text-align:left}
+    .radar-wrap{order:-1}
+    .grid2,.grid3,.charts,.values,.panelgrid{grid-template-columns:1fr}
+    .loop{grid-template-columns:1fr 1fr}
+    .kpis{grid-template-columns:1fr 1fr}
+    .step .arrow{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){.beacon-dot{animation:none}}
+</style>
+</head>
+<body>
+
+<!-- ══════════ HERO ══════════ -->
+<header class="hero">
+  <div class="wrap hero-inner">
+    <div>
+      <span class="kicker"><span class="beacon-dot"></span>AM Comercial · Fuerza de Ventas</span>
+      <h1>Torre de <span class="hl">Control</span></h1>
+      <p class="lead">Un centro de mando que vigila la jornada de cada vendedor <b>en tiempo real</b> y convierte cada desviación en una <b>acción a tiempo</b> — no en un hallazgo del día siguiente.</p>
+      <p class="muted" style="margin-top:18px;font-family:ui-monospace,Consolas,monospace;font-size:12.5px;letter-spacing:.04em">
+        VIGILANCIA 8:20–16:00 &nbsp;·&nbsp; CORTE CADA 30 MIN &nbsp;·&nbsp; 9 MONITORES
+      </p>
+    </div>
+    <div class="radar-wrap">
+      <canvas id="radar" width="720" height="720" aria-label="Radar de vigilancia de la fuerza de ventas"></canvas>
+      <div class="radar-cap">Barrido en vivo</div>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════ EL CAMBIO ══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">El cambio de fondo</span>
+      <h2>De reaccionar mañana a corregir ahora</h2>
+      <p class="lead">La diferencia entre saber y actuar es de horas. La Torre acorta esa distancia a minutos.</p>
+    </div>
+    <div class="grid2">
+      <div class="ba before">
+        <h3>◍ Antes — supervisión reactiva</h3>
+        <ul>
+          <li><span class="mk">✕</span><span>El desempeño del día se conocía al cierre, cuando ya no había nada que corregir.</span></li>
+          <li><span class="mk">✕</span><span>Un vendedor detenido, fuera de ruta o sin sincronizar pasaba horas sin que nadie lo notara.</span></li>
+          <li><span class="mk">✕</span><span>El supervisor no sabía a quién llamar primero ni por qué.</span></li>
+          <li><span class="mk">✕</span><span>Sin registro de qué se conversó ni a qué se comprometió el vendedor.</span></li>
+        </ul>
+      </div>
+      <div class="ba after">
+        <h3>◉ Ahora — vigilancia proactiva</h3>
+        <ul>
+          <li><span class="mk">✓</span><span>Cada 30 minutos se toma una foto de la jornada de toda la fuerza de ventas.</span></li>
+          <li><span class="mk">✓</span><span>Las desviaciones se encienden al instante, ordenadas por severidad: se atiende primero lo más grave.</span></li>
+          <li><span class="mk">✓</span><span>Cada contacto queda en bitácora con su compromiso y seguimiento.</span></li>
+          <li><span class="mk">✓</span><span>Al final del día se mide no solo cuánto pasó, sino cuánto se atendió.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CÓMO FUNCIONA ══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">El motor</span>
+      <h2>La jornada, vigilada corte por corte</h2>
+      <p class="lead">El servidor evalúa a cada vendedor automáticamente — aunque nadie tenga la pantalla abierta — y guarda cada alarma para el análisis posterior.</p>
+    </div>
+    <div class="timeline">
+      <div class="track" id="track" aria-hidden="true">
+        <div class="rail"></div>
+      </div>
+      <p class="muted" style="font-size:13px;margin-top:14px">
+        <b style="color:var(--ink)">16 cortes al día.</b> En cada uno se recalculan los 9 indicadores por vendedor y se registran únicamente los casos en alarma — una base histórica que alimenta los reportes gerenciales.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ MONITORES ══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Qué se vigila</span>
+      <h2>Nueve monitores, un tablero</h2>
+      <p class="lead">Cada indicador tiene su umbral, su severidad y se puede activar por vendedor. Todo es configurable — sin tocar código.</p>
+    </div>
+    <div class="panelgrid">
+      <div class="mon s-crit"><div class="mt">1er pedido tardío</div><div class="md">El primer pedido del día llegó después de la hora meta.</div><div class="code">Severidad alta</div></div>
+      <div class="mon s-warn"><div class="mt">Cumplimiento de ruta</div><div class="md">Visitados vs. lo que debería llevar al ritmo de la hora.</div><div class="code">Verde ≥99 · Rojo &lt;89.99</div></div>
+      <div class="mon s-beacon"><div class="mt">Tiempo de visita</div><div class="md">Visitas demasiado cortas o demasiado largas.</div><div class="code">Rango configurable</div></div>
+      <div class="mon s-warn"><div class="mt">Efectividad</div><div class="md">Clientes con pedido sobre clientes visitados.</div><div class="code">Alarma bajo umbral</div></div>
+      <div class="mon s-crit"><div class="mt">Mucho sin sincronizar</div><div class="md">El equipo del vendedor lleva demasiado tiempo sin reportar.</div><div class="code">Severidad alta</div></div>
+      <div class="mon s-warn"><div class="mt">Fuera de su entorno</div><div class="md">GPS lejos del cliente de ruta más cercano.</div><div class="code">Km configurable</div></div>
+      <div class="mon s-warn"><div class="mt">Pedidos fuera de día</div><div class="md">Pedidos a clientes no programados para hoy.</div><div class="code">Cantidad ≥ umbral</div></div>
+      <div class="mon s-beacon"><div class="mt">Cuadre sin cerrar</div><div class="md">No cerró su cuadre obligatorio al terminar la jornada.</div><div class="code">Fin de jornada</div></div>
+      <div class="mon s-beacon"><div class="mt">Último pedido temprano</div><div class="md">Terminó su ruta demasiado temprano según su último pedido.</div><div class="code">Al cerrar el día</div></div>
+    </div>
+    <div class="card" style="margin-top:16px;border-color:color-mix(in srgb,var(--beacon) 35%,var(--line));background:linear-gradient(180deg,var(--beacon-soft),var(--panel))">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="flex:none;width:40px;height:40px;border-radius:11px;background:var(--panel);border:1px solid var(--line);display:grid;place-items:center;font-size:20px">🎯</div>
+        <div>
+          <h3 style="font-size:16px;margin-bottom:4px">Monitores personalizados — metas de venta por grupo</h3>
+          <p class="muted" style="font-size:13.5px">Además de los nueve fijos, la gerencia crea sus propias metas dinámicas: <i>“que los vendedores de la división 10 activen al menos 3 clientes de la categoría X, antes de las 11 AM”</i>. Se miden por día, por grupo, con vigencia por fechas — el mismo tablero, dirigido a la estrategia del mes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CICLO DE ACCIÓN ══════════ -->
+<section style="background:var(--panel-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">El corazón del sistema</span>
+      <h2>El valor no está en ver — está en actuar</h2>
+      <p class="lead">Una alarma sin acción es ruido. La Torre cierra el círculo: detecta, contacta, acuerda y verifica que la alerta realmente se atendió.</p>
+    </div>
+    <div class="loop">
+      <div class="step"><div class="n">01</div><h4>Detecta</h4><p>El motor enciende la desviación y la prioriza por severidad.</p><div class="arrow">→</div></div>
+      <div class="step"><div class="n">02</div><h4>Contacta</h4><p>La Torre llama al vendedor o al supervisor sobre las alertas activas.</p><div class="arrow">→</div></div>
+      <div class="step"><div class="n">03</div><h4>Acuerda</h4><p>Se registra el compromiso y una fecha de seguimiento en la bitácora.</p><div class="arrow">→</div></div>
+      <div class="step"><div class="n">04</div><h4>Silencia</h4><p>El vendedor sale de prioridad; el contador se reinicia al reactivarse.</p><div class="arrow">→</div></div>
+      <div class="step"><div class="n">05</div><h4>Mide</h4><p>Se contabiliza cuántas de las alertas fueron realmente atendidas.</p></div>
+    </div>
+    <div class="card" style="margin-top:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;justify-content:space-between">
+      <div style="max-width:60ch">
+        <h3 style="font-size:16px;margin-bottom:4px">De “lo llamé” a “atendió sus 5 de 5”</h3>
+        <p class="muted" style="font-size:13.5px">Antes bastaba con marcar el contacto. Hoy la Torre distingue entre haber llamado y haber <b>resuelto cada alerta</b>: al contactar se marca cuáles se atienden, y el reporte muestra el nivel de atención real por vendedor y por supervisor.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span class="pill z" style="font-size:15px;padding:6px 14px">✓ atendió 5 / 5</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ IMAGEN 1: MONITOR EN VIVO ══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">El tablero · Monitor en vivo</span>
+      <h2>Todo lo que necesita atención, de un vistazo</h2>
+      <p class="lead">Verde cumple, ámbar advierte, rojo exige acción. Los vendedores en alarma suben; los ya atendidos o que terminaron su ruta se apagan.</p>
+    </div>
+    <div class="screen">
+      <div class="screen-bar">
+        <span class="dot" style="background:var(--crit)"></span><span class="dot" style="background:var(--warn)"></span><span class="dot" style="background:var(--ok)"></span>
+        <span class="t">torre-de-control / monitor-en-vivo · 11:30</span>
+      </div>
+      <div class="screen-scroll">
+        <table class="mv">
+          <thead><tr>
+            <th>Vendedor</th><th>1er pedido</th><th>Cumplim.</th><th>Efect.</th><th>Sync</th><th>Fuera ruta</th><th>Cuadre</th><th>Alarmas</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Miguel A. Berroa <span class="muted mono">(84)</span></td><td class="n cell-crit">12:19</td><td class="n cell-ok">101%</td><td class="n cell-crit">42%</td><td class="n cell-crit">65 min</td><td class="n cell-ok">0.4 km</td><td class="n cell-warn">Abierto</td><td class="n"><span class="pill a">6</span></td></tr>
+            <tr><td>Joan M. Liriano <span class="muted mono">(102)</span></td><td class="n cell-crit">17:15</td><td class="n cell-ok">106%</td><td class="n cell-crit">34%</td><td class="n cell-crit">99 min</td><td class="n cell-crit">10.9 km</td><td class="n cell-warn">Abierto</td><td class="n"><span class="pill a">6</span></td></tr>
+            <tr><td>Sandra Reyes <span class="muted mono">(198)</span></td><td class="n cell-ok">08:12</td><td class="n cell-warn">92%</td><td class="n cell-warn">48%</td><td class="n cell-ok">12 min</td><td class="n cell-ok">0.2 km</td><td class="n cell-warn">Abierto</td><td class="n"><span class="pill a">2</span></td></tr>
+            <tr><td>María del Carmen <span class="muted mono">(8)</span></td><td class="n cell-ok">08:37</td><td class="n cell-ok">103%</td><td class="n cell-warn">51%</td><td class="n cell-ok">6 min</td><td class="n cell-ok">0.1 km</td><td class="n cell-ok">Cerrado</td><td class="n"><span class="pill z">0</span></td></tr>
+            <tr style="opacity:.55"><td>Ángel Rodríguez <span class="muted mono">(78)</span> <span class="muted">🏁 terminó</span></td><td class="n">10:26</td><td class="n">100%</td><td class="n">44%</td><td class="n">8 min</td><td class="n">0 km</td><td class="n cell-ok">Cerrado</td><td class="n"><span class="pill z">0</span></td></tr>
+            <tr style="opacity:.55"><td>Gustavo Montero <span class="muted mono">(118)</span> <span class="muted">✓ contactado 11:05</span></td><td class="n">12:50</td><td class="n">94%</td><td class="n">40%</td><td class="n">14 min</td><td class="n">0 km</td><td class="n cell-warn">Abierto</td><td class="n"><span class="pill z">✓</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <p class="cap">Vista representativa del tablero real de Torre de Control (datos ilustrativos).</p>
+  </div>
+</section>
+
+<!-- ══════════ IMAGEN 2: REPORTES ══════════ -->
+<section style="background:var(--panel-2)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">El tablero · Reporte ejecutivo</span>
+      <h2>La bitácora se vuelve gestión</h2>
+      <p class="lead">Cada alarma y cada contacto quedan registrados. El reporte los cruza por día, por tipo, por supervisor y por vendedor — filtrable a una sola alerta.</p>
+    </div>
+    <div class="charts">
+      <div class="card">
+        <div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px">Alertas por día</div>
+        <div class="bars">
+          <div class="bar"><div class="b" style="height:52%"></div><div class="bl">Lun</div></div>
+          <div class="bar"><div class="b" style="height:74%"></div><div class="bl">Mar</div></div>
+          <div class="bar"><div class="b" style="height:61%"></div><div class="bl">Mié</div></div>
+          <div class="bar"><div class="b" style="height:88%"></div><div class="bl">Jue</div></div>
+          <div class="bar"><div class="b" style="height:69%"></div><div class="bl">Vie</div></div>
+          <div class="bar"><div class="b" style="height:100%"></div><div class="bl">Sáb</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="muted" style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px">Alertas por tipo</div>
+        <div class="hbar"><span class="nm">Sin sincronizar</span><span class="track2"><span class="fill" style="width:100%"></span></span><span class="vv">100%</span></div>
+        <div class="hbar"><span class="nm">1er pedido tardío</span><span class="track2"><span class="fill" style="width:78%;background:var(--warn)"></span></span><span class="vv">78%</span></div>
+        <div class="hbar"><span class="nm">Fuera de ruta</span><span class="track2"><span class="fill" style="width:54%;background:var(--warn)"></span></span><span class="vv">54%</span></div>
+        <div class="hbar"><span class="nm">Cuadre sin cerrar</span><span class="track2"><span class="fill" style="width:37%;background:var(--beacon)"></span></span><span class="vv">37%</span></div>
+        <div class="hbar"><span class="nm">Efectividad</span><span class="track2"><span class="fill" style="width:29%;background:var(--beacon)"></span></span><span class="vv">29%</span></div>
+      </div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="v beacon">6,107</div><div class="l">Alarmas registradas en el período piloto</div></div>
+      <div class="kpi"><div class="v">155</div><div class="l">Contactos con compromiso en bitácora</div></div>
+      <div class="kpi"><div class="v">82</div><div class="l">Vendedores vigilados en vivo por jornada</div></div>
+      <div class="kpi"><div class="v">9</div><div class="l">Monitores activos + metas personalizadas</div></div>
+    </div>
+    <p class="cap">Cifras del período piloto de Torre de Control. Los gráficos son ilustrativos del formato del reporte real.</p>
+  </div>
+</section>
+
+<!-- ══════════ VALOR GERENCIAL ══════════ -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Por qué importa</span>
+      <h2>Lo que gana la gerencia</h2>
+    </div>
+    <div class="values">
+      <div class="val"><div class="ic">⏱️</div><div><h4>Intervención temprana</h4><p>Horas recuperadas por vendedor: la corrección ocurre durante la venta, no después.</p></div></div>
+      <div class="val"><div class="ic">🎯</div><div><h4>Cobertura total</h4><p>Toda la fuerza de ventas vigilada a la vez, con las excepciones que no se miden marcadas a propósito.</p></div></div>
+      <div class="val"><div class="ic">📞</div><div><h4>Responsabilidad medible</h4><p>Cada alerta atendida queda registrada; el supervisor rinde cuentas con datos, no con impresiones.</p></div></div>
+      <div class="val"><div class="ic">📈</div><div><h4>Datos para coaching</h4><p>El histórico revela patrones por vendedor y por supervisor para dirigir el acompañamiento.</p></div></div>
+      <div class="val"><div class="ic">🧭</div><div><h4>Estrategia dirigida</h4><p>Las metas personalizadas convierten la campaña del mes en una alarma diaria y accionable.</p></div></div>
+      <div class="val"><div class="ic">🖨️</div><div><h4>Listo para dirección</h4><p>Reportes imprimibles y exportables a Excel para las reuniones de resultados.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ CIERRE ══════════ -->
+<section class="close">
+  <div class="wrap">
+    <span class="eyebrow">En una frase</span>
+    <h2 style="max-width:20ch;margin:10px auto 0">La Torre no reemplaza al supervisor: le dice a quién llamar, por qué y a qué hora.</h2>
+    <p class="lead" style="margin-top:16px">Convierte los datos que ya genera la fuerza de ventas en decisiones dentro de la misma jornada.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <span>Torre de Control · MovilBusiness Dashboard — AM Comercial, S.A.S.</span>
+    <span class="mono">Presentación ejecutiva</span>
+  </div>
+  <div class="wrap"><p class="note">Nota: las cifras corresponden al período piloto de la Torre de Control; los tableros y gráficos mostrados son representaciones del sistema real en operación. Para una demostración en vivo, acceder al módulo Torre de Control.</p></div>
+</footer>
+
+<script>
+(function(){
+  var c = document.getElementById('radar');
+  if(!c) return;
+  var ctx = c.getContext('2d');
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  function accent(){ return getComputedStyle(document.documentElement).getPropertyValue('--radar').trim() || '#38bdf8'; }
+  function line(){ return getComputedStyle(document.documentElement).getPropertyValue('--line').trim() || '#1b2942'; }
+  var W = c.width, H = c.height, cx = W/2, cy = H/2, R = W*0.46;
+  // blips fijos (posición angular, radio relativo, severidad 0=ok 1=warn 2=crit)
+  var blips = [
+    {a:0.6, r:0.55, s:2}, {a:1.9, r:0.78, s:1}, {a:2.7, r:0.40, s:0},
+    {a:3.5, r:0.68, s:2}, {a:4.5, r:0.30, s:1}, {a:5.3, r:0.85, s:0}, {a:5.9, r:0.60, s:1}
+  ];
+  var sevColors = ['#3fb950','#e3b341','#f85149'];
+  function draw(sweep){
+    ctx.clearRect(0,0,W,H);
+    var ac = accent(), ln = line();
+    // rejilla
+    ctx.strokeStyle = ln; ctx.lineWidth = 2;
+    for(var i=1;i<=4;i++){ ctx.beginPath(); ctx.arc(cx,cy,R*i/4,0,Math.PI*2); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(cx-R,cy); ctx.lineTo(cx+R,cy);
+    ctx.moveTo(cx,cy-R); ctx.lineTo(cx,cy+R); ctx.stroke();
+    // barrido
+    if(!reduce){
+      var g = ctx.createConicGradient ? null : null;
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(sweep);
+      var grad = ctx.createLinearGradient(0,0,R,0);
+      grad.addColorStop(0, hexA(ac,0.35)); grad.addColorStop(1, hexA(ac,0));
+      ctx.beginPath(); ctx.moveTo(0,0); ctx.arc(0,0,R,-0.42,0); ctx.closePath();
+      ctx.fillStyle = grad; ctx.fill();
+      ctx.strokeStyle = hexA(ac,0.9); ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(R,0); ctx.stroke();
+      ctx.restore();
+    }
+    // blips: brillan cuando el barrido pasa por su ángulo
+    for(var b=0; b<blips.length; b++){
+      var bl = blips[b];
+      var bx = cx + Math.cos(bl.a)*R*bl.r, by = cy + Math.sin(bl.a)*R*bl.r;
+      var diff = Math.abs(((sweep - bl.a) % (Math.PI*2) + Math.PI*2) % (Math.PI*2));
+      var glow = reduce ? 0.7 : Math.max(0.18, 1 - Math.min(diff, Math.PI*2-diff)*1.6);
+      ctx.beginPath(); ctx.arc(bx,by, 7+7*glow, 0, Math.PI*2);
+      ctx.fillStyle = hexA(sevColors[bl.s], 0.16*glow+0.05); ctx.fill();
+      ctx.beginPath(); ctx.arc(bx,by, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = hexA(sevColors[bl.s], 0.35+0.65*glow); ctx.fill();
+    }
+    // centro
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fillStyle = accent(); ctx.fill();
+  }
+  function hexA(hex,a){
+    hex = hex.replace('#',''); if(hex.length===3) hex=hex.split('').map(function(x){return x+x}).join('');
+    var n=parseInt(hex,16); return 'rgba('+((n>>16)&255)+','+((n>>8)&255)+','+(n&255)+','+a+')';
+  }
+  if(reduce){ draw(-0.6); return; }
+  var t = 0;
+  function loop(){ t += 0.014; draw(t); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+})();
+
+// Construir los ticks de la línea de tiempo de la jornada (8:20 → 16:00, cada 30 min)
+(function(){
+  var track = document.getElementById('track'); if(!track) return;
+  var start = 8*60+20, end = 16*60, step = 30, span = end-start;
+  for(var m=start; m<=end; m+=step){
+    var pct = (m-start)/span*100;
+    var isHour = (m%60===0);
+    var tick = document.createElement('div'); tick.className='tick'+(isHour?' big':''); tick.style.left=pct+'%'; track.appendChild(tick);
+    var snap = document.createElement('div'); snap.className='snap'; snap.style.left=pct+'%'; track.appendChild(snap);
+    if(isHour || m===start || m===end){
+      var lab = document.createElement('div'); lab.className='tlab'; lab.style.left=pct+'%';
+      lab.textContent = String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+      track.appendChild(lab);
+    }
+  }
+})();
+</script>
+</body>
+</html>

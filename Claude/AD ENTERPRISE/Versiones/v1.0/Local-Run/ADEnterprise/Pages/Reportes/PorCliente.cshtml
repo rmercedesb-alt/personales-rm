@@ -1,0 +1,121 @@
+@page
+@model ADEnterprise.Pages.Reportes.PorClienteModel
+@{ ViewData["Title"] = "Reporte Por Cliente"; }
+
+<div class="d-flex justify-content-between align-items-center mb-2 no-print">
+    <div>
+        <div class="page-title mb-0"><i class="bi bi-person"></i> Reporte Por Cliente</div>
+        <div class="page-subtitle mb-0">Facturas agrupadas y totalizadas por cliente</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="ExportarExcel">
+            <input type="hidden" name="desde"   value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="hasta"   value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="empresa" value="@Model.FiltroEmpresa"/>
+            <input type="hidden" name="estado"  value="@Model.FiltroEstado"/>
+            <button class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+        </form>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir / PDF</button>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-3 no-print"><div class="card-body py-2">
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Desde</label>
+        <input type="date" name="FechaDesde" class="form-control form-control-sm" value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Hasta</label>
+        <input type="date" name="FechaHasta" class="form-control form-control-sm" value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Compañía</label>
+        <select name="FiltroEmpresa" class="form-select form-select-sm">
+            <option value="">— Todas —</option>
+            @foreach (var e in Model.Empresas)
+            { if (e == Model.FiltroEmpresa) { <option value="@e" selected>@e</option> } else { <option value="@e">@e</option> } }
+        </select></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Estado</label>
+        <select name="FiltroEstado" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var est in new[]{"Pendiente","PagadoParcial","Pagada","Vencida"})
+            { if (est == Model.FiltroEstado) { <option value="@est" selected>@est</option> } else { <option value="@est">@est</option> } }
+        </select></div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-app"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="/Reportes/PorCliente" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+    </div>
+</form>
+</div></div>
+
+<div class="print-only mb-3">
+    <h4 class="fw-bold">AD ALL DIGITAL ENTERPRISE — Reporte Por Cliente</h4>
+    <p class="text-muted small">Período: @Model.FechaDesde.ToString("dd/MM/yyyy") al @Model.FechaHasta.ToString("dd/MM/yyyy") | Generado: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+</div>
+
+@if (!Model.Grupos.Any())
+{
+    <div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i> Sin datos.</div>
+}
+else
+{
+<!-- Resumen tabla -->
+<div class="card shadow-sm mb-3">
+<div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+    <i class="bi bi-people"></i> Resumen por Cliente — @Model.Grupos.Count clientes
+</div>
+<div class="card-body p-0">
+<div class="table-responsive">
+<table class="table table-sm table-hover mb-0">
+    <thead class="table-light">
+        <tr>
+            <th>#</th><th>Cliente</th><th class="text-center">Facturas</th>
+            <th class="text-end">Total Facturado</th><th class="text-end">Total Pagado</th>
+            <th class="text-end">Saldo Pendiente</th><th class="text-center">% Cobrado</th>
+        </tr>
+    </thead>
+    <tbody>
+    @{ int rk = 1; }
+    @foreach (var g in Model.Grupos)
+    {
+        <tr>
+            <td class="text-center"><span class="badge" style="background:var(--azul-medio)">@rk</span></td>
+            <td><strong>@g.Cliente</strong></td>
+            <td class="text-center">@g.Facturas.Count</td>
+            <td class="text-end">RD$ @g.TotalMonto.ToString("N2")</td>
+            <td class="text-end text-success">RD$ @g.TotalPagado.ToString("N2")</td>
+            <td class="text-end @(g.TotalPendiente > 0 ? "text-danger fw-bold" : "text-muted")">RD$ @g.TotalPendiente.ToString("N2")</td>
+            <td class="text-center">
+                <div class="d-flex align-items-center gap-1">
+                    <div class="progress flex-grow-1" style="height:8px">
+                        <div class="progress-bar @(g.PorcentajoPago>=100?"bg-success":g.PorcentajoPago>=50?"bg-warning":"bg-danger")"
+                             style="width:@g.PorcentajoPago%"></div>
+                    </div>
+                    <small>@g.PorcentajoPago%</small>
+                </div>
+            </td>
+        </tr>
+        rk++;
+    }
+    </tbody>
+    <tfoot style="background:var(--azul-marino);color:white;font-weight:bold">
+        <tr>
+            <td colspan="3" class="text-end">TOTALES:</td>
+            <td class="text-end">RD$ @Model.Grupos.Sum(g => g.TotalMonto).ToString("N2")</td>
+            <td class="text-end">RD$ @Model.Grupos.Sum(g => g.TotalPagado).ToString("N2")</td>
+            <td class="text-end">RD$ @Model.Grupos.Sum(g => g.TotalPendiente).ToString("N2")</td>
+            <td></td>
+        </tr>
+    </tfoot>
+</table>
+</div>
+</div>
+</div>
+}
+
+@section Scripts {
+<style>
+@@media print {
+    .no-print { display: none !important; } .print-only { display: block !important; }
+    .app-header, .app-navbar, .app-footer { display: none !important; }
+    .main-content { padding: 0 !important; } .card { border: none !important; box-shadow: none !important; }
+}
+.print-only { display: none; }
+</style>
+}

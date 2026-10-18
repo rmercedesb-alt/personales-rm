@@ -1,0 +1,1115 @@
+@page "/"
+@rendermode InteractiveServer
+@using OptimizadorRutas.Models
+@using OptimizadorRutas.Services
+@using ClosedXML.Excel
+@inject RutaService    RutaSvc
+@inject OrsService     OrsSvc
+@inject IJSRuntime     JS
+@implements IDisposable
+
+<PageTitle>Optimizador de Rutas v005 — AM COMERCIAL</PageTitle>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<style>
+/* ── Layout principal (ocupa 100% de .app-body) ─────────────────────── */
+.full-page { display:flex; flex-direction:column; height:100%; overflow:hidden; }
+
+/* ── Pantalla de bienvenida ─────────────────────────────────────────── */
+.welcome-grid {
+    display:grid; grid-template-columns:420px 1fr; gap:0;
+    height:100%; overflow:hidden;
+}
+.panel-load { background:#1e1e2e; color:#cdd6f4; padding:22px 20px; overflow-y:auto; }
+.panel-info { background:#f8f9fa; padding:22px 20px; overflow-y:auto; }
+.panel-load h4 { color:#cba6f7; font-size:14px; margin:0 0 14px; }
+.panel-info h4 { color:#2c3e50; font-size:14px; margin:0 0 12px; }
+
+.form-group  { margin-bottom:12px; }
+.form-label  { display:block; font-size:12px; color:#a6adc8; margin-bottom:3px; }
+.form-select { width:100%; background:#313244; color:#cdd6f4; border:1px solid #45475a;
+               border-radius:5px; padding:5px 8px; font-size:13px; }
+.check-grid  { display:grid; grid-template-columns:1fr 1fr; gap:3px; }
+.check-grid label { font-size:12px; cursor:pointer; padding:2px 0; }
+.check-grid input { margin-right:4px; }
+
+/* ── Toolbar ────────────────────────────────────────────────────────── */
+.toolbar {
+    background:#1e1e2e; color:#cdd6f4; padding:7px 12px;
+    display:flex; gap:7px; align-items:center; flex-wrap:wrap;
+    border-bottom:2px solid #cba6f7; flex-shrink:0;
+}
+.toolbar-group { display:flex; gap:5px; align-items:center; }
+.toolbar-sep   { width:1px; height:26px; background:#45475a; margin:0 3px; }
+.tb-label      { font-size:11px; color:#a6adc8; white-space:nowrap; }
+.tb-select     { background:#313244; color:#cdd6f4; border:1px solid #45475a;
+                 border-radius:4px; padding:3px 5px; font-size:12px; max-width:170px; }
+.tb-num        { background:#313244; color:#cdd6f4; border:1px solid #45475a;
+                 border-radius:4px; padding:3px 5px; font-size:12px; width:60px; text-align:center; }
+
+/* ── Métricas ───────────────────────────────────────────────────────── */
+.metrics-bar { display:flex; gap:7px; padding:5px 10px; background:#fff;
+               border-bottom:1px solid #dee2e6; flex-wrap:wrap; align-items:center; flex-shrink:0; }
+.metric      { background:#f1f3f5; border-radius:5px; padding:3px 9px; text-align:center; }
+.metric span { display:block; font-size:15px; font-weight:700; color:#2c3e50; }
+.metric small{ font-size:10px; color:#868e96; }
+.metric.green span  { color:#2f9e44; }
+.metric.orange span { color:#e67700; }
+.badge-metodo{ font-size:11px; padding:2px 7px; border-radius:10px; background:#d0ebff; color:#1864ab; }
+
+/* ── Mapa ───────────────────────────────────────────────────────────── */
+.map-wrap    { flex:1; position:relative; min-height:120px; }
+#routeMap    { width:100%; height:100%; }
+
+/* ── Controles de animación ────────────────────────────────────────── */
+.anim-controls {
+    position:absolute; top:8px; right:8px; z-index:1000;
+    background:rgba(30,30,46,.9); border-radius:7px;
+    padding:6px 9px; display:flex; gap:5px; align-items:center;
+    box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.anim-controls select { background:#313244; color:#cdd6f4; border:1px solid #45475a;
+                         border-radius:4px; padding:2px 5px; font-size:11px; }
+.btn-anim { border:none; border-radius:4px; padding:4px 9px; cursor:pointer; font-size:11px; font-weight:600; }
+.btn-play { background:#2f9e44; color:#fff; }
+.btn-play:hover { background:#237032; }
+.btn-stop { background:#e03131; color:#fff; }
+.btn-stop:hover { background:#c92a2a; }
+.btn-play:disabled,.btn-stop:disabled { opacity:.5; cursor:default; }
+
+/* ── Leyenda pines ─────────────────────────────────────────────────── */
+.pin-legend {
+    position:absolute; bottom:8px; left:8px; z-index:1000;
+    background:rgba(30,30,46,.85); border-radius:6px;
+    padding:5px 9px; font-size:10px; color:#cdd6f4;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
+}
+.pin-legend span { display:block; line-height:1.8; }
+
+/* ── Handle de resize ──────────────────────────────────────────────── */
+.resize-handle {
+    height:8px; background:#dee2e6; cursor:ns-resize;
+    border-top:1px solid #ced4da; border-bottom:1px solid #ced4da;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0; user-select:none;
+}
+.resize-handle::after { content:"⠿ ⠿ ⠿"; color:#adb5bd; font-size:9px; }
+.resize-handle:hover  { background:#ced4da; }
+
+/* ── Tabla ──────────────────────────────────────────────────────────── */
+.table-wrap  { overflow-y:auto; background:#f8f9fa; flex-shrink:0; }
+#tableWrap   { height:220px; }
+.table-wrap table { font-size:12px; margin:0; width:100%; border-collapse:collapse; }
+.table-wrap th { position:sticky; top:0; background:#343a40; color:#fff;
+                 padding:4px 7px; font-size:11px; white-space:nowrap; z-index:2; }
+.table-wrap td { padding:3px 7px; border-bottom:1px solid #f1f3f5; vertical-align:middle; }
+.changed-row { background:#fff3cd !important; }
+.primer-row  { background:#d3f9d8 !important; }
+.ultimo-row  { background:#ffe3e3 !important; }
+.badge-dia   { display:inline-block; padding:1px 6px; border-radius:10px; color:#fff; font-size:11px; }
+.btn-pin     { border:none; background:transparent; padding:1px 4px; cursor:pointer;
+               font-size:13px; border-radius:3px; line-height:1; }
+.btn-pin:hover      { background:#e9ecef; }
+.btn-pin.active-pin { background:#e8f5e9; border:1px solid #a8d5b5; }
+.pos-input   { width:56px; padding:2px 3px; font-size:12px; text-align:center;
+               border:1px solid #ced4da; border-radius:3px; }
+.pos-input:focus { border-color:#4c6ef5; outline:none; box-shadow:0 0 0 2px rgba(76,110,245,.2); }
+
+/* ── Panel de frecuencia ───────────────────────────────────────────── */
+.freq-panel  { background:#fff8f0; border-top:2px solid #f59f00; overflow-y:auto; flex-shrink:0; }
+.freq-header { background:#f59f00; color:#fff; padding:5px 12px; display:flex; gap:8px;
+               align-items:center; flex-wrap:wrap; font-size:12px; font-weight:600; flex-shrink:0; }
+.freq-day-group { margin:6px 10px; }
+.freq-day-title { font-size:12px; font-weight:700; color:#495057; margin-bottom:4px;
+                  display:flex; gap:8px; align-items:center; }
+.freq-excess-badge { background:#e03131; color:#fff; border-radius:10px; padding:1px 7px; font-size:11px; }
+.freq-table  { font-size:11px; width:100%; border-collapse:collapse; }
+.freq-table th { background:#e9ecef; padding:3px 7px; text-align:left; }
+.freq-table td { padding:2px 7px; border-bottom:1px solid #f1f3f5; vertical-align:middle; }
+.freq-table tr.mover-row { background:#fff3e0; }
+
+/* ── Barra de acciones tabla ───────────────────────────────────────── */
+.table-actions { display:flex; gap:7px; align-items:center; padding:4px 10px;
+                 background:#e9ecef; border-top:1px solid #dee2e6; flex-shrink:0; flex-wrap:wrap; }
+.table-actions span { font-size:11px; color:#495057; }
+
+/* ── Botones ────────────────────────────────────────────────────────── */
+.btn-p      { background:#4c6ef5; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-p:hover { background:#364fc7; }
+.btn-p:disabled { background:#748ffc; cursor:default; }
+.btn-s      { background:#2f9e44; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-s:hover { background:#237032; }
+.btn-s:disabled { background:#74c69d; cursor:default; }
+.btn-w      { background:#f59f00; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-w:hover { background:#e67700; }
+.btn-w:disabled { opacity:.6; cursor:default; }
+.btn-gray   { background:#495057; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-gray:hover { background:#343a40; }
+.btn-teal   { background:#0c8599; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-teal:hover { background:#0a6c7c; }
+.btn-violet { background:#7048e8; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-violet:hover { background:#5f3dc4; }
+.btn-orange { background:#e8590c; color:#fff; border:none; border-radius:5px;
+              padding:5px 11px; cursor:pointer; font-size:12px; white-space:nowrap; }
+.btn-orange:hover { background:#c94a0a; }
+
+.alert-ok  { background:#d3f9d8; border:1px solid #8ce99a; border-radius:4px;
+             padding:4px 9px; font-size:12px; color:#1a7f37; }
+.alert-err { background:#ffe0e0; border:1px solid #ffa8a8; border-radius:4px;
+             padding:4px 9px; font-size:12px; color:#c92a2a; }
+.spinner-wrap { display:flex; align-items:center; justify-content:center;
+                height:120px; color:#888; font-size:14px; }
+</style>
+
+<div class="full-page">
+
+@if (_clientes.Count == 0 && !_cargando)
+{
+    <!-- ══════════ PANTALLA DE BIENVENIDA ════════════════════════════════ -->
+    <div class="welcome-grid">
+
+        <!-- Izquierda: todos los controles de carga -->
+        <div class="panel-load">
+            <h4>📍 Optimizador de Rutas v005</h4>
+
+            @if (_loadingReps)
+            {
+                <div style="color:#888;font-size:13px;">⏳ Conectando a BD...</div>
+            }
+            else if (_errorReps is not null)
+            {
+                <div style="color:#f38ba8;font-size:12px;line-height:1.5;margin-bottom:10px;">
+                    ❌ Sin conexión a BD<br/>
+                    <span style="font-size:10px;">@_errorReps[..Math.Min(120,_errorReps.Length)]</span>
+                </div>
+            }
+            else
+            {
+                <!-- Filtro Supervisor -->
+                @if (_supervisores.Count > 0)
+                {
+                    <div class="form-group">
+                        <label class="form-label">Supervisor(es)</label>
+                        <select id="supSelect" multiple size="4"
+                                class="form-select" style="height:80px;"
+                                @onchange="OnSupChange">
+                            @foreach (var s in _supervisores)
+                            {
+                                <option value="@s.RepCodigo"
+                                        selected="@(_supSel.Contains(s.RepCodigo))">
+                                    @s.Display
+                                </option>
+                            }
+                        </select>
+                        <span style="font-size:10px;color:#6c7086;">
+                            @(_supSel.Count == 0
+                                ? "Todos los supervisores"
+                                : $"{_supSel.Count} supervisore(s) seleccionado(s)")
+                            — Ctrl+clic para varios
+                        </span>
+                    </div>
+                }
+
+                <!-- Representante -->
+                <div class="form-group">
+                    <label class="form-label">Representante(s)</label>
+                    <select id="repSelect" multiple size="6"
+                            class="form-select" style="height:120px;"
+                            @onchange="OnRepChange">
+                        @foreach (var r in _representantes)
+                        {
+                            <option value="@r.RepCodigo"
+                                    selected="@(_repSel.Contains(r.RepCodigo))">
+                                @r.Display
+                            </option>
+                        }
+                    </select>
+                    <span style="font-size:10px;color:#6c7086;">Ctrl+clic para varios</span>
+                </div>
+
+                <!-- Semanas -->
+                <div class="form-group">
+                    <label class="form-label">Semanas</label>
+                    <div class="check-grid">
+                        @for (int s = 1; s <= 4; s++)
+                        { var sem = s;
+                          <label><input type="checkbox"
+                                checked="@_semanas.Contains(sem)"
+                                @onchange="e => OnSemanaChange(sem,(bool)e.Value!)"/>
+                                Sem @sem</label> }
+                    </div>
+                </div>
+
+                <!-- Días -->
+                <div class="form-group">
+                    <label class="form-label">Días</label>
+                    <div class="check-grid">
+                        @foreach (var d in _todosDias)
+                        { var dia=d;
+                          <label><input type="checkbox"
+                                checked="@_diasSel.Contains(dia)"
+                                @onchange="e => OnDiaChange(dia,(bool)e.Value!)"/>
+                                @dia</label> }
+                    </div>
+                </div>
+
+                <!-- Máx. por día -->
+                <div class="form-group">
+                    <label class="form-label">Máx. clientes por día</label>
+                    <input type="number" class="form-select" min="1" max="999"
+                           style="height:auto;padding:5px 8px;"
+                           @bind="_maxPorDia" @bind:event="oninput" />
+                    <span style="font-size:10px;color:#6c7086;">
+                        Clientes que excedan este número se marcarán para frecuencia quincenal
+                    </span>
+                </div>
+
+                <button class="btn-p" style="width:100%;margin-top:4px;"
+                        @onclick="CargarRuta"
+                        disabled="@(_cargando||_repSel.Count==0)">
+                    🔍 Cargar Ruta
+                </button>
+
+                @if (_mensaje is not null)
+                {
+                    <div class="@(_mensajeOk?"alert-ok":"alert-err")" style="margin-top:8px;">
+                        @_mensaje
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- Derecha: descripción + ORS -->
+        <div class="panel-info">
+            <h4>¿Qué hace esta herramienta?</h4>
+            <ul style="font-size:13px;line-height:2;color:#495057;">
+                <li>Filtra representantes por <b>supervisor</b></li>
+                <li>Solo muestra representantes con rutas asignadas</li>
+                <li>Omite clientes con <b>RutPosicion = 0</b></li>
+                <li>Visualiza la secuencia actual en el <b>mapa interactivo</b></li>
+                <li>Pines <b>🟢 INICIO</b> y <b>🔴 FIN</b> arrastrables en el mapa</li>
+                <li>Presiona <b>Recalcular</b> para optimizar el orden geográfico</li>
+                <li>Posiciones asignadas de <b>5 en 5</b> tras optimizar</li>
+                <li>Edita <b>Nueva Pos. ✏️</b> → presiona <b>Organizar</b> para reordenar</li>
+                <li>Descarga <b>Excel + SQL UPDATE</b> de la secuencia</li>
+                <li>Panel <b>📊 Frecuencia</b>: detecta días con exceso y genera SQL para quincenal</li>
+            </ul>
+
+            <hr style="margin:14px 0;" />
+
+            <h4>🔑 OpenRouteService (ORS) — opcional</h4>
+            <p style="font-size:12px;color:#495057;margin-bottom:7px;">
+                Calcula distancias <b>reales por carretera</b>.
+                Registro gratis: <a href="https://openrouteservice.org/dev/#/login" target="_blank">openrouteservice.org</a>
+                (2 000 req/día).
+            </p>
+            <input type="text" class="form-control form-control-sm"
+                   placeholder="eyJvcmciOiI1YjNj..."
+                   @bind="_orsKey" @bind:event="oninput" style="font-size:12px;" />
+            <div style="font-size:11px;color:#868e96;margin-top:3px;">
+                @if (string.IsNullOrWhiteSpace(_orsKey))
+                { <span>Sin clave — se usará Haversine (línea recta)</span> }
+                else
+                { <span style="color:#1a7f37;">✅ ORS activo — distancias reales</span> }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- ══════════ PANTALLA DE DATOS CARGADOS ════════════════════════════ -->
+    @if (_cargando)
+    {
+        <div class="spinner-wrap">⏳ Consultando base de datos...</div>
+    }
+    else
+    {
+        <!-- ── Toolbar ─────────────────────────────────────────────────── -->
+        <div class="toolbar">
+            <div class="toolbar-group">
+                <button class="btn-gray" @onclick="Volver">← Volver</button>
+                <button class="btn-p" @onclick="CargarRuta"
+                        disabled="@(_cargando||_repSel.Count==0)">🔄 Recargar</button>
+            </div>
+            <div class="toolbar-sep"></div>
+
+            <!-- Primer / Último -->
+            <div class="toolbar-group">
+                <span class="tb-label">🟢</span>
+                <select class="tb-select" value="@_primerCliId" @onchange="OnPrimerChange">
+                    <option value="-1">— Automático —</option>
+                    @foreach (var c in _clientes.Where(x=>x.TieneCoordenadas))
+                    { <option value="@c.CliID">@c.CliNombre</option> }
+                </select>
+                <span class="tb-label">🔴</span>
+                <select class="tb-select" value="@_ultimoCliId" @onchange="OnUltimoChange">
+                    <option value="-1">— Automático —</option>
+                    @foreach (var c in _clientes.Where(x=>x.TieneCoordenadas))
+                    { <option value="@c.CliID">@c.CliNombre</option> }
+                </select>
+            </div>
+            <div class="toolbar-sep"></div>
+
+            <!-- Acciones -->
+            <div class="toolbar-group">
+                <button class="btn-s" @onclick="RecalcularSecuencia"
+                        disabled="@(_optimizando||_animando)">
+                    @(_optimizando ? "⏳ Calculando..." : "🔄 Recalcular")
+                </button>
+                @if (_secuenciaOptimizada)
+                {
+                    <button class="btn-violet" @onclick="OrganizarPosiciones" disabled="@_animando">
+                        🔀 Organizar
+                    </button>
+                    <button class="btn-w"
+                            title="Actualiza el campo RutPosicion en la tabla RutaVisitas de la BD con la secuencia calculada"
+                            @onclick="GuardarPosiciones"
+                            disabled="@(_guardando||_animando)">
+                        @(_guardando ? "⏳..." : "💾 Guardar BD")
+                    </button>
+                    <button class="btn-teal" @onclick="DescargarExcelSql" disabled="@_animando">
+                        ⬇ Excel+SQL
+                    </button>
+                }
+            </div>
+            <div class="toolbar-sep"></div>
+
+            <!-- Frecuencia quincenal -->
+            <div class="toolbar-group">
+                <span class="tb-label">Máx/día:</span>
+                <input type="number" class="tb-num" min="1" max="999"
+                       value="@_maxPorDia"
+                       @onchange="@(e => { if(int.TryParse(e.Value?.ToString(),out var v)&&v>0){_maxPorDia=v;RecalcularFrecuencia();} })" />
+                <button class="btn-orange" @onclick="ToggleFreqPanel">
+                    📊 @(_showFreqPanel ? "Ocultar" : "Ver Frecuencia")
+                </button>
+                @if (_showFreqPanel && _excesoPorDia.Count > 0)
+                {
+                    <button class="btn-orange" @onclick="DescargarExcelFrecuencia">
+                        ⬇ Excel Quincenal
+                    </button>
+                }
+            </div>
+
+            @if (_mensaje is not null)
+            {
+                <div class="@(_mensajeOk?"alert-ok":"alert-err")" style="margin-left:auto;max-width:300px;">
+                    @_mensaje
+                </div>
+            }
+        </div>
+
+        <!-- ── Métricas ────────────────────────────────────────────────── -->
+        <div class="metrics-bar">
+            <div class="metric"><span>@_clientes.Count</span><small>Clientes</small></div>
+            <div class="metric"><span>@_clientes.Count(c=>c.TieneCoordenadas)</span><small>Con coord.</small></div>
+            <div class="metric"><span>@_distActualKm km</span><small>Dist. original</small></div>
+            @if (_secuenciaOptimizada)
+            {
+                <div class="metric green"><span>@_distOptKm km</span><small>Dist. optim.</small></div>
+                <div class="metric @(_ahorroKm>=0?"green":"orange")">
+                    <span>@_ahorroKm km</span><small>Ahorro</small>
+                </div>
+                <span class="badge-metodo">@(_metodoUsado=="ors"?"🗺️ ORS carretera":"📐 Haversine")</span>
+            }
+            @if (_primerCliId > 0)
+            { <span style="font-size:11px;color:#2f9e44;">🟢 <b>@(_clientes.FirstOrDefault(c=>c.CliID==_primerCliId)?.CliNombre??"")</b></span> }
+            @if (_ultimoCliId > 0)
+            { <span style="font-size:11px;color:#e03131;">🔴 <b>@(_clientes.FirstOrDefault(c=>c.CliID==_ultimoCliId)?.CliNombre??"")</b></span> }
+            @if (_excesoPorDia.Count > 0)
+            {
+                <span style="font-size:11px;color:#e8590c;">
+                    ⚠️ @_excesoPorDia.Count día(s) exceden @_maxPorDia clientes
+                </span>
+            }
+        </div>
+
+        <!-- ── Mapa ────────────────────────────────────────────────────── -->
+        <div class="map-wrap">
+            <div id="routeMap"></div>
+
+            <div class="anim-controls">
+                <span style="color:#a6adc8;font-size:11px;">▶</span>
+                <select @bind="_animVelocidad"
+                        style="background:#313244;color:#cdd6f4;border:1px solid #45475a;
+                               border-radius:4px;padding:2px 5px;font-size:11px;">
+                    <option value="lento">🐢 Lento</option>
+                    <option value="normal">⚡ Normal</option>
+                    <option value="rapido">🚀 Rápido</option>
+                </select>
+                <button class="btn-anim btn-play" @onclick="PlayRuta"
+                        disabled="@(_animando||_optimizando)">
+                    @(_animando ? "⏸ Animando…" : "▶ Play")
+                </button>
+                @if (_animando)
+                { <button class="btn-anim btn-stop" @onclick="StopAnim">⏹</button> }
+            </div>
+
+            <div class="pin-legend">
+                <span>🟢 INICIO — arrastra para cambiar</span>
+                <span>🔴 FIN — arrastra para cambiar</span>
+                <span style="color:#a6adc8;">O usa botones 🟢🔴 en la tabla</span>
+            </div>
+        </div>
+
+        <!-- ── Handle resize tabla ─────────────────────────────────────── -->
+        <div class="resize-handle" id="tableResizeHandle"></div>
+
+        <!-- ── Acciones de tabla (cuando optimizado) ──────────────────── -->
+        @if (_secuenciaOptimizada)
+        {
+            <div class="table-actions">
+                <span>✏️ Edita <b>Nueva Pos.</b> →</span>
+                <button class="btn-violet" style="padding:3px 9px;font-size:11px;"
+                        @onclick="OrganizarPosiciones">
+                    🔀 Organizar (orden asc. → de 5 en 5)
+                </button>
+            </div>
+        }
+
+        <!-- ── Tabla de clientes ───────────────────────────────────────── -->
+        <div class="table-wrap" id="tableWrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>🟢🔴</th>
+                        <th>Pos. BD</th>
+                        @if (_secuenciaOptimizada) { <th>Nueva Pos. ✏️</th> }
+                        <th>Cliente</th>
+                        <th>Código</th>
+                        <th>Clasificación</th>
+                        <th>Día</th>
+                        <th>Rep.</th>
+                        <th>Prom. Compra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _clientes.OrderBy(x => _secuenciaOptimizada ? x.NuevaPosicion : x.RutPosicion))
+                    {
+                        bool cambio = _secuenciaOptimizada && c.NuevaPosicion != c.RutPosicion;
+                        bool esPrim = c.CliID == _primerCliId;
+                        bool esUlt  = c.CliID == _ultimoCliId;
+                        string css  = esPrim ? "primer-row" : (esUlt ? "ultimo-row" : (cambio ? "changed-row" : ""));
+                        <tr class="@css">
+                            <td style="white-space:nowrap;padding:2px 5px;">
+                                <button class="btn-pin @(esPrim?"active-pin":"")"
+                                        title="@(esPrim?"Quitar INICIO":"Establecer INICIO")"
+                                        @onclick="() => TogglePrimer(c.CliID)">🟢</button>
+                                <button class="btn-pin @(esUlt?"active-pin":"")"
+                                        title="@(esUlt?"Quitar FIN":"Establecer FIN")"
+                                        @onclick="() => ToggleUltimo(c.CliID)">🔴</button>
+                            </td>
+                            <td>@c.RutPosicion</td>
+                            @if (_secuenciaOptimizada)
+                            {
+                                <td>
+                                    <input class="pos-input" type="number" min="1"
+                                           value="@c.PosicionEditada"
+                                           @onchange="@(e => { if(int.TryParse(e.Value?.ToString(),out var v)&&v>0) c.PosicionEditada=v; })" />
+                                </td>
+                            }
+                            <td>@c.CliNombre</td>
+                            <td>@c.CliCodigo</td>
+                            <td>@c.ClaDescripcion</td>
+                            <td>
+                                @if (c.DiaVisita is not null)
+                                { <span class="badge-dia" style="background:@DiaColor(c.DiaVisita)">@c.DiaVisita</span> }
+                            </td>
+                            <td style="font-size:11px;">@c.RepCodigo</td>
+                            <td style="font-size:11px;text-align:right;">@c.CliPromedioCompra.ToString("N0")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── Panel de Frecuencia Quincenal ──────────────────────────── -->
+        @if (_showFreqPanel)
+        {
+            <div class="freq-panel" style="max-height:260px;overflow-y:auto;">
+                <div class="freq-header">
+                    📊 Análisis de Frecuencia Quincenal — Máx. @_maxPorDia clientes/día
+                    &nbsp;·&nbsp; @_excesoPorDia.Values.Sum(l=>l.Count) con exceso
+                    <button @onclick="SeleccionarTodosExceso"
+                            style="border:none;background:rgba(255,255,255,.2);color:#fff;
+                                   border-radius:3px;padding:2px 7px;cursor:pointer;font-size:11px;margin-left:6px;">
+                        ☑ Todos
+                    </button>
+                    <button @onclick="DesmarcarTodosExceso"
+                            style="border:none;background:rgba(255,255,255,.2);color:#fff;
+                                   border-radius:3px;padding:2px 7px;cursor:pointer;font-size:11px;">
+                        ☐ Ninguno
+                    </button>
+                </div>
+
+                @if (_excesoPorDia.Count == 0)
+                {
+                    <div style="padding:10px 12px;font-size:12px;color:#2f9e44;">
+                        ✅ Ningún día excede el límite de @_maxPorDia clientes.
+                    </div>
+                }
+                else
+                {
+                    foreach (var kvp in _excesoPorDia.OrderBy(k => k.Key))
+                    {
+                        int tot = _clientesPorDia.TryGetValue(kvp.Key, out var t) ? t : 0;
+                        <div class="freq-day-group">
+                            <div class="freq-day-title">
+                                <span class="badge-dia" style="background:@DiaColor(kvp.Key)">@kvp.Key</span>
+                                <span>@tot total</span>
+                                <span class="freq-excess-badge">@kvp.Value.Count exceden</span>
+                                <span style="font-size:11px;color:#868e96;">menor prom. compra primero</span>
+                            </div>
+                            <table class="freq-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mover</th><th>Pos.</th><th>Cliente</th>
+                                        <th>Código</th><th>Clasificación</th>
+                                        <th>Rep.</th><th>Prom.Compra</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var cf in kvp.Value)
+                                    {
+                                        <tr class="mover-row">
+                                            <td>
+                                                <input type="checkbox" checked="@cf.Seleccionado"
+                                                       @onchange="@(e => cf.Seleccionado = (bool)(e.Value??false))" />
+                                            </td>
+                                            <td>@(_secuenciaOptimizada ? cf.Cliente.NuevaPosicion : cf.Cliente.RutPosicion)</td>
+                                            <td>@cf.Cliente.CliNombre</td>
+                                            <td>@cf.Cliente.CliCodigo</td>
+                                            <td>@cf.Cliente.ClaDescripcion</td>
+                                            <td>@cf.Cliente.RepCodigo</td>
+                                            <td style="text-align:right;">@cf.Cliente.CliPromedioCompra.ToString("N0")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                }
+            </div>
+        }
+    }
+}
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/js/mapInterop.js"></script>
+
+@code {
+    // ── Constantes ────────────────────────────────────────────────────────
+    static readonly string[] _todosDias =
+        ["Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"];
+
+    static readonly Dictionary<string,string> _diaColores = new()
+    {
+        ["Lunes"]    ="#3498db", ["Martes"]   ="#e74c3c", ["Miercoles"]="#2ecc71",
+        ["Jueves"]   ="#f39c12", ["Viernes"]  ="#9b59b6", ["Sabado"]   ="#1abc9c",
+        ["Domingo"]  ="#95a5a6"
+    };
+    string DiaColor(string d) => _diaColores.TryGetValue(d, out var c) ? c : "#7f8c8d";
+
+    // Posición del bit en la cadena RutSemana (1-indexed para SQL STUFF)
+    static readonly Dictionary<string,int> _diaBitPos = new()
+    {
+        ["Lunes"]=1, ["Martes"]=2, ["Miercoles"]=3,
+        ["Jueves"]=4, ["Viernes"]=5, ["Sabado"]=6, ["Domingo"]=7
+    };
+
+    // ── Clase auxiliar para análisis de frecuencia ───────────────────────
+    sealed class ClienteFrecuencia
+    {
+        public ClienteRuta Cliente      { get; init; } = null!;
+        public bool        Seleccionado { get; set;  } = true;
+    }
+
+    // ── Estado ────────────────────────────────────────────────────────────
+    List<SupervisorInfo>    _supervisores   = [];
+    List<string>            _supSel         = [];
+    List<RepresentanteInfo> _representantes = [];
+    List<string>            _repSel         = [];
+    HashSet<int>            _semanas        = [1,2,3,4];
+    HashSet<string>         _diasSel        = ["Lunes","Martes","Miercoles","Jueves","Viernes"];
+    List<ClienteRuta>       _clientes       = [];
+
+    string  _orsKey             = "";
+    int     _primerCliId        = -1;
+    int     _ultimoCliId        = -1;
+    string  _animVelocidad      = "normal";
+    string  _metodoUsado        = "haversine";
+    int     _maxPorDia          = 70;
+    bool    _showFreqPanel      = false;
+
+    // Análisis de frecuencia
+    Dictionary<string, List<ClienteFrecuencia>> _excesoPorDia   = [];
+    Dictionary<string, int>                     _clientesPorDia = [];
+
+    bool    _loadingReps         = true;
+    bool    _cargando            = false;
+    bool    _optimizando         = false;
+    bool    _guardando           = false;
+    bool    _animando            = false;
+    bool    _secuenciaOptimizada = false;
+    bool    _mapInicializado     = false;
+    bool    _mensajeOk           = true;
+    string? _errorReps           = null;
+    string? _mensaje             = null;
+    double  _distActualKm        = 0;
+    double  _distOptKm           = 0;
+    double  _ahorroKm            = 0;
+
+    DotNetObjectReference<Home>? _dotNetRef;
+
+    // ── Ciclo de vida ─────────────────────────────────────────────────────
+    protected override async Task OnInitializedAsync()
+    {
+        _dotNetRef = DotNetObjectReference.Create(this);
+        try
+        {
+            _supervisores   = await RutaSvc.GetSupervisoresAsync();
+            _representantes = await RutaSvc.GetRepresentantesAsync();
+            if (_representantes.Count > 0)
+                _repSel = [_representantes[0].RepCodigo];
+        }
+        catch (Exception ex) { _errorReps = ex.Message; }
+        finally { _loadingReps = false; }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_mapInicializado && _clientes.Count > 0)
+        {
+            await Task.Delay(80);
+            await JS.InvokeVoidAsync("MapInterop.init", "routeMap");
+            _mapInicializado = true;
+            await JS.InvokeVoidAsync("initResize", "tableResizeHandle", "tableWrap");
+            await RenderizarMapa();
+        }
+    }
+
+    public void Dispose() => _dotNetRef?.Dispose();
+
+    // ── Filtro Supervisor ─────────────────────────────────────────────────
+    async Task OnSupChange(ChangeEventArgs _)
+    {
+        try
+        {
+            var sel = await JS.InvokeAsync<string[]>("getSelectedValues", "supSelect");
+            _supSel = sel?.ToList() ?? [];
+        }
+        catch { _supSel = []; }
+
+        try
+        {
+            _representantes = await RutaSvc.GetRepresentantesAsync(
+                _supSel.Count > 0 ? _supSel : null);
+        }
+        catch { /* silencioso */ }
+        _repSel = _repSel.Where(r => _representantes.Any(x => x.RepCodigo == r)).ToList();
+        StateHasChanged();
+    }
+
+    // ── Representante / días / semanas ────────────────────────────────────
+    async Task OnRepChange(ChangeEventArgs _)
+    {
+        try
+        {
+            var sel = await JS.InvokeAsync<string[]>("getSelectedValues", "repSelect");
+            _repSel = sel?.ToList() ?? [];
+        }
+        catch { if (_.Value is string s && !string.IsNullOrEmpty(s)) _repSel = [s]; }
+    }
+
+    void OnSemanaChange(int s, bool v)
+    { if(v) _semanas.Add(s); else _semanas.Remove(s); if(_semanas.Count==0) _semanas.Add(s); }
+
+    void OnDiaChange(string d, bool v) { if(v) _diasSel.Add(d); else _diasSel.Remove(d); }
+
+    // ── Primer/Último desde dropdown ──────────────────────────────────────
+    async Task OnPrimerChange(ChangeEventArgs e)
+    {
+        _primerCliId = int.TryParse(e.Value?.ToString(), out var v) ? v : -1;
+        if (_mapInicializado && _primerCliId > 0)
+            await JS.InvokeVoidAsync("MapInterop.movePinTo", "inicio", _primerCliId);
+    }
+
+    async Task OnUltimoChange(ChangeEventArgs e)
+    {
+        _ultimoCliId = int.TryParse(e.Value?.ToString(), out var v) ? v : -1;
+        if (_mapInicializado && _ultimoCliId > 0)
+            await JS.InvokeVoidAsync("MapInterop.movePinTo", "fin", _ultimoCliId);
+    }
+
+    // ── Botones 🟢🔴 por fila ─────────────────────────────────────────────
+    async Task TogglePrimer(int cliId)
+    {
+        _primerCliId = (_primerCliId == cliId) ? -1 : cliId;
+        if (_mapInicializado)
+        {
+            if (_primerCliId > 0) await JS.InvokeVoidAsync("MapInterop.movePinTo","inicio",_primerCliId);
+            else await JS.InvokeVoidAsync("MapInterop.initPins",_primerCliId,_ultimoCliId,_dotNetRef);
+        }
+    }
+
+    async Task ToggleUltimo(int cliId)
+    {
+        _ultimoCliId = (_ultimoCliId == cliId) ? -1 : cliId;
+        if (_mapInicializado)
+        {
+            if (_ultimoCliId > 0) await JS.InvokeVoidAsync("MapInterop.movePinTo","fin",_ultimoCliId);
+            else await JS.InvokeVoidAsync("MapInterop.initPins",_primerCliId,_ultimoCliId,_dotNetRef);
+        }
+    }
+
+    // ── Callback pines arrastrables ───────────────────────────────────────
+    [JSInvokable]
+    public void OnPinMoved(string tipo, int cliId)
+    {
+        if (tipo == "inicio") _primerCliId = cliId;
+        else                  _ultimoCliId = cliId;
+        InvokeAsync(StateHasChanged);
+    }
+
+    void Volver()
+    {
+        _clientes.Clear(); _secuenciaOptimizada = false;
+        _mapInicializado = false; _mensaje = null;
+        _primerCliId = -1; _ultimoCliId = -1;
+        _excesoPorDia.Clear(); _clientesPorDia.Clear();
+        _showFreqPanel = false;
+    }
+
+    // ── Cargar ruta ───────────────────────────────────────────────────────
+    async Task CargarRuta()
+    {
+        if (_repSel.Count == 0) return;
+        _cargando = true; _secuenciaOptimizada = false;
+        _mapInicializado = false; _mensaje = null;
+        _clientes = []; _primerCliId = -1; _ultimoCliId = -1;
+        _excesoPorDia.Clear(); _clientesPorDia.Clear();
+        StateHasChanged();
+        try
+        {
+            var raw = await RutaSvc.GetRutaAsync(_repSel);
+            foreach (var c in raw) c.DiaVisita = DetectarDia(c);
+            _clientes = raw
+                .Where(c => c.DiaVisita is not null && c.RutPosicion > 0)  // omite RutPosicion=0
+                .OrderBy(c => c.RutPosicion)
+                .ToList();
+            foreach (var c in _clientes)
+            {
+                c.NuevaPosicion   = c.RutPosicion;
+                c.PosicionEditada = c.RutPosicion;
+            }
+            _distActualKm = RouteOptimizer.DistanciaTotalKm(_clientes);
+            RecalcularFrecuencia();
+            _mensaje   = _clientes.Count == 0
+                ? "Sin clientes para los filtros seleccionados."
+                : $"{_clientes.Count} clientes cargados — orden de BD.";
+            _mensajeOk = _clientes.Count > 0;
+        }
+        catch (Exception ex) { _mensaje = $"Error: {ex.Message}"; _mensajeOk = false; }
+        finally { _cargando = false; StateHasChanged(); }
+    }
+
+    // ── Recalcular secuencia ──────────────────────────────────────────────
+    async Task RecalcularSecuencia()
+    {
+        if (_clientes.Count < 2) return;
+        _optimizando = true; _mensaje = null; StateHasChanged();
+
+        string metodo = "haversine";
+        List<double[]>? orsPolyline = null;
+
+        await Task.Run(async () =>
+        {
+            double[][]? matrix = null;
+            if (!string.IsNullOrWhiteSpace(_orsKey))
+            {
+                var coords = _clientes.Where(c=>c.TieneCoordenadas)
+                                      .Select(c=>(c.Latitud,c.Longitud)).ToList();
+                var ors = await OrsSvc.GetMatrixAsync(coords, _orsKey);
+                if (ors is not null) matrix = ors.DistancesKm;
+            }
+            var copia = _clientes.ToList();
+            metodo = RouteOptimizer.OptimizarSecuencia(copia, _primerCliId, _ultimoCliId, matrix);
+            _clientes.Clear(); _clientes.AddRange(copia);
+
+            if (metodo == "ors" && !string.IsNullOrWhiteSpace(_orsKey))
+            {
+                var ordered = _clientes.Where(c=>c.TieneCoordenadas)
+                                       .Select(c=>(c.Latitud,c.Longitud)).ToList();
+                orsPolyline = await OrsSvc.GetPolylineAsync(ordered, _orsKey);
+            }
+        });
+
+        _metodoUsado         = metodo;
+        _distOptKm           = RouteOptimizer.DistanciaTotalKm(_clientes);
+        _ahorroKm            = Math.Round(_distActualKm - _distOptKm, 1);
+        _secuenciaOptimizada = true;
+        _optimizando         = false;
+        RecalcularFrecuencia();
+
+        string ml = metodo == "ors" ? "ORS (carretera real)" : "Haversine";
+        _mensaje   = $"✅ Optimizado ({ml}) — ahorro {_ahorroKm} km";
+        _mensajeOk = true;
+
+        await RenderizarMapa(orsPolyline);
+        StateHasChanged();
+    }
+
+    // ── Organizar por PosicionEditada ─────────────────────────────────────
+    async Task OrganizarPosiciones()
+    {
+        if (_clientes.Count == 0) return;
+        var sorted = _clientes.OrderBy(c => c.PosicionEditada).ToList();
+        _clientes.Clear(); _clientes.AddRange(sorted);
+        RouteOptimizer.AsignarPosiciones(_clientes);
+        _distOptKm   = RouteOptimizer.DistanciaTotalKm(_clientes);
+        _ahorroKm    = Math.Round(_distActualKm - _distOptKm, 1);
+        _secuenciaOptimizada = true;
+        RecalcularFrecuencia();
+        _mensaje   = $"🔀 Organizado — dist. {_distOptKm} km";
+        _mensajeOk = true;
+        await RenderizarMapa();
+        StateHasChanged();
+    }
+
+    // ── Guardar posiciones en BD ──────────────────────────────────────────
+    async Task GuardarPosiciones()
+    {
+        _guardando = true; StateHasChanged();
+        try
+        {
+            var cambios = _clientes.Select(c => (c.CliID, c.RepCodigo, c.NuevaPosicion));
+            int n = await RutaSvc.GuardarPosicionesAsync(cambios);
+            foreach (var c in _clientes) c.RutPosicion = c.NuevaPosicion;
+            _mensaje = $"✅ {n} posiciones guardadas en BD."; _mensajeOk = true;
+        }
+        catch (Exception ex) { _mensaje = $"Error: {ex.Message}"; _mensajeOk = false; }
+        finally { _guardando = false; StateHasChanged(); }
+    }
+
+    // ── Descargar Excel + SQL (secuencia) ─────────────────────────────────
+    async Task DescargarExcelSql()
+    {
+        try
+        {
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Ruta Optimizada");
+            string[] hdrs = ["Pos. Nueva","Pos. Original","Cliente","Código",
+                              "Clasificación","Día","Representante","SQL UPDATE"];
+            for (int h = 0; h < hdrs.Length; h++) ws.Cell(1,h+1).Value = hdrs[h];
+            var hdr = ws.Range(1,1,1,hdrs.Length);
+            hdr.Style.Font.Bold = true;
+            hdr.Style.Fill.BackgroundColor = XLColor.FromArgb(44,62,80);
+            hdr.Style.Font.FontColor       = XLColor.White;
+
+            var ordered = _clientes.OrderBy(c => c.NuevaPosicion).ToList();
+            for (int i = 0; i < ordered.Count; i++)
+            {
+                var c = ordered[i]; int row = i + 2;
+                ws.Cell(row,1).Value = c.NuevaPosicion;
+                ws.Cell(row,2).Value = c.RutPosicion;
+                ws.Cell(row,3).Value = c.CliNombre;
+                ws.Cell(row,4).Value = c.CliCodigo;
+                ws.Cell(row,5).Value = c.ClaDescripcion;
+                ws.Cell(row,6).Value = c.DiaVisita ?? "";
+                ws.Cell(row,7).Value = c.RepCodigo;
+                ws.Cell(row,8).Value = $"UPDATE RutaVisitas SET RutPosicion={c.NuevaPosicion} WHERE CliID={c.CliID} AND RepCodigo='{c.RepCodigo}';";
+                if (c.NuevaPosicion != c.RutPosicion)
+                    ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromArgb(255,243,205);
+            }
+            ws.Columns().AdjustToContents();
+
+            using var ms = new System.IO.MemoryStream();
+            wb.SaveAs(ms);
+            var fname = $"Ruta_{string.Join("-",_repSel)}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            await JS.InvokeVoidAsync("downloadFile", fname, Convert.ToBase64String(ms.ToArray()));
+            _mensaje = $"✅ {fname} generado."; _mensajeOk = true;
+        }
+        catch (Exception ex) { _mensaje = $"Error Excel: {ex.Message}"; _mensajeOk = false; }
+        StateHasChanged();
+    }
+
+    // ── Panel Frecuencia Quincenal ────────────────────────────────────────
+    void ToggleFreqPanel()
+    {
+        _showFreqPanel = !_showFreqPanel;
+        if (_showFreqPanel) RecalcularFrecuencia();
+    }
+
+    void RecalcularFrecuencia()
+    {
+        _excesoPorDia.Clear();
+        _clientesPorDia.Clear();
+        if (_clientes.Count == 0) return;
+
+        foreach (var g in _clientes.Where(c => c.DiaVisita is not null)
+                                   .GroupBy(c => c.DiaVisita!))
+        {
+            string dia      = g.Key;
+            var    ordenados = (_secuenciaOptimizada
+                ? g.OrderBy(c => c.NuevaPosicion)
+                : g.OrderBy(c => c.RutPosicion)).ToList();
+
+            _clientesPorDia[dia] = ordenados.Count;
+
+            if (ordenados.Count > _maxPorDia)
+            {
+                _excesoPorDia[dia] = ordenados
+                    .Skip(_maxPorDia)
+                    .OrderBy(c => c.CliPromedioCompra)
+                    .ThenBy(c => c.CliVentasAnioActual)
+                    .Select(c => new ClienteFrecuencia { Cliente = c, Seleccionado = true })
+                    .ToList();
+            }
+        }
+    }
+
+    void SeleccionarTodosExceso()
+    { foreach (var l in _excesoPorDia.Values) l.ForEach(x => x.Seleccionado = true); }
+
+    void DesmarcarTodosExceso()
+    { foreach (var l in _excesoPorDia.Values) l.ForEach(x => x.Seleccionado = false); }
+
+    // ── Descargar Excel quincenal ─────────────────────────────────────────
+    async Task DescargarExcelFrecuencia()
+    {
+        try
+        {
+            using var wb = new XLWorkbook();
+
+            // Hoja 1: resumen por día
+            var wsS = wb.Worksheets.Add("Resumen por Día");
+            string[] hS = ["Día","Total","Máx/día","Exceso","Sel. para quincenal"];
+            for (int h = 0; h < hS.Length; h++) wsS.Cell(1,h+1).Value = hS[h];
+            wsS.Range(1,1,1,hS.Length).Style.Font.Bold = true;
+            wsS.Range(1,1,1,hS.Length).Style.Fill.BackgroundColor = XLColor.FromArgb(44,62,80);
+            wsS.Range(1,1,1,hS.Length).Style.Font.FontColor       = XLColor.White;
+            int rS = 2;
+            foreach (var dia in _todosDias)
+            {
+                if (!_clientesPorDia.TryGetValue(dia, out var tot)) continue;
+                int exc = _excesoPorDia.TryGetValue(dia, out var lx) ? lx.Count : 0;
+                int sel = lx?.Count(x => x.Seleccionado) ?? 0;
+                wsS.Cell(rS,1).Value = dia; wsS.Cell(rS,2).Value = tot;
+                wsS.Cell(rS,3).Value = _maxPorDia; wsS.Cell(rS,4).Value = exc;
+                wsS.Cell(rS,5).Value = sel;
+                if (exc > 0) wsS.Row(rS).Style.Fill.BackgroundColor = XLColor.FromArgb(255,243,205);
+                rS++;
+            }
+            wsS.Columns().AdjustToContents();
+
+            // Hoja 2: detalle con SQL quincenal
+            var wsD = wb.Worksheets.Add("Cambios Quincenal");
+            string[] hD = ["Día","Pos.","Cliente","Código","Clasificación",
+                            "Representante","Prom.Compra","SQL UPDATE (quincenal sem.1 y 3)"];
+            for (int h = 0; h < hD.Length; h++) wsD.Cell(1,h+1).Value = hD[h];
+            wsD.Range(1,1,1,hD.Length).Style.Font.Bold = true;
+            wsD.Range(1,1,1,hD.Length).Style.Fill.BackgroundColor = XLColor.FromArgb(230,89,12);
+            wsD.Range(1,1,1,hD.Length).Style.Font.FontColor       = XLColor.White;
+            int rD = 2;
+            foreach (var kvp in _excesoPorDia.OrderBy(k => k.Key))
+            {
+                int bp = _diaBitPos.TryGetValue(kvp.Key, out var b) ? b : 1;
+                foreach (var cf in kvp.Value.Where(x => x.Seleccionado))
+                {
+                    var c   = cf.Cliente;
+                    int pos = _secuenciaOptimizada ? c.NuevaPosicion : c.RutPosicion;
+                    // Limpia bit del día en semanas 2 y 4 → cliente queda sem.1 y 3 (quincenal)
+                    string sql =
+                        $"UPDATE RutaVisitas SET " +
+                        $"RutSemana2=STUFF(RutSemana2,{bp},1,'0')," +
+                        $"RutSemana4=STUFF(RutSemana4,{bp},1,'0') " +
+                        $"WHERE CliID={c.CliID} AND RepCodigo='{c.RepCodigo}';";
+                    wsD.Cell(rD,1).Value = kvp.Key; wsD.Cell(rD,2).Value = pos;
+                    wsD.Cell(rD,3).Value = c.CliNombre; wsD.Cell(rD,4).Value = c.CliCodigo;
+                    wsD.Cell(rD,5).Value = c.ClaDescripcion; wsD.Cell(rD,6).Value = c.RepCodigo;
+                    wsD.Cell(rD,7).Value = (double)c.CliPromedioCompra;
+                    wsD.Cell(rD,8).Value = sql;
+                    rD++;
+                }
+            }
+            wsD.Columns().AdjustToContents();
+
+            using var ms = new System.IO.MemoryStream();
+            wb.SaveAs(ms);
+            var fname = $"Quincenal_{string.Join("-",_repSel)}_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            await JS.InvokeVoidAsync("downloadFile", fname, Convert.ToBase64String(ms.ToArray()));
+            _mensaje = $"✅ {fname} generado."; _mensajeOk = true;
+        }
+        catch (Exception ex) { _mensaje = $"Error Excel: {ex.Message}"; _mensajeOk = false; }
+        StateHasChanged();
+    }
+
+    // ── Animación ─────────────────────────────────────────────────────────
+    async Task PlayRuta()
+    {
+        if (_animando || !_mapInicializado) return;
+        _animando = true; _mensaje = null; StateHasChanged();
+        await JS.InvokeVoidAsync("MapInterop.startAnimation", _animVelocidad, _dotNetRef);
+    }
+
+    async Task StopAnim()
+    {
+        await JS.InvokeVoidAsync("MapInterop.stopAnimation");
+        _animando = false; StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void OnAnimacionTerminada()
+    {
+        _animando = false; _mensaje = "▶ Animación completada."; _mensajeOk = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    // ── Renderizar mapa ───────────────────────────────────────────────────
+    async Task RenderizarMapa(List<double[]>? orsPolyline = null)
+    {
+        if (!_mapInicializado) return;
+        var puntos = _clientes
+            .Where(c => c.TieneCoordenadas)
+            .Select(c => new {
+                lat=c.Latitud, lng=c.Longitud,
+                nombre=c.CliNombre, codigo=c.CliCodigo, cla=c.ClaDescripcion,
+                dia=c.DiaVisita??"",
+                pos=_secuenciaOptimizada ? c.NuevaPosicion : c.RutPosicion,
+                cliId=c.CliID
+            })
+            .OrderBy(p => p.pos).ToList();
+
+        await JS.InvokeVoidAsync("MapInterop.renderClientes", puntos, orsPolyline);
+        await JS.InvokeVoidAsync("MapInterop.initPins", _primerCliId, _ultimoCliId, _dotNetRef);
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────
+    string? DetectarDia(ClienteRuta c)
+    {
+        foreach (int s in _semanas.OrderBy(x => x))
+        {
+            string bits = s switch {
+                1=>c.RutSemana1,2=>c.RutSemana2,3=>c.RutSemana3,4=>c.RutSemana4,_=>"0000000"
+            };
+            var d = BitsToDia(bits);
+            if (d is not null && _diasSel.Contains(d)) return d;
+        }
+        return null;
+    }
+
+    static string? BitsToDia(string bits)
+    {
+        if (string.IsNullOrEmpty(bits) || bits.Length < 7) return null;
+        string[] dias = ["Lunes","Martes","Miercoles","Jueves","Viernes","Sabado","Domingo"];
+        for (int i = 0; i < 7; i++) if (bits[i] == '1') return dias[i];
+        return null;
+    }
+}

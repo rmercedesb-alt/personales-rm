@@ -1,0 +1,262 @@
+@page
+@model ADEnterprise.Pages.CuentasCobrar.ConsultaPagosModel
+@{ ViewData["Title"] = "Consulta de Pagos"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-receipt-cutoff"></i> Consulta de Pagos</div>
+        <div class="page-subtitle">Agrupados por Número de Recibo / Instrumento de Pago</div>
+    </div>
+    <a href="/CuentasCobrar/Registrar" class="btn btn-primary-app btn-sm">
+        <i class="bi bi-plus-circle"></i> Nuevo Recibo
+    </a>
+</div>
+
+<!-- ── FILTROS ───────────────────────────────────────────────────────────── -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">N° Recibo</label>
+                <input type="text" id="fRecibo" class="form-control form-control-sm"
+                       placeholder="REC-..." />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">N° Cheque / Ref</label>
+                <input type="text" id="fCheque" class="form-control form-control-sm" placeholder="Cheque o ref."/>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Empresa</label>
+                <select id="fEmpresa" class="form-select form-select-sm">
+                    <option value="">Todas</option>
+                    @foreach (var e in Model.Empresas)
+                    { <option value="@e.ToLower()">@e</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small mb-1">Cliente</label>
+                <select id="fCliente" class="form-select form-select-sm">
+                    <option value="">Todos</option>
+                    @foreach (var c in Model.Clientes)
+                    { <option value="@c.ToLower()">@c</option> }
+                </select>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label fw-semibold small mb-1">Desde</label>
+                <input type="date" id="fDesde" class="form-control form-control-sm"/>
+            </div>
+            <div class="col-md-1">
+                <label class="form-label fw-semibold small mb-1">Hasta</label>
+                <input type="date" id="fHasta" class="form-control form-control-sm"/>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button class="btn btn-primary-app btn-sm flex-grow-1" onclick="aplicarFiltros()">
+                    <i class="bi bi-search"></i> Filtrar
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="limpiarFiltros()">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── ACORDEÓN DE RECIBOS ───────────────────────────────────────────────── -->
+<div id="listaRecibos">
+@foreach (var recibo in Model.Recibos)
+{
+    var isOpen = recibo.NumRecibo == Model.ReciboAbierto;
+    var badgeFmt = recibo.FormaPago switch {
+        "Cheque"       => "bg-primary",
+        "Transferencia"=> "bg-info text-dark",
+        "Deposito"     => "bg-secondary",
+        "Efectivo"     => "bg-success",
+        _              => "bg-warning text-dark"
+    };
+    var balanceClass = recibo.Balance < 0 ? "text-danger" :
+                       recibo.Balance > 0.01M ? "text-warning" : "text-success";
+    var empresas = recibo.Pagos.Select(p => p.EmpresaNombre).Where(e => !string.IsNullOrEmpty(e)).Distinct().ToList();
+    var clientes = recibo.Pagos.Select(p => p.ClienteNombre).Where(c => !string.IsNullOrEmpty(c)).Distinct().ToList();
+
+    <div class="card shadow-sm mb-2 recibo-card"
+         data-recibo="@recibo.NumRecibo.ToLower()"
+         data-cheque="@recibo.NumCheque.ToLower()"
+         data-empresa="@string.Join(" ", empresas).ToLower()"
+         data-cliente="@string.Join(" ", clientes).ToLower()"
+         data-fecha="@recibo.Fecha.ToString("yyyy-MM-dd")">
+
+        <!-- ENCABEZADO (clickable) -->
+        <div class="card-header d-flex align-items-center gap-2 py-2"
+             style="cursor:pointer;background:#f8f9fa"
+             onclick="toggleRecibo('@Html.Raw(recibo.NumRecibo)')">
+            <i class="bi bi-chevron-@(isOpen ? "down" : "right") text-muted"
+               id="ico-@recibo.NumRecibo.Replace("-","_")"></i>
+
+            <span class="font-monospace fw-bold" style="font-size:.88rem;color:var(--azul-marino)">
+                @recibo.NumRecibo
+            </span>
+            <span class="badge @badgeFmt" style="font-size:.72rem">@recibo.FormaPago</span>
+            @if (!string.IsNullOrEmpty(recibo.NumCheque))
+            {
+                <span class="text-muted small"><i class="bi bi-hash"></i>@recibo.NumCheque</span>
+            }
+            <span class="text-muted small ms-1">
+                <i class="bi bi-calendar3"></i> @recibo.Fecha.ToString("dd/MM/yyyy")
+            </span>
+            <span class="text-muted small ms-1 text-truncate d-none d-md-inline" style="max-width:160px">
+                @string.Join(", ", empresas.Take(2))
+            </span>
+            <span class="ms-auto d-flex gap-3 align-items-center flex-wrap">
+                <a href="/CuentasCobrar/ImprimirRecibo?num=@Uri.EscapeDataString(recibo.NumRecibo)"
+                   target="_blank"
+                   class="btn btn-sm btn-outline-secondary py-0 px-2"
+                   style="font-size:.72rem" title="Imprimir recibo" onclick="event.stopPropagation()">
+                    <i class="bi bi-printer"></i>
+                </a>
+                <a href="/CuentasCobrar/EditarRecibo?num=@Uri.EscapeDataString(recibo.NumRecibo)"
+                   class="btn btn-sm btn-outline-primary py-0 px-2"
+                   style="font-size:.72rem" title="Editar / Eliminar recibo" onclick="event.stopPropagation()">
+                    <i class="bi bi-pencil-square"></i>
+                </a>
+                <span class="small text-muted">
+                    <i class="bi bi-ticket-detailed"></i> @recibo.Pagos.Count tkt(s)
+                </span>
+                <span class="small">
+                    <span class="text-muted">Instrumento:</span>
+                    <strong class="text-primary">RD$ @recibo.MontoInstrumento.ToString("N2")</strong>
+                </span>
+                <span class="small">
+                    <span class="text-muted">Aplicado:</span>
+                    <strong class="text-success">RD$ @recibo.TotalAplicado.ToString("N2")</strong>
+                </span>
+                @if (Math.Abs(recibo.Balance) > 0.01M)
+                {
+                    <span class="small">
+                        <span class="text-muted">Balance:</span>
+                        <strong class="@balanceClass">RD$ @recibo.Balance.ToString("N2")</strong>
+                    </span>
+                }
+            </span>
+        </div>
+
+        <!-- DETALLE (colapsable) -->
+        <div id="det-@recibo.NumRecibo.Replace("-","_")" style="display:@(isOpen ? "" : "none")">
+            <div class="card-body p-0">
+                <table class="table table-sm table-hover mb-0" style="font-size:.82rem">
+                    <thead class="table-light" style="font-size:.78rem">
+                        <tr>
+                            <th>#Ticket</th><th>Empresa</th><th>Cliente</th>
+                            <th class="text-end">Monto Aplicado</th>
+                            <th>Fecha Pago</th><th>Estado Fact.</th>
+                            <th class="text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var pd in recibo.Pagos)
+                    {
+                        var estBadge = pd.EstadoFactura switch {
+                            "Pagada"        => "bg-success",
+                            "PagadoParcial" => "bg-warning text-dark",
+                            "Vencida"       => "bg-danger",
+                            "Credito"       => "bg-info text-dark",
+                            _               => "bg-secondary"
+                        };
+                        <tr>
+                            <td class="fw-bold">#@pd.Pago.NumTicket</td>
+                            <td class="text-truncate" style="max-width:150px">@pd.EmpresaNombre</td>
+                            <td class="text-truncate" style="max-width:130px">@pd.ClienteNombre</td>
+                            <td class="text-end fw-bold text-success">RD$ @pd.Pago.MontoPagado.ToString("N2")</td>
+                            <td>@pd.Pago.FechaPago.ToString("dd/MM/yyyy")</td>
+                            <td><span class="badge @estBadge" style="font-size:.7rem">@pd.EstadoFactura</span></td>
+                            <td class="text-center">
+                                <a href="/Facturacion/Detalle?ticket=@pd.Pago.NumTicket"
+                                   class="btn btn-xs btn-outline-secondary py-0 px-1"
+                                   style="font-size:.72rem" title="Ver factura">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot class="fw-bold table-light" style="font-size:.8rem">
+                        <tr>
+                            <td colspan="3" class="text-end">Total del recibo:</td>
+                            <td class="text-end text-success">RD$ @recibo.TotalAplicado.ToString("N2")</td>
+                            <td colspan="3">
+                                <span class="text-muted small">
+                                    Por: @recibo.UsuarioRegistro
+                                </span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+@if (!Model.Recibos.Any())
+{
+    <div class="text-center text-muted py-5">
+        <i class="bi bi-inbox fs-1"></i>
+        <div class="mt-2">No hay pagos registrados.</div>
+        <a href="/CuentasCobrar/Registrar" class="btn btn-primary-app btn-sm mt-2">
+            <i class="bi bi-plus-circle"></i> Registrar primer pago
+        </a>
+    </div>
+}
+</div>
+
+@section Scripts {
+<script>
+const reciboAbierto = '@Model.ReciboAbierto';
+
+function toggleRecibo(numRecibo) {
+    const safeId = numRecibo.replace(/-/g, '_');
+    const det = document.getElementById('det-' + safeId);
+    const ico = document.getElementById('ico-' + safeId);
+    if (!det) return;
+    const open = det.style.display === 'none';
+    det.style.display = open ? '' : 'none';
+    if (ico) ico.className = `bi bi-chevron-${open ? 'down' : 'right'} text-muted`;
+}
+
+function aplicarFiltros() {
+    const fRec   = (document.getElementById('fRecibo').value  || '').toLowerCase().trim();
+    const fChe   = (document.getElementById('fCheque').value  || '').toLowerCase().trim();
+    const fEmp   = (document.getElementById('fEmpresa').value || '').toLowerCase().trim();
+    const fCli   = (document.getElementById('fCliente').value || '').toLowerCase().trim();
+    const fDes   = document.getElementById('fDesde').value;
+    const fHas   = document.getElementById('fHasta').value;
+
+    document.querySelectorAll('.recibo-card').forEach(card => {
+        const okRec = !fRec || (card.dataset.recibo||'').includes(fRec);
+        const okChe = !fChe || (card.dataset.cheque||'').includes(fChe);
+        const okEmp = !fEmp || (card.dataset.empresa||'').includes(fEmp);
+        const okCli = !fCli || (card.dataset.cliente||'').includes(fCli);
+        const f     = card.dataset.fecha || '';
+        const okDes = !fDes || f >= fDes;
+        const okHas = !fHas || f <= fHas;
+        card.style.display = (okRec && okChe && okEmp && okCli && okDes && okHas) ? '' : 'none';
+    });
+}
+
+function limpiarFiltros() {
+    ['fRecibo','fCheque','fDesde','fHasta'].forEach(id =>
+        document.getElementById(id).value = '');
+    ['fEmpresa','fCliente'].forEach(id =>
+        document.getElementById(id).value = '');
+    document.querySelectorAll('.recibo-card').forEach(c => c.style.display = '');
+}
+
+// Auto-expandir y hacer scroll al recibo recién creado
+window.addEventListener('DOMContentLoaded', () => {
+    if (reciboAbierto) {
+        document.getElementById('fRecibo').value = reciboAbierto;
+        const card = document.querySelector(`[data-recibo="${reciboAbierto.toLowerCase()}"]`);
+        if (card) {
+            setTimeout(() => card.scrollIntoView({ behavior:'smooth', block:'center' }), 300);
+        }
+    }
+});
+</script>
+}

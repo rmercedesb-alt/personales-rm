@@ -1,0 +1,1840 @@
+PROYECTO DE DESARROLLO
+Sistema de Administración de Inmuebles
+República Dominicana — Módulo Integral de Gestión de Rentas
+Versión:
+3.0 — Documento integrado y definitivo
+Fecha:
+Junio 2026
+Ámbito:
+Una empresa administradora · Múltiples propietarios e inquilinos
+Moneda:
+Pesos Dominicanos (DOP)
+Tipos de inmueble:
+Apartamentos · Casas · Locales comerciales · Oficinas · Pensiones
+Novedades v3:
+Dirección extendida + GPS · Modelo 
+CxC
+ completo · Custodia de pagos (3 estadios) · Mapa interactivo · 
+Dashboard
+ ejecutivo
+Historial de Versiones
+Versión
+Fecha
+Cambios Principales
+v1.0
+Mayo 2026
+Diseño inicial: propietarios, inmuebles, inquilinos, contratos, cobranza básica, WhatsApp, reportes.
+v2.0
+Junio 2026
+Dirección extendida + geolocalización GPS · Modelo 
+CxC
+ rediseñado · Cargos adicionales por contrato · Periodicidad quincenal · Mapa interactivo · 
+Dashboard
+ ejecutivo.
+v3.0
+Junio 2026
+Integración del flujo de custodia de pagos: estadios COBRADO → EN_ADMINISTRACIÓN → LIQUIDADO · Sesión de caja diaria · Cuadre del administrador · Log de auditoría inmutable (
+custodia_log
+) · Documentos de cierre de caja y liquidación.
+1. Resumen Ejecutivo
+Este documento define, en su versión definitiva 3.0, el proyecto de desarrollo de un sistema informático integral para la administración profesional de inmuebles en la República Dominicana. El sistema permite a una empresa administradora gestionar múltiples propietarios e inquilinos sobre distintos tipos de inmuebles —apartamentos, casas, locales comerciales, oficinas y pensiones— cubriendo el ciclo completo desde la incorporación del bien hasta que el dinero cobrado llega verificado y liquidado al propieta
+rio.
+Capacidades Principales del Sistema
+Gestión completa de propietarios, inmuebles con geolocalización GPS, inquilinos y contratos.
+Generación automática de cargos 
+CxC
+ (mensual y quincenal) con cargos adicionales configurables por contrato.
+Flujo de custodia de pagos en tres estadios: COBRADO → EN_ADMINISTRACIÓN → LIQUIDADO, con cuadre diario de caja y liquidación agrupada al propietario.
+Log de auditoría inmutable que rastrea cada cambio de estado de cada peso cobrado.
+Mapa interactivo con semáforo visual de morosidad sobre todos los inmuebles del portafolio.
+Dashboard
+ ejecutivo en tiempo real para el operador interno.
+Avisos automáticos por WhatsApp Business API: vencimientos, mora, confirmaciones de pago, liquidaciones.
+Reportes completos exportables en PDF y Excel.
+Acceso remoto vía web / 
+app
+ móvil (PWA) desde cualquier dispositivo.
+2. Marco Legal Aplicable — República Dominicana
+2.1 Ley 4314 de 1955 (Ley de Alquileres)
+Los contratos pueden ser verbales o escritos; el sistema exige contrato escrito registrado.
+La tasa de mora no está fijada por ley: se pacta en cada contrato y es parametrizable en el sistema.
+El desahucio requiere notificación formal con 30 días mínimo; el sistema documenta el 
+proceso
+ pero no sustituye el acto jurídico.
+2.2 Código Civil Dominicano (Arts. 1708–1831)
+Art. 1762: el contrato puede rescindirse si el inquilino no paga dos mensualidades consecutivas. El sistema emite alerta automática crítica al cumplirse esta condición.
+Obligaciones del arrendatario: pago puntual, uso conforme al destino pactado, devolución del inmueble en el estado recibido.
+2.3 Aspectos Fiscales — DGII
+Los ingresos por alquiler están sujetos al ISR para el propietario. El sistema genera el reporte mensual de recaudaciones útil para la declaración anual.
+El administrador debe emitir comprobantes fiscales (NCF) por su comisión de gestión si opera como empresa.
+Notas Legales Importantes
+CxC
+ y efectos jurídicos: la generación automática del cargo 
+CxC
+ es un registro contable interno. Para que una notificación de mora produzca efectos jurídicos frente al inquilino, debe respaldarse con comunicación escrita entregada de manera fehaciente. El sistema incluye generación de cartas formales de mora en PDF.
+Custodia y WhatsApp: los avisos por WhatsApp son válidos para comunicación operativa, pero para notificaciones con efecto jurídico (inicio de desahucio) se requiere carta formal. El sistema genera ambos.
+Log de auditoría: el registro inmutable de 
+custodia_log
+ puede servir como evidencia técnica en disputas entre el administrador y el propietario sobre el destino de los cobros.
+3. Arquitectura Tecnológica
+3.1 Tipo de Sistema
+Arquitectura web progresiva (PWA) con 
+backend
+ en la nube. Acceso remoto desde cualquier dispositivo con navegador. Instalable como 
+app
+ móvil en Android 
+e
+ iOS sin tiendas de aplicaciones. Puede operar también en red local con sincronización cuando hay conexión.
+3.2 Base de Datos: PostgreSQL 15+ con 
+PostGIS
+Criterio
+PostgreSQL + 
+PostGIS
+MySQL + 
+Spatial
+SQL Server 
+Spatial
+Licencia
+Gratuita / Open 
+Source
+Gratuita (
+Community
+)
+Pago (~RD$50k+/año)
+Datos espaciales (GPS/Mapa)
+PostGIS
+: estándar de la industria
+Básico
+Bueno pero costoso
+Acceso remoto
+Nativo y seguro
+Nativo
+Requiere licencia adicional
+Rendimiento en reportes
+Muy alto
+Alto
+Muy alto
+Triggers
+ y procedimientos
+Excelente (PL/
+pgSQL
+)
+Básico
+Bueno
+Compatibilidad con hosting RD
+Alta
+Alta
+Baja
+3.3 Stack Tecnológico Completo
+Capa
+Tecnología
+Justificación
+Base de datos
+PostgreSQL 15+ + 
+PostGIS
+Soporte espacial nativo, 
+triggers
+, roles por tabla
+Backend
+ / API
+Node.js + Express o Python 
+FastAPI
+REST API, jobs programados (cron)
+Frontend
+ web
+React
+ + Tailwind CSS (PWA)
+Responsivo, instala como 
+app
+ móvil
+Mapas
+Mapbox
+ GL JS (recomendado) o Google 
+Maps
+Marcadores dinámicos, 
+clustering
+, 
+popups
+WhatsApp
+Meta WhatsApp Business API
+Canal principal de avisos
+Correo
+SendGrid
+ o SMTP propio
+Respaldo y envío de reportes PDF
+Autenticación
+JWT + roles + 2FA opcional
+Admin
+ / Asistente / Solo lectura
+Reportes PDF
+Puppeteer
+ o 
+WeasyPrint
+Recibos, cierres de caja, liquidaciones, cartas
+Jobs automáticos
+node-cron o Celery Beat
+Generación 
+CxC
+, mora diaria, avisos WA, cuadres
+Almacenamiento 
+docs
+S3 o equivalente
+PDFs
+, contratos, fotos, con replicación
+Backups
+pg_dump
+ automatizado diario
+Retención 30 días, restauración a 7 días
+3.4 Opciones de Alojamiento
+Opción A — Nube económica: VPS en Digital Ocean o 
+Linode
+ (~$12–25 USD/mes). Acceso remoto, 
+backups
+ automáticos.
+Opción B — Nube empresarial: AWS RDS PostgreSQL + EC2. Mayor costo, 99.9% 
+uptime
+ garantizado.
+Opción C — Servidor local: servidor físico en las oficinas del administrador con VPN para acceso remoto.
+4. Módulos del Sistema
+El sistema se estructura en diez módulos funcionales. Los módulos 1 al 3 son maestros (catálogos). El módulo 4 es el núcleo financiero (
+CxC
+ + Custodia). Los módulos 5 al 8 completan el ciclo. Los módulos 9 y 10 son visualización y control operativo.
+Módulo 1: Gestión de Propietarios
+Funcionalidades
+Registro completo: nombre/razón social, cédula o RNC, dirección, teléfono, correo electrónico.
+Cuenta bancaria para liquidación: banco, tipo de cuenta (ahorros/corriente), número (cifrado en BD).
+Esquema de comisión: PORCENTAJE sobre lo cobrado, FIJO mensual por inmueble, o MIXTO (definido contrato por contrato).
+Historial completo de liquidaciones realizadas.
+Documentos adjuntos: contrato de administración, cédula/RNC, poder notarial si aplica.
+Estado: Activo / Inactivo. El propietario recibe credenciales de acceso Solo Lectura para consultar sus propios inmuebles y liquidaciones.
+Módulo 2: Gestión de Inmuebles (Dirección Extendida + Geolocalización)
+Datos Generales del Inmueble
+Tipo: APARTAMENTO / CASA / LOCAL COMERCIAL / OFICINA / PENSION (habitación individual con sus facilidades).
+Nombre o referencia interna (ej. 'Apto 3B Torre Azul', 'Local 1 Plaza Centro', 'Habitación 5').
+Descripción libre, área en m², habitaciones, baños, parqueo (sí/no), nivel/piso.
+Canon de alquiler base en DOP, depósito requerido.
+Fotos adjuntas al registro.
+Estado: DISPONIBLE / OCUPADO / MANTENIMIENTO / INACTIVO.
+Vinculación al propietario correspondiente.
+Para pensiones: cada habitación es una unidad independiente con su propio contrato, 
+CxC
+ y cobro.
+Dirección Extendida (campos estructurados)
+Calle principal y número de puerta.
+Apartamento / local / habitación (identificador dentro del edificio o conjunto).
+Edificio o conjunto residencial / comercial (nombre, si aplica).
+Urbanización, residencial o sector.
+Municipio (lista configurable: Santo Domingo, Santiago, San Pedro de Macorís, etc.).
+Provincia.
+Referencia de ubicación libre (ej. 'A 50m del semáforo de la Av. 27 de 
+Febrero
+').
+Dirección completa concatenada automáticamente (campo calculado, útil para reportes y mapas).
+Geolocalización GPS
+Latitud (NUMERIC 10,8) y Longitud (NUMERIC 11,8).
+Método de captura: selector de punto en mapa integrado (clic = captura 
+lat
+/
+lon
+ automáticamente) o entrada manual.
+En dispositivos móviles: opción 'Usar mi ubicación actual' para posicionar el inmueble.
+Precisión registrada: ALTA (clic en mapa) / MEDIA (geocodificación automática desde dirección) / MANUAL.
+Campo 
+geom
+ tipo GEOGRAPHY(POINT,4326) en PostgreSQL/
+PostGIS
+, generado desde 
+lat
+/
+lon
+ 
+via
+ 
+trigger
+. Índice GIST obligatorio.
+Módulo 3: Gestión de Inquilinos y Contratos
+Inquilinos
+Registro: nombre completo, cédula, teléfono WhatsApp (con código país +1-809/829/849), correo electrónico.
+Información laboral: empleador, teléfono del lugar de trabajo.
+Referencia personal: nombre y teléfono.
+Estado: Activo / Inactivo. Historial de contratos anteriores.
+Contratos de Arrendamiento
+Inmueble vinculado, fecha de inicio, fecha de vencimiento.
+Periodicidad del alquiler: MENSUAL o QUINCENAL.
+Día(s) de cobro: para mensual, un día del mes (ej. día 1). Para quincenal, dos días (ej. día 1 y día 15).
+Días de gracia antes de aplicar mora (sugerido: 5 días calendario).
+Canon pactado en DOP, depósito recibido.
+Tipo de mora: PORCENTAJE mensual sobre saldo pendiente o MONTO_FIJO.
+Cargos adicionales periódicos: configurados dentro del contrato (ver sección de cargos adicionales en Módulo 4).
+Esquema de comisión del administrador: hereda del propietario o se 
+sobreescribe
+ por contrato.
+Renovación automática o manual. Documentos adjuntos (contrato firmado en PDF).
+Estado: VIGENTE / VENCIDO / RESCINDIDO / EN_DESAHUCIO.
+Módulo 4: Cuentas por Cobrar (
+CxC
+) y Custodia de Pagos
+Este es el módulo central del sistema. Integra dos subsistemas que operan en secuencia: la generación y seguimiento de cargos 
+CxC
+, y el flujo de custodia que rastrea el dinero cobrado desde que entra a caja hasta que llega al propietario.
+4.1 Conceptos Fundamentales
+Glosario del Módulo 
+CxC
+CARGO 
+CxC
+: la deuda que nace automáticamente al inicio de cada período (mensual o quincenal). Es lo que el inquilino DEBE. Existe antes de que se reciba cualquier pago.
+PAGO: el registro de lo que el inquilino efectivamente entregó, aplicado contra el cargo 
+CxC
+. Puede ser total o parcial.
+RECIBO DE PAGO: documento PDF generado DESPUÉS de registrar el pago, como comprobante para el inquilino.
+ESTADO DE CUENTA: resumen de todos los cargos 
+CxC
+ de un inquilino (pagados, pendientes, en mora).
+MORA: cargo adicional que se calcula diariamente sobre el saldo pendiente una vez vencidos los días de gracia. Se registra como campo dentro del cargo 
+CxC
+ original.
+SESIÓN DE CAJA: agrupador diario de todos los pagos registrados, usado para el cuadre del administrador.
+CUADRE DE CAJA: proceso mediante el cual el administrador verifica que lo registrado en sistema coincide con lo recibido físicamente/bancariamente.
+CUSTODIA: los tres estadios que sigue cada pago: COBRADO → EN_ADMINISTRACIÓN → LIQUIDADO.
+4.2 Generación Automática de Cargos 
+CxC
+Reglas de Generación
+Un 
+job
+ cron corre todos los días a las 12:00 AM y evalúa todos los contratos VIGENTES.
+Para contratos MENSUALES: genera un cargo 
+CxC
+ en el día_cobro_1 del mes.
+Para contratos QUINCENALES: genera dos cargos por mes: uno en día_cobro_1 y otro en día_cobro_2 (ej. días 1 y 15).
+Cada cargo 
+CxC
+ queda amarrado a: inquilino · contrato · inmueble · propietario del inmueble · período.
+Si el contrato tiene cargos adicionales activos, el sistema los genera en el mismo período evaluando su propia periodicidad.
+Cargos adicionales con 
+incluir_en_cxc_alquiler
+=TRUE se suman al cargo del alquiler. Los que tienen FALSE generan un 
+CxC
+ separado etiquetado por tipo.
+Solo se generan cargos para contratos en estado VIGENTE.
+4.3 Cargos Adicionales por Contrato
+Configuración
+Dentro de cada contrato se pueden agregar ítems de cargo adicional: nombre, monto, periodicidad (MENSUAL / QUINCENAL), y si se incluye en el 
+CxC
+ del alquiler o genera 
+CxC
+ separado.
+Ejemplos: mantenimiento del edificio, parqueo, consumo de agua, servicio de internet, seguridad.
+Cada ítem tiene estado ACTIVO / INACTIVO, permitiendo suspenderlo sin eliminar el historial.
+Los ítems quincenales se generan en ambos días de cobro del mes para contratos quincenales.
+4.4 Estados del Cargo 
+CxC
+Estado
+Significado
+Transición Siguiente
+PENDIENTE
+Generado, dentro del plazo o en período de gracia. No hay pago total registrado.
+→ EN_MORA (si vence gracia) o → PAGADO (si se paga completo)
+PARCIAL
+Se recibió un 
+pago
+ pero no cubre el total. El saldo sigue pendiente.
+→ EN_MORA (si vence gracia sobre el saldo) o → PAGADO (si se completa)
+EN_MORA
+Vencidos los días de gracia sin pago total. Mora corre diariamente sobre el saldo.
+→ PAGADO (cuando se cubre principal + mora)
+PAGADO
+El cargo fue cubierto en su totalidad (principal + mora si aplica).
+Estado final
+ANULADO
+El administrador anuló el cargo con justificación registrada.
+Estado final
+4.5 El Flujo de Custodia — Los Tres Estadios del Pago
+La pregunta que este flujo responde en todo momento: ¿dónde está el dinero?
+COBRADO
+Caja recibe
+→
+Cuadre diario
+EN ADMINISTRACIÓN
+Dinero verificado
+→
+Liquidación agrupada
+LIQUIDADO
+Al propietario
+Estadio
+Nombre
+Significado
+Quién lo activa
+1
+COBRADO
+El cajero registró el pago. El dinero entró a caja o se confirmó la referencia. Sesión de caja del día está ABIERTA.
+Cajero al registrar el pago
+2
+EN_ADMINISTRACIÓN
+El administrador aprobó el cuadre diario. El dinero está verificado y en custodia del administrador.
+Administrador al cerrar el cuadre
+3
+LIQUIDADO
+El administrador procesó la liquidación. El dinero salió hacia la cuenta del propietario.
+Administrador al procesar la liquidación
+Reglas Inviolables del Flujo de Custodia
+Ningún pago puede saltar de COBRADO a LIQUIDADO sin pasar por EN_ADMINISTRACIÓN.
+Ningún pago en estado COBRADO puede entrar a una liquidación (solo entran pagos EN_ADMINISTRACIÓN).
+Todo cambio de estado queda registrado automáticamente en 
+custodia_log
+ con: usuario, fecha/hora, estado anterior, estado nuevo, IP y observaciones.
+El log 
+custodia_log
+ es de solo inserción (INSERT-
+only
+). Ningún rol tiene permisos UPDATE/DELETE sobre esta tabla.
+4.6 Sesión de Caja Diaria
+Funcionamiento
+Una sesión de caja se abre automáticamente cuando se registra el primer pago del día (o manualmente por el cajero al iniciar turno).
+Solo puede existir una sesión ABIERTA por día. El sistema lo valida.
+Todos los pagos del día quedan vinculados a la sesión mediante 
+sesion_caja_id
+.
+La sesión acumula en tiempo real los totales por forma de pago: EFECTIVO / TRANSFERENCIA / TARJETA / CHEQUE.
+Estados de la sesión: ABIERTA → PENDIENTE_AJUSTE → APROBADA.
+Una sesión APROBADA no puede reabrirse. Cualquier corrección requiere un registro de ajuste con justificación.
+4.7 Cuadre Diario — Transición a EN_ADMINISTRACIÓN
+Proceso de Cuadre
+El administrador accede al módulo de Cuadre de Caja al final del día.
+El sistema presenta el Reporte de Cierre de Sesión desglosado por forma de pago: cantidad de transacciones y total DOP por cada una.
+El administrador verifica físicamente cada grupo: cuenta el efectivo, revisa el estado de cuenta bancario para las transferencias, verifica el reporte del POS para tarjetas, revisa los cheques físicos.
+Si 
+todo cuadra
+: aprueba el cierre. El sistema actualiza en lote todos los pagos de la sesión a 
+estado_custodia
+ = EN_ADMINISTRACIÓN.
+Si hay discrepancias: puede dejar la sesión en PENDIENTE_AJUSTE y resolverlas antes de cerrar.
+Al aprobar: el sistema genera automáticamente el Documento de Cierre de Caja en PDF.
+4.8 Documento de Cierre de Caja (Imprimible)
+Sección
+Contenido
+Encabezado
+Empresa administradora, fecha, número de sesión, usuario cajero, usuario que aprobó.
+Resumen por forma de pago
+Tabla: Forma de pago | Cantidad de transacciones | Total DOP. Gran total al final.
+Detalle de transacciones
+Hora, inquilino, inmueble, cargo 
+CxC
+, forma de pago, referencia, monto.
+Declaración de cuadre
+Confirma que el monto físico/bancario verificado coincide con el total del sistema. Espacio para firma.
+Pie de página
+Número de documento, fecha/hora de generación, hash SHA-256 de integridad.
+4.9 Liquidación de Pagos — Transición a LIQUIDADO
+Proceso de Liquidación Agrupada
+El administrador accede al módulo de Liquidación de Pagos y selecciona los filtros: propietario, rango de fechas, inmueble, o cualquier combinación.
+El sistema muestra solo pagos con 
+estado_custodia
+ = EN_ADMINISTRACIÓN que cumplan el criterio.
+El administrador revisa el listado y confirma. El sistema calcula: total cobrado − comisión = monto neto al propietario.
+Se ejecuta el UPDATE lote: 
+estado_custodia
+ → LIQUIDADO para todos los pagos incluidos.
+Se genera el Comprobante de Liquidación en PDF con el detalle completo.
+El administrador registra la referencia de la transferencia bancaria al propietario.
+El sistema envía el comprobante al propietario por WhatsApp o correo.
+4.10 Comprobante de Liquidación (Imprimible)
+Sección
+Contenido
+Encabezado
+Empresa administradora, propietario, cuenta bancaria del propietario, fecha de liquidación, número de liquidación.
+Detalle de cobros
+Por inmueble: inquilino, período, monto alquiler cobrado, mora cobrada, fecha de pago, fecha de cuadre de caja.
+Resumen financiero
+Total
+ bruto cobrado | Comisión administrador | Total neto a pagar.
+Datos de transferencia
+Banco, número de cuenta, referencia, fecha de la transferencia.
+Firma y sello
+Espacio para firma del administrador y del propietario (copia física).
+Pie de página
+Número de liquidación, fecha/hora de generación, hash SHA-256 de integridad.
+4.11 Criterios de Agrupación para la Liquidación
+Criterio
+Descripción
+Caso de Uso Típico
+Por propietario
+Todos los pagos de todos los inmuebles de un propietario en un rango de fecha.
+Liquidación mensual estándar.
+Por inmueble
+Solo los pagos de un inmueble específico.
+Propietario que quiere liquidación inmueble por inmueble.
+Por rango de fecha
+Pagos cuadrados entre 
+fecha_desde
+ y 
+fecha_hasta
+.
+Liquidación quincenal o período especial.
+Por número de pago
+Selección manual de pagos individuales.
+Ajustes puntuales o casos especiales.
+Combinado
+Propietario + rango de fecha.
+Caso más común en la operación diaria.
+Módulo 5: Liquidaciones a Propietarios
+Funcionalidades
+Cálculo mensual por propietario: suma de pagos EN_ADMINISTRACIÓN → comisión → neto al propietario.
+Solo se liquidan cobros en estado EN_ADMINISTRACIÓN (cuadrados y verificados). Nunca cobros pendientes ni en estado COBRADO.
+Comisión parametrizable por contrato: porcentaje, tarifa fija, o mixto.
+Comprobante de liquidación en PDF (ver sección 4.10).
+Registro del pago al propietario con referencia de transferencia.
+Historial completo de liquidaciones. Reporte anual para fines tributarios.
+El propietario puede ver sus liquidaciones desde su acceso Solo Lectura.
+Módulo 6: Avisos y Notificaciones — WhatsApp Business API
+Avisos Automáticos
+Aviso de próximo vencimiento (X días antes, configurable por contrato).
+Aviso el día de vencimiento si no hay pago registrado.
+Aviso de mora activa: cuando vencen los días de gracia. Se repite cada 7 días mientras haya saldo pendiente.
+Confirmación de pago al inquilino: enviada automáticamente al registrar el pago (con el recibo en PDF adjunto si el API lo permite).
+Aviso de renovación de contrato: 30 y 15 días antes del vencimiento.
+Comprobante de liquidación al propietario: al procesar cada liquidación.
+Bienvenida al inquilino: al crear un nuevo contrato.
+Para contratos QUINCENALES: todos los avisos se ajustan a las dos fechas de cobro del mes.
+Registro completo de cada aviso enviado: fecha, canal, mensaje, estado de entrega (ENVIADO / FALLIDO).
+Si un aviso falla: el sistema lo registra y genera alerta en el 
+Dashboard
+ para reenvío manual.
+Plantilla WhatsApp
+Tipo Meta
+Momento de Envío
+Aplica Quincenal
+bienvenida_inquilino
+UTILITY
+Al crear el contrato
+Sí
+aviso_vencimiento_proximo
+UTILITY
+X días antes del vencimiento del cargo 
+CxC
+Sí (ambos cobros)
+aviso_vence_hoy
+UTILITY
+El día de vencimiento si no hay pago
+Sí (ambos cobros)
+aviso_mora_activa
+UTILITY
+Al activarse la mora y cada 7 días
+Sí
+confirmacion_pago
+UTILITY
+Al registrar y cuadrar un pago
+Sí
+aviso_renovacion_contrato
+UTILITY
+30 y 15 días antes del vencimiento del contrato
+Sí
+liquidacion_propietario
+UTILITY
+Al procesar la liquidación mensual
+N/A
+carta_mora_formal
+UTILITY
+Cuando el administrador lo solicita (carta formal)
+Sí
+Módulo 7: Reportes y Analítica
+Reportes Disponibles
+Reporte de cobranza del período: 
+CxC
+ generado, cobrado, parcial, pendiente, en mora. Tasa de efectividad.
+Reporte de morosidad: inquilinos con saldo pendiente, días de atraso, mora acumulada, clasificados por nivel de riesgo.
+Estado de cuenta individual por inquilino: historial completo de cargos 
+CxC
+ y pagos.
+Reporte de custodia: pagos por estadio (COBRADO / EN_ADMINISTRACIÓN / LIQUIDADO) por propietario o período.
+Reporte de sesiones de caja: historial de cuadres diarios con totales por forma de pago.
+Reporte de liquidaciones a propietarios: mensual y acumulado anual.
+Log de auditoría de un pago específico: línea de tiempo completa de cambios de estado.
+Reporte de inmuebles por estado: ocupados, disponibles, en mantenimiento.
+Reporte de contratos próximos a vencer: 30 y 60 días.
+Reporte de cargos adicionales por tipo: cuánto se cobra por mantenimiento, parqueo, etc.
+Todos los reportes exportables en PDF y Excel.
+Módulo 8: Administración del Sistema
+Funcionalidades
+Gestión de usuarios con roles: Administrador (acceso total), Asistente de cobros (registra pagos, no modifica contratos ni aprueba cuadres), Solo lectura.
+Auditoría general: registro de acciones de usuarios en el sistema.
+Log de custodia 
+custodia_log
+: accesible en modo consulta para el administrador. Inmutable para todos los roles.
+Configuración general: nombre, logo y datos fiscales (RNC) de la empresa administradora.
+Parámetros globales: tasa de mora predeterminada, días de gracia predeterminados, días de aviso previo al vencimiento.
+Gestión de la integración WhatsApp: API 
+key
+, número registrado, estado de la conexión.
+Gestión del proveedor de mapas: API 
+key
+ de 
+Mapbox
+ o Google 
+Maps
+.
+Backup
+ manual y verificación del estado de 
+backups
+ automáticos.
+Módulo 9: Mapa Interactivo de Inmuebles
+Visualiza todos los inmuebles georreferenciados sobre un mapa con un semáforo de morosidad en tiempo real.
+Semáforo Visual de Morosidad
+VERDE (#4CAF50): inmueble al día. Sin cargos 
+CxC
+ pendientes ni en mora.
+AMARILLO (#FFC107): alquiler 
+vencido
+ pero dentro del período de gracia. Días 1 a N de gracia.
+NARANJA (#FF9800): en mora, 1 a 15 días de atraso tras los días de gracia.
+ROJO claro (#F44336): en mora, 16 a 30 días de atraso.
+ROJO intenso (#B71C1C): en mora, más de 30 días. El color se oscurece progresivamente con los días.
+GRIS (#9E9E9E): inmueble DISPONIBLE (sin inquilino) o en MANTENIMIENTO.
+Funcionalidades del Mapa
+Vista general de todo el portafolio con marcadores de color correspondiente al estado de morosidad.
+Filtros en mapa: por tipo de inmueble, por propietario, por estado de morosidad, por municipio.
+Clic en un marcador: abre 
+popup
+ con estado básico del inmueble.
+Popup
+ al hacer clic: nombre/referencia, tipo, inquilino actual, monto 
+CxC
+ pendiente, días de atraso, estado del contrato, botón 'Ver detalle completo'.
+Clustering
+: en zonas densas, los marcadores se agrupan mostrando el número de unidades y el color del caso más crítico del grupo.
+Actualización en tiempo real al navegar (refleja siempre el estado actual de la BD).
+Mini-mapa
+ embebido en el 
+Dashboard
+ (versión compacta sin necesidad de ir al módulo completo).
+Módulo 10: 
+Dashboard
+ Ejecutivo — Operador Interno
+Pantalla de inicio del sistema para el administrador. Muestra el estado operativo del día sin necesidad de ejecutar reportes.
+Panel Superior — 
+KPIs
+ del Día y del Período
+Total
+ 
+CxC
+ generado en el período: suma de todos los cargos activos del mes/quincena.
+Total
+ cobrado a la fecha (COBRADO + EN_ADMINISTRACIÓN + LIQUIDADO).
+Total
+ en administración (EN_ADMINISTRACIÓN): dinero verificado pendiente de liquidar.
+Total
+ pendiente de cobro: desglosado en PENDIENTE (en plazo) y EN_MORA.
+Tasa de cobro del período: % del 
+CxC
+ cobrado sobre el total generado.
+Sesión de caja del día: estado (ABIERTA / APROBADA) y total acumulado por forma de pago.
+Liquidaciones pendientes de pagar a propietarios: monto total.
+Ratio de ocupación del portafolio: inmuebles ocupados vs. disponibles.
+Panel Central — Alertas Operativas del Día
+Inquilinos que vencen HOY sin pago registrado.
+Inquilinos que entraron en mora HOY (vencieron los días de gracia).
+Inquilinos con 2+ períodos sin pago total (alerta crítica Art. 1762 C.C.).
+Sesión de caja sin cuadre después de las 8:00 PM.
+Pagos en estado COBRADO de días anteriores (sesiones sin aprobar — alerta crítica).
+Propietarios con saldo EN_ADMINISTRACIÓN mayor a X días sin liquidar (configurable).
+Contratos que vencen en los próximos 30 días.
+Avisos de WhatsApp fallidos pendientes de reenvío.
+Cada alerta tiene botón de acción directa: registrar pago, aprobar cuadre, ver contrato, reenviar aviso.
+Panel Inferior — Gráficos de Tendencia
+Gráfico de barras: cobros vs. 
+CxC
+ generado en los últimos 6 meses.
+Gráfico de distribución de morosidad: % al día / en gracia / en mora 1-15d / 15-30d / +30d.
+Gráfico de custodia: distribución del dinero entre COBRADO / EN_ADMINISTRACIÓN / LIQUIDADO.
+Gráfico de ocupación: % de inmuebles ocupados en los últimos 6 meses.
+Mini-mapa
+ embebido con semáforo de morosidad.
+5. Modelo de Base de Datos — Esquema Completo v3.0
+Todas las tablas del sistema, integradas en un solo esquema. Las tablas marcadas con ◆ son nuevas o modificadas respecto a versiones anteriores.
+5.1 propietarios
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+nombre_completo
+VARCHAR(
+200)
+Nombre o razón social
+cedula_rnc
+VARCHAR(
+20)
+Cédula o RNC
+telefono
+VARCHAR(
+20)
+Teléfono de contacto
+email
+VARCHAR(
+100)
+Correo electrónico
+banco
+VARCHAR(
+100)
+Banco para liquidación
+tipo_cuenta
+VARCHAR(
+20)
+AHORROS / CORRIENTE
+numero_cuenta
+VARCHAR(
+30)
+Número de cuenta (cifrado AES-256)
+esquema_comision
+VARCHAR(
+20)
+PORCENTAJE / FIJO / MIXTO
+pct_comision
+NUMERIC(
+5,2)
+% si esquema = PORCENTAJE
+monto_fijo_comision
+NUMERIC(
+12,2)
+Monto fijo si esquema = FIJO
+activo
+BOOLEAN
+Estado del propietario
+created_at
+TIMESTAMP
+Fecha de registro
+5.2 inmuebles ◆ (ampliada)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+propietario_id
+FK → propietarios
+Propietario del inmueble
+tipo
+VARCHAR(
+30)
+APARTAMENTO / CASA / LOCAL / OFICINA / PENSION
+nombre_referencia
+ ◆
+VARCHAR(
+150)
+Nombre interno (ej. 'Apto 3B Torre Azul')
+descripcion
+VARCHAR(
+300)
+Descripción libre
+calle_numero
+ ◆
+VARCHAR(
+200)
+Calle y número de puerta
+apt_local_hab
+ ◆
+VARCHAR(
+50)
+Identificador dentro del edificio
+nombre_edificio
+ ◆
+VARCHAR(
+150)
+Edificio o conjunto residencial/comercial
+urbanizacion_sector
+ ◆
+VARCHAR(
+150)
+Urbanización o sector
+municipio ◆
+VARCHAR(
+100)
+Municipio
+provincia ◆
+VARCHAR(
+100)
+Provincia
+referencia_ubicacion
+ ◆
+TEXT
+Referencia libre de ubicación
+direccion_completa
+ ◆
+TEXT
+Campo calculado/concatenado para reportes y mapas
+latitud ◆
+NUMERIC(
+10,8)
+Coordenada GPS — latitud (ej. 18.47350000)
+longitud ◆
+NUMERIC(
+11,8)
+Coordenada GPS — longitud (ej. -69.93120000)
+geom
+ ◆
+GEOGRAPHY(POINT,4326)
+Tipo espacial 
+PostGIS
+, generado por 
+trigger
+ desde 
+lat
+/
+lon
+precision_gps
+ ◆
+VARCHAR(
+20)
+ALTA / MEDIA / MANUAL
+area_m2
+NUMERIC(
+8,2)
+Área en metros cuadrados
+habitaciones
+SMALLINT
+Número de habitaciones
+banos
+SMALLINT
+Número de baños
+parqueo
+BOOLEAN
+Incluye parqueo
+canon_base
+NUMERIC(
+12,2)
+Canon base en DOP
+deposito_requerido
+NUMERIC(
+12,2)
+Monto del depósito
+estado
+VARCHAR(
+20)
+DISPONIBLE / OCUPADO / MANTENIMIENTO / INACTIVO
+created_at
+TIMESTAMP
+Fecha de registro
+5.3 inquilinos
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+nombre_completo
+VARCHAR(
+200)
+Nombre completo
+cedula
+VARCHAR(
+20)
+Cédula de identidad
+telefono_whatsapp
+VARCHAR(
+20)
+Número WhatsApp con código país (+1-809/829/849...)
+email
+VARCHAR(
+100)
+Correo electrónico
+empleador
+VARCHAR(
+200)
+Nombre del empleador
+telefono_empleador
+VARCHAR(
+20)
+Teléfono del lugar de trabajo
+referencia_nombre
+VARCHAR(
+200)
+Nombre de referencia personal
+referencia_telefono
+VARCHAR(
+20)
+Teléfono de la referencia
+activo
+BOOLEAN
+Estado del inquilino
+created_at
+TIMESTAMP
+Fecha de registro
+5.4 contratos ◆ (ampliada)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+inquilino_id
+FK → inquilinos
+Inquilino del contrato
+inmueble_id
+FK → inmuebles
+Inmueble arrendado
+fecha_inicio
+DATE
+Inicio del contrato
+fecha_vencimiento
+DATE
+Vencimiento del contrato
+periodicidad ◆
+VARCHAR(
+20)
+MENSUAL / QUINCENAL
+dia_cobro_1 ◆
+SMALLINT
+Día del mes del primer cobro (ej. 1)
+dia_cobro_2 ◆
+SMALLINT
+Día del segundo cobro si QUINCENAL (ej. 15)
+dias_gracia
+SMALLINT
+Días de gracia antes de aplicar mora
+canon_mensual
+NUMERIC(
+12,2)
+Canon pactado en DOP
+deposito_recibido
+NUMERIC(
+12,2)
+Depósito recibido al inicio
+tipo_mora
+VARCHAR(
+20)
+PORCENTAJE / MONTO_FIJO
+pct_mora_mensual
+NUMERIC(
+5,2)
+% mora mensual si tipo = PORCENTAJE
+monto_mora_fijo
+NUMERIC(
+12,2)
+Monto fijo de mora si tipo = MONTO_FIJO
+esquema_comision
+VARCHAR(
+20)
+Hereda del propietario o 
+sobreescribe
+pct_comision
+NUMERIC(
+5,2)
+% comisión para este contrato
+monto_fijo_comision
+NUMERIC(
+12,2)
+Monto fijo comisión para este contrato
+estado
+VARCHAR(
+20)
+VIGENTE / VENCIDO / RESCINDIDO / EN_DESAHUCIO
+created_at
+TIMESTAMP
+Fecha de creación
+5.5 
+cargos_adicionales_contrato
+ ◆ (nueva)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+contrato_id
+FK → contratos
+Contrato al que pertenece
+nombre_cargo
+VARCHAR(
+100)
+Ej
+: Mantenimiento, Parqueo, Agua, Internet
+monto
+NUMERIC(
+12,2)
+Monto del cargo en DOP
+periodicidad
+VARCHAR(
+20)
+MENSUAL / QUINCENAL
+incluir_en_cxc_alquiler
+BOOLEAN
+TRUE = mismo 
+CxC
+ del alquiler / FALSE = 
+CxC
+ separado
+activo
+BOOLEAN
+TRUE = se genera en el próximo período / FALSE = suspendido
+fecha_desde
+DATE
+Desde cuándo aplica este cargo
+fecha_hasta
+DATE
+Hasta cuándo aplica (NULL = indefinido)
+5.6 
+cxc_cargos
+ ◆ (nueva — núcleo financiero)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único del cargo
+contrato_id
+FK → contratos
+Contrato que genera el cargo
+inquilino_id
+FK → inquilinos
+Inquilino deudor
+inmueble_id
+FK → inmuebles
+Inmueble al que corresponde
+propietario_id
+FK → propietarios
+Propietario del inmueble
+tipo_cargo
+VARCHAR(
+30)
+ALQUILER / MANTENIMIENTO / PARQUEO / AGUA / MORA / OTRO
+cargo_adicional_id
+FK → 
+cargos_adicionales_contrato
+NULL si es alquiler
+periodo_inicio
+DATE
+Inicio del período (ej. 2026-06-01)
+periodo_fin
+DATE
+Fin del período (ej. 2026-06-30 o 2026-06-15)
+fecha_vencimiento
+DATE
+Fecha límite de pago
+monto_principal
+NUMERIC(
+12,2)
+Monto original del cargo
+mora_acumulada
+NUMERIC(
+12,2)
+Mora calculada a hoy (actualizada diariamente por cron)
+monto_total
+NUMERIC(
+12,2)
+Principal + mora acumulada
+monto_pagado
+NUMERIC(
+12,2)
+Total
+ recibido contra este cargo
+saldo_pendiente
+NUMERIC(
+12,2)
+Monto total − monto pagado
+dias_mora
+SMALLINT
+Días de mora (actualizado diariamente por cron)
+estado
+VARCHAR(
+20)
+PENDIENTE / PARCIAL / EN_MORA / PAGADO / ANULADO
+fecha_pago_total
+DATE
+Fecha en que se completó el pago (NULL si pendiente)
+created_at
+TIMESTAMP
+Fecha de generación del cargo
+5.7 
+sesiones_caja
+ ◆ (nueva)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único de la sesión
+fecha_sesion
+DATE
+Fecha del día (única por día)
+usuario_cajero_id
+FK → usuarios
+Usuario que registró los pagos
+usuario_cierre_id
+FK → usuarios
+Administrador que aprobó el cuadre
+total_efectivo
+NUMERIC(
+12,2)
+Suma de pagos en efectivo
+total_transferencia
+NUMERIC(
+12,2)
+Suma de pagos por transferencia
+total_tarjeta
+NUMERIC(
+12,2)
+Suma de pagos por tarjeta
+total_cheque
+NUMERIC(
+12,2)
+Suma de pagos por cheque
+total_sesion
+NUMERIC(
+12,2)
+Gran total de la sesión
+cantidad_transacciones
+SMALLINT
+Número de pagos del día
+estado
+VARCHAR(
+30)
+ABIERTA / PENDIENTE_AJUSTE / APROBADA
+observaciones
+TEXT
+Notas del administrador al hacer el cuadre
+doc_cierre_pdf_url
+VARCHAR(
+300)
+URL del PDF del documento de cierre
+fecha_apertura
+TIMESTAMP
+Fecha/hora de apertura
+fecha_cierre
+TIMESTAMP
+Fecha/hora de aprobación
+5.8 
+cxc_pagos
+ ◆ (ampliada con campos de custodia)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único del pago
+cxc_cargo_id
+FK → 
+cxc_cargos
+Cargo al que se aplica el pago
+contrato_id
+FK → contratos
+Contrato del inquilino
+inquilino_id
+FK → inquilinos
+Inquilino que paga
+fecha_pago
+DATE
+Fecha en que se recibió el pago
+monto_pagado
+NUMERIC(
+12,2)
+Monto recibido
+aplicado_a_mora
+NUMERIC(
+12,2)
+Porción aplicada a mora
+aplicado_a_principal
+NUMERIC(
+12,2)
+Porción aplicada al principal
+forma_pago
+VARCHAR(
+30)
+EFECTIVO / TRANSFERENCIA / TARJETA / CHEQUE
+referencia_pago
+VARCHAR(
+100)
+Número de referencia de la transferencia
+banco_origen
+VARCHAR(
+100)
+Banco desde donde se transfirió
+registrado_por
+FK → usuarios
+Usuario que registró el pago
+observaciones
+TEXT
+Notas del administrador
+recibo_pdf_url
+VARCHAR(
+300)
+URL del recibo de pago generado
+estado_custodia
+ ◆
+VARCHAR(
+25)
+COBRADO / EN_ADMINISTRACIÓN / LIQUIDADO
+sesion_caja_id
+ ◆
+FK → 
+sesiones_caja
+Sesión de caja del día
+liquidacion_id
+ ◆
+FK → liquidaciones
+Liquidación que incluyó este pago (NULL hasta liquidar)
+fecha_en_administracion
+ ◆
+TIMESTAMP
+Fecha/hora de aprobación del cuadre para este pago
+fecha_liquidado
+ ◆
+TIMESTAMP
+Fecha/hora en que se procesó la liquidación
+created_at
+TIMESTAMP
+Fecha de registro en el sistema
+5.9 
+custodia_log
+ ◆ (nueva — tabla inmutable de auditoría)
+Registra CADA cambio de 
+estado_custodia
+ de cada pago. Solo inserción. Ningún rol puede modificar o eliminar registros.
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único del evento
+cxc_pago_id
+FK → 
+cxc_pagos
+Pago al que se refiere el cambio
+contrato_id
+FK → contratos
+Contrato vinculado
+inquilino_id
+FK → inquilinos
+Inquilino del pago
+inmueble_id
+FK → inmuebles
+Inmueble del pago
+propietario_id
+FK → propietarios
+Propietario del inmueble
+estado_anterior
+VARCHAR(
+25)
+Estado antes del cambio (NULL en creación)
+estado_nuevo
+VARCHAR(
+25)
+Estado después del cambio
+evento
+VARCHAR(
+50)
+REGISTRO_PAGO / CUADRE_CAJA / LIQUIDACION / ANULACION / AJUSTE
+sesion_caja_id
+FK → 
+sesiones_caja
+Sesión de caja involucrada (si aplica)
+liquidacion_id
+FK → liquidaciones
+Liquidación involucrada (si aplica)
+monto_pago
+NUMERIC(
+12,2)
+Monto del pago en el momento del evento
+usuario_id
+FK → usuarios
+Usuario que ejecutó el cambio
+observaciones
+TEXT
+Notas del usuario al momento del cambio
+ip_address
+VARCHAR(
+45)
+IP desde donde se ejecutó la acción
+created_at
+TIMESTAMP
+Fecha/hora exacta del evento (
+NOW(
+) en BD, inmutable)
+5.10 liquidaciones ◆ (ampliada)
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+propietario_id
+FK → propietarios
+Propietario liquidado
+periodo
+DATE
+Mes/año de la liquidación
+filtro_aplicado
+ ◆
+TEXT
+JSON con los criterios usados para agrupar los pagos
+total_cobrado
+NUMERIC(
+12,2)
+Total
+ cobrado a sus inquilinos en el período
+total_mora_cobrada
+NUMERIC(
+12,2)
+Mora cobrada en el período
+comision_administrador
+NUMERIC(
+12,2)
+Comisión descontada
+monto_neto_propietario
+NUMERIC(
+12,2)
+Neto pagado al propietario
+fecha_liquidacion
+DATE
+Fecha de procesamiento
+fecha_pago_propietario
+DATE
+Fecha del pago al propietario
+referencia_pago
+VARCHAR(
+100)
+Referencia de la transferencia
+doc_liquidacion_pdf_url
+ ◆
+VARCHAR(
+300)
+URL del comprobante de liquidación en PDF
+estado
+VARCHAR(
+20)
+PENDIENTE / PAGADO
+5.11 
+notificaciones_enviadas
+Campo
+Tipo
+Descripción
+id
+UUID PK
+Identificador único
+cxc_cargo_id
+FK → 
+cxc_cargos
+Cargo al que se refiere el aviso
+inquilino_id
+FK → inquilinos
+Destinatario
+tipo_aviso
+VARCHAR(
+40)
+VENCIMIENTO_PROXIMO / VENCE_HOY / MORA / PAGO_CONFIRMADO / RENOVACION / BIENVENIDA / MORA_FORMAL
+canal
+VARCHAR(
+20)
+WHATSAPP / EMAIL
+mensaje
+TEXT
+Contenido enviado
+estado_envio
+VARCHAR(
+20)
+ENVIADO / FALLIDO / PENDIENTE
+fecha_envio
+TIMESTAMP
+Fecha y hora del envío
+6. Flujos de Proceso Operativo
+6.1 Alta de Nuevo Contrato
+Registrar o buscar el propietario.
+Registrar o buscar el inmueble. Verificar estado DISPONIBLE y que tenga coordenadas GPS.
+Registrar o buscar el inquilino (cédula, WhatsApp, referencias).
+Crear el contrato: canon, periodicidad (MENSUAL/QUINCENAL), día(s) de cobro, días de gracia, mora, comisión.
+Agregar cargos adicionales si aplican (mantenimiento, parqueo, etc.).
+Adjuntar contrato firmado en PDF.
+El inmueble cambia automáticamente a OCUPADO.
+El sistema genera el primer cargo 
+CxC
+ del período.
+Envío de aviso de bienvenida al inquilino por WhatsApp.
+6.2 Job Cron Diario (12:00 AM)
+Generación de cargos 
+CxC
+: evalúa contratos VIGENTES. Si hoy es día_cobro_1 o día_cobro_2 de algún contrato, genera el cargo del período (alquiler + adicionales según periodicidad).
+Actualización de mora: para todos los cargos PENDIENTE/PARCIAL que superaron 
+fecha_vencimiento
+ + 
+días_gracia
+, actualiza 
+mora_acumulada
+ y 
+dias_mora
+.
+Cambio de estado a EN_MORA: si hoy se cumplen los días de gracia de un cargo PENDIENTE sin pago total.
+Alerta crítica Art. 1762: si un inquilino tiene 2 cargos de tipo ALQUILER consecutivos en PENDIENTE/PARCIAL/EN_MORA, genera alerta en 
+Dashboard
+.
+Envío de avisos WhatsApp: según reglas configuradas (X días antes, día de vencimiento, mora activa cada 7 días).
+Verificación de sesiones de caja: si son las 8:00 PM y hay una sesión ABIERTA del día sin cuadre, genera alerta en 
+Dashboard
+.
+6.3 Registro de un Pago (COBRADO)
+Cajero busca el cargo 
+CxC
+ del inquilino.
+Registra: monto, forma de pago, referencia, observaciones.
+El sistema verifica que existe una sesión de caja ABIERTA para el día. Si no, la crea.
+Guarda el pago en 
+cxc_pagos
+ con 
+estado_custodia
+ = COBRADO.
+El 
+trigger
+ 
+custodia_log
+ inserta automáticamente el evento REGISTRO_PAGO.
+Actualiza el cargo 
+CxC
+: PAGADO (si cubre el total) o PARCIAL (si es un abono).
+Genera el recibo de pago en PDF para el inquilino. Envía por WhatsApp si está configurado.
+Los totales de la sesión de caja se actualizan en tiempo real.
+6.4 Cuadre de Caja (COBRADO → EN_ADMINISTRACIÓN)
+El administrador accede a Cuadre de Caja y selecciona la sesión del día.
+El sistema presenta el Reporte de Cierre desglosado por forma de pago con cada transacción.
+El administrador verifica físicamente: efectivo, transferencias, POS, cheques.
+Si 
+todo cuadra
+: aprueba el cierre. El sistema actualiza en lote todos los pagos de la sesión a EN_ADMINISTRACIÓN.
+El 
+trigger
+ 
+custodia_log
+ inserta automáticamente un evento CUADRE_CAJA por cada pago.
+La sesión pasa a estado APROBADA con el usuario y hora del cierre.
+El sistema genera el Documento de Cierre de Caja en PDF (con hash SHA-256).
+6.5 Liquidación de Pagos (EN_ADMINISTRACIÓN → LIQUIDADO)
+El administrador accede a Liquidación de Pagos y aplica los filtros de agrupación.
+El sistema muestra solo pagos con 
+estado_custodia
+ = EN_ADMINISTRACIÓN que cumplan el criterio.
+El administrador revisa el listado y confirma.
+El sistema calcula: total cobrado − comisión = neto al propietario. Crea el registro en liquidaciones.
+Ejecuta el UPDATE lote: 
+estado_custodia
+ → LIQUIDADO para todos los pagos incluidos.
+El 
+trigger
+ 
+custodia_log
+ inserta automáticamente un evento LIQUIDACION por cada pago.
+Se genera el Comprobante de Liquidación en PDF. El administrador registra la referencia de la transferencia.
+El sistema envía el comprobante al propietario por WhatsApp o correo.
+6.6 Vencimiento y Renovación de Contrato
+30 días antes: sistema notifica al administrador y al inquilino.
+15 días antes: segundo aviso. El administrador decide: renovar o no renovar.
+Si se renueva: crear nuevo contrato (o extensión) actualizando fechas y condiciones.
+Si no se renueva: contrato pasa a VENCIDO. El inmueble pasa a DISPONIBLE al desocuparse.
+Si el inquilino no desocupa: el administrador documenta el inicio del proceso de desahucio.
+7. Pantallas del Sistema Requeridas
+Pantalla
+Módulo
+Descripción
+Dashboard
+M10
+Pantalla de inicio: 
+KPIs
+ del día, alertas con acciones directas, gráficos de tendencia, 
+mini-mapa
+.
+Mapa de Inmuebles
+M9
+Mapa interactivo con semáforo de morosidad, filtros, 
+clustering
+, 
+popups
+ con estado básico.
+Propietarios
+M1
+Lista, creación y edición de propietarios. Historial de liquidaciones por propietario.
+Inmuebles
+M2
+Lista, creación y edición de inmuebles. Selector de punto en mapa para GPS. Vista de fotos.
+Inquilinos
+M3
+Lista, creación y edición de inquilinos. Historial de contratos.
+Contratos
+M3
+Creación y edición de contratos. Configuración de cargos adicionales. Adjuntar PDF firmado.
+Estado de Cuenta
+M4
+Vista del estado de cuenta de un inquilino: todos sus cargos 
+CxC
+ y pagos.
+Registro de Pago
+M4
+Formulario de cobro. Muestra sesión activa del día. Genera recibo al guardar.
+Sesión de Caja Activa
+M4
+Panel en tiempo real con totales del día por forma de pago.
+Cuadre de Caja
+M4
+Lista de sesiones. Detalle por forma de pago. Botón Aprobar Cuadre. Genera PDF de cierre.
+Saldos en Administración
+M4
+Vista de pagos EN_ADMINISTRACIÓN agrupables. Botón Iniciar Liquidación.
+Liquidación de Pagos
+M5
+Filtros de agrupación, listado de pagos, resumen financiero, confirmar, registrar transferencia, PDF.
+Log de Custodia
+M8
+Historial completo de cambios de estado con filtros por pago, inquilino, inmueble, usuario, fecha.
+Trazabilidad de un Pago
+M8
+Línea de tiempo visual de un pago individual con todos sus cambios de estado.
+Reportes
+M7
+Centro de reportes: cobranza, morosidad, custodia, sesiones de caja, liquidaciones, inmuebles.
+Avisos WhatsApp
+M6
+Historial de avisos enviados. Avisos fallidos con botón de reenvío.
+Configuración
+M8
+Empresa, parámetros globales, usuarios y roles, API 
+keys
+ de mapas y WhatsApp.
+8. Requerimientos No Funcionales
+8.1 Seguridad
+Autenticación JWT con soporte para doble factor (2FA).
+Roles: Administrador (acceso total), Asistente de cobros (registra pagos, NO aprueba cuadres ni procesa liquidaciones), Solo lectura.
+Datos bancarios cifrados AES-256. HTTPS/TLS obligatorio.
+Rol de base de datos para la aplicación SIN permisos UPDATE/DELETE sobre 
+custodia_log
+.
+Trigger PostgreSQL sobre 
+cxc_pagos
+ para inserción automática en 
+custodia_log
+ al cambiar 
+estado_custodia
+.
+Auditoría general de acciones de usuarios en el sistema.
+8.2 Disponibilidad y Rendimiento
+SLA mínimo 99.5%. El 
+job
+ cron diario no debe afectar la disponibilidad de la interfaz.
+Tiempo de respuesta: pantallas principales &lt; 2 segundos, carga del mapa &lt; 3 segundos, 
+Dashboard
+ &lt; 1 segundo.
+Reportes grandes: procesamiento asíncrono con notificación al completarse.
+8.3 Integridad del Log y Documentos
+custodia_log
+: solo inserción, 
+created_at
+ usando 
+NOW(
+) a nivel de BD para evitar manipulación desde la aplicación.
+Documentos de cierre de caja y liquidación: hash SHA-256 embebido en el PDF para detectar alteraciones.
+PDFs
+ almacenados en S3 o equivalente con control de versiones y replicación.
+8.4 Geoespacial
+PostGIS
+ instalado y configurado desde el inicio del proyecto.
+Trigger en BD: actualizar campo 
+geom
+ automáticamente al guardar latitud y longitud en inmuebles.
+Índice GIST sobre 
+geom
+ para consultas espaciales eficientes.
+8.5 
+Backup
+ y Recuperación
+Backup
+ automático diario 
+pg_dump
+, retenido 30 días. Restauración a cualquier punto de los últimos 7 días.
+Documentos y 
+PDFs
+ en S3 con replicación geográfica.
+8.6 Usabilidad y App Móvil
+Interfaz completamente responsiva desde 375px de ancho.
+PWA instalable en Android 
+e
+ iOS (
+manifest.json
+ + Service Worker).
+El módulo de mapa debe funcionar en móvil: 
+touch
+, 
+pinch
+-
+zoom
+, clic en marcadores.
+En el formulario de inmueble en móvil: opción 'Usar mi ubicación' para capturar GPS.
+9. Plan de Desarrollo por Fases
+Fase
+Módulos / Entregables
+Duración 
+Est
+.
+Prioridad
+Fase 1 — Núcleo y Maestros
+Base de datos completa v3.0 (con 
+PostGIS
+). Autenticación y roles. Módulos 1, 2 (dirección extendida + GPS), 3 (inquilinos y contratos). Interfaz web básica.
+5–6 semanas
+CRÍTICA
+Fase 2 — 
+CxC
+ y Custodia
+Módulo 4 completo: generación automática de cargos 
+CxC
+ (mensual y quincenal), cargos adicionales, registro de pagos, sesión de caja, cuadre de caja, liquidación de pagos. Job cron diario. Log 
+custodia_log
+ con 
+trigger
+. Documentos PDF de cierre y liquidación. Módulo 5 (liquidaciones al propietario).
+6–7 semanas
+CRÍTICA
+Fase 3 — Comunicación y Mapa
+Módulo 6: integración WhatsApp Business API con las 8 plantillas. Registro de avisos y reenvíos. Módulo 9: mapa interactivo con 
+Mapbox
+ GL JS, semáforo de morosidad, 
+popups
+, 
+clustering
+.
+4–5 semanas
+ALTA
+Fase 4 — 
+Dashboard
+ y Reportes
+Módulo 7: reportes completos en PDF y Excel. Módulo 8: log de custodia, trazabilidad, configuración avanzada. Módulo 10: 
+Dashboard
+ ejecutivo con 
+KPIs
+, alertas, gráficos y 
+mini-mapa
+. Optimización PWA para móvil. Pruebas finales.
+4–5 semanas
+ALTA
+Duración total estimada: 19 a 23 semanas (5 a 6 meses) con 1–2 desarrolladores full 
+stack
+.
+10. 
+Checklist
+ de Entregables para TI — v3.0
+10.1 Infraestructura
+Servidor 
+cloud
+ o local configurado (Ubuntu 22.04 LTS).
+PostgreSQL 15+ instalado con la extensión 
+PostGIS
+ habilitada desde el inicio.
+Índice espacial GIST sobre 
+inmuebles.geom
+.
+Certificado SSL/TLS (
+Let's
+ 
+Encrypt
+). Dominio propio configurado.
+Backups
+ automáticos diarios configurados y verificados.
+S3 o equivalente para almacenamiento de 
+PDFs
+, fotos y contratos.
+API 
+key
+ del proveedor de mapas (
+Mapbox
+ o Google 
+Maps
+) en variables de entorno.
+10.2 Base de Datos
+Crear todas las tablas de la sección 5 con sus tipos, restricciones y claves foráneas.
+Trigger 1: sobre inmuebles — actualizar campo 
+geom
+ desde latitud/longitud al insertar o actualizar.
+Trigger 2: sobre 
+cxc_pagos
+ — insertar automáticamente en 
+custodia_log
+ al cambiar 
+estado_custodia
+.
+Rol de aplicación: sin permisos UPDATE/DELETE sobre la tabla 
+custodia_log
+.
+Restricción: una sola sesión de caja con estado ABIERTA por fecha.
+10.3 
+Backend
+API REST completa con autenticación JWT y roles.
+Endpoints
+ para todos los módulos descritos.
+Job cron diario (12:00 AM): generación 
+CxC
+ mensual/quincenal, actualización de mora y 
+días_mora
+, cambio de estado a EN_MORA, alerta Art. 1762, envío de avisos WhatsApp, verificación de sesiones sin cuadre.
+Lógica de sesión de caja: apertura automática, acumulación de totales por forma de pago en tiempo real.
+Lógica de cuadre: UPDATE lote de pagos de la sesión a EN_ADMINISTRACIÓN.
+Lógica de liquidación: filtros combinados, cálculo de comisión y neto, UPDATE lote a LIQUIDADO.
+Validación: solo pagos EN_ADMINISTRACIÓN pueden entrar a una liquidación.
+Endpoint
+ de mapa: inmuebles con 
+lat
+/
+lon
+, color del semáforo calculado, datos del 
+popup
+.
+Endpoint
+ de 
+dashboard
+: 
+KPIs
+, alertas del día, datos de gráficos. Optimizado &lt; 1 segundo.
+Integración WhatsApp Business API con las 8 plantillas aprobadas.
+Generación de 
+PDFs
+: recibo de pago, cierre de caja (con hash SHA-256), comprobante de liquidación (con hash SHA-256), carta formal de mora, estado de cuenta.
+10.4 
+Frontend
+ / App
+PWA con 
+manifest.json
+ y Service Worker. Instalable en Android 
+e
+ iOS.
+Las 17 pantallas definidas en la sección 7.
+Módulo de mapa con 
+Mapbox
+ GL JS: marcadores dinámicos, 
+clustering
+, 
+popups
+, filtros.
+Formulario de inmueble: selector de punto en mapa y opción 'Usar mi ubicación' en móvil.
+Dashboard
+: 
+KPIs
+ en tiempo real, alertas con botones de acción directa, gráficos (Chart.js o 
+Recharts
+), 
+mini-mapa
+.
+Exportación a PDF y Excel en todos los reportes.
+10.5 Pruebas Obligatorias
+Prueba de cálculo de mora: diaria, para períodos mensuales y quincenales.
+Prueba del cron: simulación de un mes completo con contratos mixtos (mensual + quincenal + cargos adicionales).
+Prueba del flujo de custodia: COBRADO → EN_ADMINISTRACIÓN → LIQUIDADO para un lote de pagos.
+Prueba de integridad del log: verificar que el 
+trigger
+ inserta en 
+custodia_log
+ y que el rol de aplicación no puede modificar registros.
+Prueba de integración WhatsApp en 
+sandbox
+ de Meta antes de producción.
+Prueba de carga del mapa con 500+ inmuebles simultáneos.
+Prueba del hash SHA-256 en 
+PDFs
+ de cierre y liquidación.
+Prueba de la regla Art. 1762 (alerta de 2 períodos sin pago).
+11. Procedimientos y Políticas con Clientes
+11.1 
+Onboarding
+ — Propietario
+Reunión inicial: presentación del servicio, tarifas de gestión y condiciones.
+Firma del contrato de administración (incluye: comisión pactada, forma de liquidación, periodicidad, causas de terminación).
+Entrega de documentación del inmueble: título de propiedad, plano, fotos, referencia catastral.
+Registro en el sistema con posicionamiento GPS del inmueble.
+El propietario recibe credenciales de acceso Solo Lectura para consultar sus inmuebles y liquidaciones.
+11.2 
+Onboarding
+ — Inquilino
+Solicitud: presentar cédula, referencias personales y laborales, comprobante de ingresos.
+Verificación de referencias (proceso manual, documentado en el sistema).
+Aprobación y firma del contrato (aclaración expresa de periodicidad: mensual o quincenal).
+Pago del depósito y primer período.
+Registro en el sistema. Envío del aviso de bienvenida por WhatsApp.
+11.3 Política de Mora
+Días de gracia sugeridos: 5 días calendario desde el vencimiento (pactados en el contrato).
+Tasa de mora sugerida: 3% mensual (0.1% diario) sobre saldo pendiente. Pactada libremente en el contrato.
+Para alquileres quincenales: la mora se calcula sobre el cargo quincenal pendiente con la misma tasa.
+Si el inquilino acumula 2 períodos sin pago total: alerta crítica al administrador, inicio de proceso de negociación o desahucio.
+11.4 Política de Custodia y Liquidación
+Todo pago recibido queda en estado COBRADO hasta que el administrador apruebe el cuadre del día.
+El administrador debe aprobar el cuadre de caja antes del cierre del día hábil.
+La liquidación se procesa entre los días 1 y 5 del mes siguiente al período cobrado.
+Solo se liquidan cobros en estado EN_ADMINISTRACIÓN (cuadrados y verificados). Nunca cobros COBRADO ni cargos pendientes.
+El propietario puede solicitar el log de custodia de cualquier pago en cualquier momento.
+11.5 Fin de Contrato
+Aviso de no renovación con 30 días de anticipación.
+Inspección del inmueble con registro fotográfico en el sistema.
+Liquidación del depósito: descuento de daños o saldos pendientes con documentación.
+Cierre del contrato. El inmueble pasa a DISPONIBLE en el sistema y en el mapa.
+Emisión del finiquito de arrendamiento (constancia de que no hay deudas pendientes).
+12. Próximos Pasos Inmediatos
+#
+Acción
+Responsable
+Plazo
+1
+Revisión y aprobación del documento v3.0 por el cliente.
+Cliente / Asesor
+1 semana
+2
+Firma del contrato de desarrollo.
+Cliente / TI
+2 semanas
+3
+Selección de infraestructura 
+cloud
+, registro de dominio y obtención del API 
+key
+ de mapas.
+TI
+Semana 2
+4
+Configuración de PostgreSQL con 
+PostGIS
+ en el ambiente de desarrollo. Verificación de 
+triggers
+.
+TI
+Semana 2
+5
+Registro en Meta Business Suite y solicitud de acceso a WhatsApp Business API.
+Cliente + TI
+Semanas 1–2
+6
+Inicio Fase 1: creación del esquema completo de BD v3.0 y módulos núcleo (Módulos 1, 2, 3).
+TI
+Semana 3
+7
+Definir y someter a aprobación las 8 plantillas WhatsApp en Meta.
+TI / Cliente
+Semana 4
+8
+Revisión de avance Fase 1 y 
+kick
+-off Fase 2 (
+CxC
+ + Custodia).
+Todos
+Semana 7–8
+9
+Definir y formalizar por escrito la política interna de mora antes del inicio de la Fase 2.
+Cliente / Asesor
+Semana 5
+10
+Revisión de avance Fase 2 y 
+kick
+-off Fase 3 (WhatsApp + Mapa).
+Todos
+Semana 14–15
+Recomendaciones Finales del Asesor Legal
+Este documento v3.0 está listo para ser entregado al departamento de TI como especificación definitiva. No requiere versiones adicionales salvo que surjan nuevos requerimientos de negocio.
+La política de custodia en tres estadios (sección 4.5) debe comunicarse por escrito a los propietarios en el contrato de administración, indicando que el administrador opera con un sistema de trazabilidad digital de todos los cobros.
+El log 
+custodia_log
+ protege tanto al administrador como al propietario. En caso de disputa, existe evidencia técnica e irrefutable de cada peso cobrado: cuándo entró, quién lo registró, cuándo fue verificado y cuándo fue liquidado.
+Para las plantillas de WhatsApp: someterlas a Meta en la semana 4 para tener la aprobación antes del inicio de la Fase 3 (el proceso toma 1–3 días hábiles por plantilla).
+Comenzar con 
+Mapbox
+ GL JS para el mapa (plan gratuito generoso) y evaluar migrar a Google 
+Maps
+ en producción si se necesita mejor cobertura de calles en la zona de operación.

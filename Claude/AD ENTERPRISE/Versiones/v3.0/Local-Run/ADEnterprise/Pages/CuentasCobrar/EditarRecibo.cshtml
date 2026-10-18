@@ -1,0 +1,213 @@
+@page
+@model ADEnterprise.Pages.CuentasCobrar.EditarReciboModel
+@{ ViewData["Title"] = "Editar Recibo"; }
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <a href="/CuentasCobrar/Consulta" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div class="page-title mb-0"><i class="bi bi-receipt-cutoff"></i> Editar Recibo de Pago</div>
+    @if (Model.Encontrado)
+    {
+        <span class="font-monospace fw-bold ms-1" style="color:var(--azul-marino);font-size:.95rem">
+            @Model.NumRecibo
+        </span>
+        <a href="/CuentasCobrar/ImprimirRecibo?num=@Uri.EscapeDataString(Model.NumRecibo)"
+           target="_blank" class="btn btn-outline-secondary btn-sm ms-auto"
+           title="Imprimir / PDF">
+            <i class="bi bi-printer"></i> Imprimir
+        </a>
+    }
+</div>
+
+@if (!Model.Encontrado)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        No se encontró el recibo <strong>@Model.NumRecibo</strong>.
+        <a href="/CuentasCobrar/Consulta" class="alert-link ms-2">← Volver a Consulta</a>
+    </div>
+}
+else
+{
+<div class="row g-3">
+
+<!-- ══ COL IZQ: Editar Encabezado ══════════════════════════════════════════ -->
+<div class="col-lg-5">
+<div class="card shadow-sm">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-pencil-square"></i> Datos del Instrumento
+    </div>
+    <div class="card-body">
+        <form method="post" asp-page-handler="Guardar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Input.NumRecibo" />
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Fecha de Pago <span class="text-danger">*</span></label>
+                <input asp-for="Input.FechaPago" type="date" class="form-control form-control-sm" />
+                <span asp-validation-for="Input.FechaPago" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Forma de Pago</label>
+                <select asp-for="Input.FormaPago" class="form-select form-select-sm">
+                    <option value="Cheque">Cheque</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Deposito">Depósito</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Abono">Abono</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">N° Cheque / Referencia</label>
+                <input asp-for="Input.NumChequeReferencia" class="form-control form-control-sm"
+                       placeholder="Número de cheque o referencia bancaria" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Monto del Instrumento (RD$) <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">RD$</span>
+                    <input asp-for="Input.MontoInstrumento" type="number" step="0.01"
+                           class="form-control fw-bold" />
+                </div>
+                <span asp-validation-for="Input.MontoInstrumento" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold small">Notas</label>
+                <textarea asp-for="Input.Notas" class="form-control form-control-sm" rows="2"
+                          placeholder="Observaciones del pago..."></textarea>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-floppy-disk"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+
+        <!-- Separador peligroso -->
+        <hr class="my-3 border-danger" />
+        <div class="card border-danger">
+            <div class="card-header bg-danger text-white fw-bold small">
+                <i class="bi bi-exclamation-triangle-fill"></i> Zona de Peligro
+            </div>
+            <div class="card-body p-3">
+                <p class="small text-muted mb-2">
+                    Eliminar este recibo <strong>revertirá</strong> el estado de todas las facturas
+                    involucradas y borrará los <strong>@Model.Lineas.Count</strong> pago(s) permanentemente.
+                    Esta acción <strong>no se puede deshacer</strong>.
+                </p>
+                <form method="post" asp-page-handler="Anular"
+                      onsubmit="return confirm('⚠️ ¿Está seguro de ELIMINAR el recibo @Model.NumRecibo?\n\nEsto revertirá el pago de @Model.Lineas.Count factura(s) y no se puede deshacer.')">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="numRecibo" value="@Model.NumRecibo" />
+                    <button type="submit" class="btn btn-danger btn-sm w-100">
+                        <i class="bi bi-trash3-fill"></i> Eliminar Recibo Completo
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ══ COL DER: Detalle de líneas ══════════════════════════════════════════ -->
+<div class="col-lg-7">
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center fw-bold"
+         style="background:#198754;color:white">
+        <span><i class="bi bi-list-ul"></i> Detalle del Recibo — @Model.Lineas.Count línea(s)</span>
+        <span class="small fw-normal">
+            Total aplicado:
+            <strong>RD$ @Model.TotalAplicado.ToString("N2")</strong>
+        </span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0" style="font-size:.85rem">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Ticket</th>
+                    <th>Tipo</th>
+                    <th>Empresa</th>
+                    <th>Cliente</th>
+                    <th class="text-end">Monto Aplicado</th>
+                    <th>Estado Factura</th>
+                </tr>
+            </thead>
+            <tbody>
+            @{ int ln = 1; }
+            @foreach (var linea in Model.Lineas)
+            {
+                var tipoClass = linea.TipoLinea == "Abono" ? "bg-warning text-dark" : "bg-success";
+                var estClass  = linea.EstadoFactura switch {
+                    "Pagada"        => "bg-success",
+                    "PagadoParcial" => "bg-warning text-dark",
+                    "Vencida"       => "bg-danger",
+                    "Credito"       => "bg-info text-dark",
+                    _               => "bg-secondary"
+                };
+                <tr>
+                    <td class="text-muted">@ln</td>
+                    <td class="fw-bold">#@linea.Pago.NumTicket</td>
+                    <td>
+                        <span class="badge @tipoClass" style="font-size:.7rem">@linea.TipoLinea</span>
+                    </td>
+                    <td class="text-truncate" style="max-width:120px" title="@linea.EmpresaNombre">
+                        @linea.EmpresaNombre
+                    </td>
+                    <td class="text-truncate" style="max-width:110px" title="@linea.ClienteNombre">
+                        @linea.ClienteNombre
+                    </td>
+                    <td class="text-end fw-bold text-success">
+                        RD$ @linea.Pago.MontoPagado.ToString("N2")
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(linea.EstadoFactura))
+                        {
+                            <span class="badge @estClass" style="font-size:.7rem">@linea.EstadoFactura</span>
+                        }
+                    </td>
+                </tr>
+                ln++;
+            }
+            </tbody>
+            <tfoot style="background:var(--azul-marino);color:white;font-weight:bold">
+                <tr>
+                    <td colspan="5" class="text-end">TOTAL APLICADO:</td>
+                    <td class="text-end">RD$ @Model.TotalAplicado.ToString("N2")</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- Resumen instrumento vs aplicado -->
+    @{
+        var balance = Model.Input.MontoInstrumento - Model.TotalAplicado;
+        var balClass = Math.Abs(balance) < 0.01M ? "text-success" :
+                       balance > 0 ? "text-warning" : "text-danger";
+    }
+    <div class="card-footer d-flex gap-4 align-items-center py-2" style="font-size:.85rem">
+        <span>
+            <span class="text-muted">Instrumento:</span>
+            <strong class="text-primary">RD$ @Model.Input.MontoInstrumento.ToString("N2")</strong>
+        </span>
+        <span>
+            <span class="text-muted">Aplicado:</span>
+            <strong class="text-success">RD$ @Model.TotalAplicado.ToString("N2")</strong>
+        </span>
+        <span>
+            <span class="text-muted">Balance:</span>
+            <strong class="@balClass">RD$ @balance.ToString("N2")</strong>
+        </span>
+    </div>
+</div>
+</div>
+
+</div><!-- /row -->
+}

@@ -1,0 +1,105 @@
+================================================================
+   SISTEMA DE INMUEBLES - VERSIÓN 6.0
+   Novedades y mejoras respecto a la v5
+================================================================
+
+La v6 es una versión COMPLETA: incluye todo lo de la v5 más las
+mejoras de abajo. En una máquina nueva se instala con INSTALAR.bat;
+en una máquina que ya tiene la v5, se aplica con ACTUALIZAR.bat
+(que corre el esquema de base de datos y publica el código nuevo,
+sin perder datos).
+
+----------------------------------------------------------------
+ ESTADO DE LAS MEJORAS DE LA V6
+----------------------------------------------------------------
+
+[LISTO] 2. Documentación con número de PASAPORTE en propietarios
+        e inquilinos (además de la cédula).
+
+[LISTO] (extra) Tablero: la dona de disponibilidad muestra el %
+        real (no la cantidad). La tarjeta "Cobrado mes" muestra
+        debajo la tasa de cobro %. La tarjeta de tasa pasó a
+        "Pendiente por liquidar (acum.)" con el total en RD$,
+        cantidad de propietarios y de pagos.
+
+[LISTO] 1. Encabezados FIJOS + Excel en los informes.
+        Informes de Maestras (Propietarios, Inquilinos, Inmuebles),
+        Informes de Cobranza (Contratos, Antiguedad, Cobranzas,
+        Adelantos), Reporte General CxC y los Reportes de
+        Liquidaciones y Beneficios/Comisiones: todos con boton Excel
+        y encabezado que queda fijo al desplazar la tabla.
+
+[LISTO] 3. Nuevo informe "Reporte por Propietario" (Mantenimiento):
+        multi-selección de propietarios, rompe por propietario,
+        lista inmuebles + inquilino + alquiler + depósito, y al
+        final totaliza inmuebles (ocupados/disponibles), inquilinos
+        y montos de alquiler/depósito de contratos activos. Con
+        Excel e impresión.
+
+[LISTO] 4. Submódulo de CONFIGURACIÓN en Mantenimiento: elegir
+        cuándo se generan los cargos (inicio de ciclo / fin de
+        ciclo / un día después). Por defecto: INICIO de ciclo.
+        Motor reescrito con soporte quincenal (días 1 y 16, con
+        comentario "1ra / 2da Quincena del mes") y catch-up: si el
+        proceso no corrió, al ejecutarlo genera todos los cargos
+        pendientes sin duplicar.
+
+[LISTO] 5. Al crear un contrato, si tiene deposito > 0 se genera
+        automaticamente una CxC tipo DEPOSITO (vencimiento el mismo
+        dia) y el sistema ofrece cobrarla de inmediato ("Contrato
+        creado, se cargo la CxC del deposito... ¿Realizar el recibo
+        de pago ahora?"), llevando directo a Pagos con esa CxC
+        preseleccionada. El cobro sigue el flujo normal (Cobrado ->
+        En administracion -> Liquidado) y entra en la liquidacion
+        del propietario.
+
+[DIFERIDO] 6. Generar la CxC de depósito (ya pagada/liquidada)
+        para todos los inquilinos activos actuales.
+        (Se decidió dejarla fuera de esta entrega.)
+
+[LISTO] 7. Adelantos completos:
+        - Documentos adjuntos (PDF/JPG/PNG, varios, máx 5 MB c/u)
+          guardados EN la base de datos; ver/descargar/eliminar.
+        - Edición del adelanto solo mientras está PENDIENTE.
+        - El propietario puede PAGAR (devolver) el adelanto: entra
+          a la caja activa (aparece en el cuadre) y pasa a PAGADO.
+        - Anular adelanto: justificación obligatoria, queda ANULADO
+          en el log, NO toca caja (el adelanto sale de fondos del
+          administrador, no de la caja). Deja de descontarse.
+        - Tambien se agregó ANULAR CARGO (CxC) sin pagos, con
+          justificación y log (solo administrador).
+        Estados del adelanto: PENDIENTE / LIQUIDADO / PAGADO /
+        ANULADO. (Las anulaciones de pagos/recibos y de
+        liquidaciones ya existían.)
+
+[LISTO] 8. Respaldo automático cada noche (1:00 AM, dentro del
+        proceso nocturno del propio sistema):
+        - Respaldo real de la BD (pg_dump .backup).
+        - ESPEJO CONSULTABLE en Excel (.xlsx) con una pestaña por
+          tabla (propietarios, inmuebles, inquilinos, contratos,
+          CxC, pagos, caja, liquidaciones, adelantos, abonos) —
+          una "foto al día de ayer" que se abre en Excel/Google
+          Sheets aunque no haya conexión al sistema.
+        - Copia LOCAL siempre, con rotación configurable (8 días).
+        - Subida OPCIONAL a Google Drive con rclone (carpeta por
+          cliente, misma rotación).
+        - Respaldo "on demand" desde Procesos ("Respaldar ahora").
+        - Configuración en Mantenimiento > Configuración (carpeta,
+          nombre del cliente, días de retención, destino rclone).
+        - Guía de rclone: INSTALADOR/RESPALDO_DRIVE_RCLONE.txt.
+        (La Capa 3 —operar/editar desde el espejo y reimportar— se
+        deja como mejora futura.)
+
+[LISTO] 9. En Generar Liquidación se muestran los ADELANTOS
+        pendientes del propietario (con casillas, todas marcadas por
+        defecto) y se descuentan del neto: Neto a pagar = Alquiler -
+        Comision - Adelantos. Se ve en el resumen, en la pantalla de
+        confirmacion y en el recibo. Al anular la liquidacion los
+        adelantos vuelven a PENDIENTE. La distribucion a
+        copropietarios usa el neto final. Si los adelantos superan lo
+        cobrado, avisa que el neto queda negativo.
+
+----------------------------------------------------------------
+ Las mejoras se van marcando como [LISTO] a medida que se
+ completan. Cada vez que se actualice, revisa este archivo.
+================================================================

@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistema de Reportería</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --brand-dark:   #0d1b2a;
+      --brand-mid:    #1b3a5c;
+      --brand-accent: #2e86de;
+      --sidebar-w:    272px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f3f8; overflow-x: hidden; }
+
+    /* ── Sidebar ─────────────────────── */
+    #sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0; width: var(--sidebar-w);
+      background: linear-gradient(180deg, #0d1b2a 0%, #112032 100%);
+      display: flex; flex-direction: column; z-index: 200;
+      overflow-y: auto; overflow-x: hidden;
+    }
+    .sidebar-brand {
+      padding: 18px 16px 14px; text-align: center;
+      border-bottom: 1px solid rgba(255,255,255,.08); flex-shrink: 0;
+    }
+    .brand-logo  { max-height: 52px; max-width: 160px; object-fit: contain; margin-bottom: 6px; }
+    .brand-name  { color: #fff; font-size: .78rem; font-weight: 600; letter-spacing: .3px; line-height: 1.35; }
+    .nav-label   { font-size: .63rem; font-weight: 700; letter-spacing: 1.3px; color: rgba(255,255,255,.3);
+                   text-transform: uppercase; padding: 16px 18px 5px; }
+    .nav-head    { display: flex; align-items: center; gap: 9px; padding: 10px 16px; cursor: pointer;
+                   color: rgba(255,255,255,.7); font-size: .86rem; font-weight: 500;
+                   border-left: 3px solid transparent; transition: all .18s; user-select: none; }
+    .nav-head:hover, .nav-head.open { color: #fff; background: rgba(255,255,255,.07); border-left-color: var(--brand-accent); }
+    .nav-head .arrow { margin-left: auto; font-size: .7rem; transition: transform .24s; }
+    .nav-head.open .arrow { transform: rotate(90deg); }
+    .sub-menu { overflow: hidden; max-height: 0; transition: max-height .28s ease; }
+    .sub-menu.open { max-height: 800px; }
+    .sub-item { display: flex; align-items: center; gap: 8px; padding: 8px 16px 8px 36px; cursor: pointer;
+                color: rgba(255,255,255,.52); font-size: .82rem; border-left: 3px solid transparent; transition: all .15s; }
+    .sub-item:hover, .sub-item.active { color: #fff; background: rgba(46,134,222,.18); border-left-color: var(--brand-accent); }
+    .sub-item.disabled { opacity: .35; cursor: default; pointer-events: none; }
+    .sidebar-footer { margin-top: auto; padding: 13px 16px; border-top: 1px solid rgba(255,255,255,.08);
+                      display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+    .user-name  { color: #fff; font-size: .81rem; font-weight: 600; }
+    .user-role  { color: rgba(255,255,255,.4); font-size: .71rem; }
+    .btn-logout { color: rgba(255,255,255,.45); background: none; border: none; font-size: 1rem;
+                  cursor: pointer; padding: 5px; margin-left: auto; transition: color .2s; }
+    .btn-logout:hover { color: #e74c3c; }
+
+    /* ── Topbar ─────────────────────── */
+    #topbar {
+      position: fixed; top: 0; left: var(--sidebar-w); right: 0; height: 56px;
+      background: #fff; border-bottom: 1px solid #dde3ec;
+      display: flex; align-items: center; padding: 0 24px; z-index: 150;
+      box-shadow: 0 2px 8px rgba(0,0,0,.055);
+    }
+    .page-title { font-size: .97rem; font-weight: 700; color: #1e2d3d; }
+    .breadcrumb-text { font-size: .77rem; color: #8fa0b3; margin-left: 10px; }
+
+    /* ── Content ─────────────────────── */
+    #content { margin-left: var(--sidebar-w); padding: 72px 26px 48px; min-height: 100vh; }
+
+    /* Welcome */
+    #panel-welcome { max-width: 680px; margin: 70px auto; text-align: center; }
+    #panel-welcome .wi { font-size: 5rem; color: var(--brand-accent); opacity: .16; margin-bottom: 18px; }
+    #panel-welcome h3 { color: #2c3e50; font-weight: 700; font-size: 1.3rem; }
+    #panel-welcome p  { color: #7f8c8d; margin-top: 8px; }
+
+    /* ── Filtros card ─────────────────── */
+    .filter-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.065); padding: 18px 22px; margin-bottom: 18px;
+    }
+    .filter-title { font-size: .78rem; font-weight: 700; text-transform: uppercase;
+                    letter-spacing: .9px; color: var(--brand-accent); margin-bottom: 14px;
+                    display: flex; align-items: center; gap: 7px; }
+    .filter-row { display: flex; flex-wrap: wrap; gap: 14px; }
+    .fg { flex: 1; min-width: 190px; max-width: 320px; }
+    .fg label { font-size: .76rem; font-weight: 600; color: #495057; margin-bottom: 3px; display: block; }
+    .fg input[type="date"] { width: 100%; padding: 7px 10px; border: 1.5px solid #dee2e6;
+                              border-radius: 7px; font-size: .88rem; transition: border-color .2s; }
+    .fg input[type="date"]:focus { border-color: var(--brand-accent); outline: none; }
+    .select2-container { width: 100% !important; }
+    .select2-container--default .select2-selection--multiple {
+      border: 1.5px solid #dee2e6 !important; border-radius: 7px !important; min-height: 34px !important;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+      border-color: var(--brand-accent) !important; box-shadow: 0 0 0 3px rgba(46,134,222,.15) !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+      background: var(--brand-accent) !important; border: none !important; color: #fff !important;
+      border-radius: 4px !important; font-size: .75rem !important; padding: 2px 8px !important;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove { color: rgba(255,255,255,.75) !important; }
+    .btn-gen { background: linear-gradient(135deg, var(--brand-accent), #1a6bdb); color: #fff;
+               border: none; border-radius: 8px; padding: 9px 22px; font-size: .88rem; font-weight: 600; cursor: pointer; }
+    .btn-gen:hover { opacity: .88; }
+    .btn-clr { background: #f8f9fa; color: #6c757d; border: 1.5px solid #dee2e6;
+               border-radius: 8px; padding: 8px 16px; font-size: .88rem; cursor: pointer; }
+    .btn-clr:hover { background: #e9ecef; }
+
+    /* ── KPI bar ─────────────────────── */
+    .kpi-bar { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+    .kpi {
+      flex: 1; min-width: 155px; background: #fff; border-radius: 10px;
+      padding: 13px 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      border-left: 4px solid var(--brand-accent);
+    }
+    .kpi.kpi-f  { border-left-color: #27ae60; }
+    .kpi.kpi-d  { border-left-color: #e74c3c; }
+    .kpi.kpi-n  { border-left-color: #8e44ad; }
+    .kpi-label  { font-size: .7rem; color: #7f8c8d; text-transform: uppercase; letter-spacing: .6px; }
+    .kpi-value  { font-size: 1.15rem; font-weight: 700; color: #1e2d3d; margin-top: 3px; }
+
+    /* ── Chart card ─────────────────── */
+    .chart-card {
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.065); padding: 18px 22px; margin-bottom: 18px;
+    }
+    .chart-title { font-size: .88rem; font-weight: 700; color: #1e2d3d;
+                   margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    #chart-pf { max-height: 280px; }
+
+    /* ── Tabla card ─────────────────── */
+    .report-card { background: #fff; border-radius: 12px;
+                   box-shadow: 0 2px 10px rgba(0,0,0,.065); padding: 18px 22px; }
+    .report-title { font-size: .92rem; font-weight: 700; color: #1e2d3d;
+                    margin-bottom: 14px; display: flex; align-items: center; gap: 9px; }
+    table.dataTable thead th { background: #f0f3f8; color: #1e2d3d;
+                                font-size: .8rem; font-weight: 700; white-space: nowrap; }
+    table.dataTable tbody td { font-size: .8rem; vertical-align: middle; white-space: nowrap; }
+    .num { text-align: right !important; font-variant-numeric: tabular-nums; }
+    tr.sub-row td { background: #e8f0fe !important; font-weight: 700; color: #0d1b2a; font-size: .8rem; }
+    tr.grand-row td { background: var(--brand-mid) !important; color: #fff !important;
+                      font-weight: 700; font-size: .82rem; }
+    .dt-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+    .dt-buttons .btn { font-size: .78rem; padding: 5px 12px; border-radius: 6px; }
+
+    /* ── Árbol jerárquico ──────────────── */
+    .tree-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 20px; height: 20px; border-radius: 4px; margin-right: 6px;
+      font-size: .85rem; font-weight: 900; cursor: pointer; flex-shrink: 0;
+      border: 1.5px solid currentColor; line-height: 1; transition: all .15s;
+      vertical-align: middle;
+    }
+    tr.tree-day  .tree-toggle { color: var(--brand-accent); }
+    tr.tree-sup  .tree-toggle { color: #27ae60; }
+    tr.tree-rep  .tree-toggle { color: #e67e22; }
+    tr.tree-day  { background: #ddeeff !important; }
+    tr.tree-sup  { background: #edf7f0 !important; }
+    tr.tree-rep  { background: #fef9f0 !important; }
+    tr.tree-detail { background: #fff !important; }
+    tr.tree-day td, tr.tree-sup td, tr.tree-rep td { font-weight: 600; }
+    tr.tree-detail td { font-weight: 400; color: #444; }
+    tr.tree-row td { padding-top: 6px !important; padding-bottom: 6px !important; border-bottom: 1px solid #e8edf3; }
+    tr.tree-day > td:first-child { border-left: 4px solid var(--brand-accent); }
+    tr.tree-sup > td:first-child { border-left: 4px solid #27ae60; }
+    tr.tree-rep > td:first-child { border-left: 4px solid #e67e22; }
+    tr.tree-detail > td:first-child { border-left: 4px solid #bdc3c7; }
+    tr.tree-row.search-hidden { display: none !important; }
+
+    /* Toolbar árbol */
+    .btn-tree-action {
+      background: #f0f3f8; border: 1.5px solid #d0d9e6; border-radius: 7px;
+      padding: 6px 14px; font-size: .8rem; font-weight: 600; color: #445;
+      cursor: pointer; transition: background .18s;
+    }
+    .btn-tree-action:hover { background: #e0e8f4; }
+    .tree-search-input {
+      border: 1.5px solid #dee2e6; border-radius: 7px; padding: 6px 12px;
+      font-size: .85rem; width: 200px; transition: border-color .2s;
+    }
+    .tree-search-input:focus { border-color: var(--brand-accent); outline: none; }
+    .btn-tree-export {
+      border: none; border-radius: 7px; padding: 6px 14px;
+      font-size: .8rem; font-weight: 600; cursor: pointer; transition: opacity .18s;
+    }
+    .btn-tree-export:hover { opacity: .85; }
+    .btn-excel  { background: #1d7a45; color: #fff; }
+    .btn-pdf    { background: #c0392b; color: #fff; }
+    .btn-print  { background: #5d6d7e; color: #fff; }
+
+    /* ── Spinner ─────────────────────── */
+    #spinner { display: none; position: fixed; inset: 0;
+               background: rgba(0,0,0,.28); z-index: 9999;
+               align-items: center; justify-content: center; }
+    #spinner.show { display: flex; }
+    .spin-box { background: #fff; border-radius: 12px; padding: 30px 40px;
+                text-align: center; box-shadow: 0 8px 30px rgba(0,0,0,.22); }
+    .spin-box .spinner-border { color: var(--brand-accent); width: 2.4rem; height: 2.4rem; }
+    .spin-box p { margin: 12px 0 0; color: #495057; font-size: .88rem; }
+  </style>
+</head>
+<body>
+
+<div id="spinner"><div class="spin-box">
+  <div class="spinner-border" role="status"></div>
+  <p>Generando reporte...</p>
+</div></div>
+
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <img id="emp-logo" src="" alt="" class="brand-logo" style="display:none">
+    <div class="brand-name" id="emp-nombre">Sistema de Reportería</div>
+  </div>
+
+  <div class="nav-label">Menú Principal</div>
+
+  <div class="nav-head" id="hd-comercial" onclick="toggleMenu('sm-comercial','hd-comercial')">
+    <i class="fas fa-chart-line fa-fw"></i><span>Reportes Comerciales</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu open" id="sm-comercial">
+    <div class="sub-item active" id="mi-pf" onclick="loadReport('pedidos-facturacion','mi-pf','Reportes Comerciales','Pedidos Vs. Facturado Vs. Dev.')">
+      <i class="fas fa-file-invoice-dollar fa-fw"></i>Pedidos Vs. Facturado Vs. Dev.
+    </div>
+  </div>
+
+  <div class="nav-head" id="hd-logistica" onclick="toggleMenu('sm-logistica','hd-logistica')">
+    <i class="fas fa-truck fa-fw"></i><span>Reportes de Logística</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu" id="sm-logistica">
+    <div class="sub-item disabled"><i class="fas fa-ellipsis-h fa-fw"></i>Próximamente</div>
+  </div>
+
+  <div class="nav-head" id="hd-compras" onclick="toggleMenu('sm-compras','hd-compras')">
+    <i class="fas fa-shopping-cart fa-fw"></i><span>Reportes de Compras</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu" id="sm-compras">
+    <div class="sub-item disabled"><i class="fas fa-ellipsis-h fa-fw"></i>Próximamente</div>
+  </div>
+
+  <div class="nav-head" id="hd-contab" onclick="toggleMenu('sm-contab','hd-contab')">
+    <i class="fas fa-calculator fa-fw"></i><span>Reportes de Contabilidad</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu" id="sm-contab">
+    <div class="sub-item disabled"><i class="fas fa-ellipsis-h fa-fw"></i>Próximamente</div>
+  </div>
+
+  <div class="nav-head" id="hd-rrhh" onclick="toggleMenu('sm-rrhh','hd-rrhh')">
+    <i class="fas fa-users fa-fw"></i><span>Reportes de Gestión Humana</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu" id="sm-rrhh">
+    <div class="sub-item disabled"><i class="fas fa-ellipsis-h fa-fw"></i>Próximamente</div>
+  </div>
+
+  <div class="nav-head" id="hd-fin" onclick="toggleMenu('sm-fin','hd-fin')">
+    <i class="fas fa-coins fa-fw"></i><span>Reportes Financiero</span>
+    <i class="fas fa-chevron-right arrow"></i>
+  </div>
+  <div class="sub-menu" id="sm-fin">
+    <div class="sub-item disabled"><i class="fas fa-ellipsis-h fa-fw"></i>Próximamente</div>
+  </div>
+
+  <div class="sidebar-footer">
+    <i class="fas fa-user-circle fa-2x" style="color:rgba(255,255,255,.35)"></i>
+    <div class="flex-grow-1">
+      <div class="user-name">{{ usuario }}</div>
+      <div class="user-role">Usuario del Sistema</div>
+    </div>
+    <a href="/logout" class="btn-logout" title="Cerrar sesión"><i class="fas fa-sign-out-alt"></i></a>
+  </div>
+</nav>
+
+<!-- ── TOPBAR ── -->
+<div id="topbar">
+  <i class="fas fa-chart-bar me-2" style="color:var(--brand-accent)"></i>
+  <span class="page-title" id="tb-title">Sistema de Reportería</span>
+  <span class="breadcrumb-text" id="tb-sub"></span>
+</div>
+
+<!-- ── CONTENT ── -->
+<div id="content">
+
+  <div id="panel-welcome">
+    <div class="wi"><i class="fas fa-chart-bar"></i></div>
+    <h3>Bienvenido al Sistema de Reportería</h3>
+    <p>Seleccione un reporte del menú lateral para comenzar.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════
+       REPORTE 1 – Pedidos vs Facturado vs Dev.
+  ══════════════════════════════════════════ -->
+  <div id="panel-pedidos-facturacion" style="display:none">
+
+    <!-- Filtros -->
+    <div class="filter-card">
+      <div class="filter-title"><i class="fas fa-sliders-h"></i>Filtros del Reporte</div>
+      <div class="filter-row">
+        <div class="fg">
+          <label><i class="fas fa-calendar-day me-1"></i>Fecha Inicial</label>
+          <input type="date" id="f-fi">
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-calendar-day me-1"></i>Fecha Final</label>
+          <input type="date" id="f-ff">
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-industry me-1"></i>Suplidores</label>
+          <select id="f-sup" multiple class="s2"></select>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-tags me-1"></i>Categorías</label>
+          <select id="f-cat" multiple class="s2"></select>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-user-tie me-1"></i>Supervisor de Ventas</label>
+          <select id="f-sv" multiple class="s2"></select>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-user me-1"></i>Representantes</label>
+          <select id="f-rep" multiple class="s2"></select>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-warehouse me-1"></i>Centro de Distribución</label>
+          <select id="f-ced" multiple class="s2"></select>
+        </div>
+        <div class="fg">
+          <label><i class="fas fa-store me-1"></i>Clientes</label>
+          <select id="f-cli" multiple class="s2"></select>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn-gen" onclick="genPF()"><i class="fas fa-play me-2"></i>Generar Reporte</button>
+        <button class="btn-clr" onclick="limpiarPF()"><i class="fas fa-undo me-1"></i>Limpiar</button>
+      </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-bar" id="kpis" style="display:none">
+      <div class="kpi">
+        <div class="kpi-label"><i class="fas fa-file-alt me-1"></i>Valor Bruto Pedido</div>
+        <div class="kpi-value" id="kpi-bruto">0.00</div>
+      </div>
+      <div class="kpi kpi-f">
+        <div class="kpi-label"><i class="fas fa-file-invoice me-1"></i>Valor Facturado</div>
+        <div class="kpi-value" id="kpi-fact">0.00</div>
+      </div>
+      <div class="kpi kpi-d">
+        <div class="kpi-label"><i class="fas fa-undo me-1"></i>Valor Devuelto</div>
+        <div class="kpi-value" id="kpi-dev">0.00</div>
+      </div>
+      <div class="kpi kpi-n">
+        <div class="kpi-label"><i class="fas fa-check-double me-1"></i>Neto Entregado</div>
+        <div class="kpi-value" id="kpi-neto">0.00</div>
+      </div>
+      <div class="kpi" style="border-left-color:#e67e22">
+        <div class="kpi-label"><i class="fas fa-percentage me-1"></i>% Facturado / Pedido</div>
+        <div class="kpi-value" id="kpi-pct">0.00%</div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="chart-card" id="chart-card" style="display:none">
+      <div class="chart-title">
+        <i class="fas fa-chart-bar" style="color:var(--brand-accent)"></i>
+        Comparativo Diario – Pedido vs Facturado vs Devuelto
+      </div>
+      <canvas id="chart-pf"></canvas>
+    </div>
+
+    <!-- Tabla árbol -->
+    <div class="report-card">
+      <div class="report-title">
+        <i class="fas fa-sitemap" style="color:var(--brand-accent)"></i>
+        Pedidos Vs. Facturado Vs. Devoluciones
+        <small id="rpt-per" class="text-muted fw-normal ms-2" style="font-size:.76rem"></small>
+      </div>
+
+      <!-- Toolbar árbol + búsqueda -->
+      <div class="d-flex flex-wrap align-items-center gap-2 mb-3" id="tree-toolbar" style="display:none!important">
+        <button class="btn-tree-action" onclick="treeExpandAll()">
+          <i class="fas fa-expand-alt me-1"></i>Expandir todo
+        </button>
+        <button class="btn-tree-action" onclick="treeCollapseAll()">
+          <i class="fas fa-compress-alt me-1"></i>Colapsar todo
+        </button>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <input id="tree-search" type="text" placeholder="Buscar..." class="tree-search-input"
+                 oninput="treeSearch(this.value)">
+          <button class="btn-tree-export btn-excel" onclick="exportExcelPF()">
+            <i class="fas fa-file-excel me-1"></i>Excel
+          </button>
+          <button class="btn-tree-export btn-pdf" onclick="exportPdfPF()">
+            <i class="fas fa-file-pdf me-1"></i>PDF
+          </button>
+          <button class="btn-tree-export btn-print" onclick="exportPrintPF()">
+            <i class="fas fa-print me-1"></i>Imprimir
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table id="tbl-pf-tree" class="table table-sm w-100" style="font-size:.82rem">
+          <thead>
+            <tr>
+              <th style="min-width:260px">Descripción</th>
+              <th style="min-width:90px">Rep / Secuencia</th>
+              <th class="num">Bruto Pedido</th>
+              <th class="num">Facturado</th>
+              <th class="num">Devuelto</th>
+              <th class="num">Neto Entregado</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pf-tree"></tbody>
+          <tfoot>
+            <tr id="tfoot-grand" style="display:none" class="grand-row">
+              <th colspan="2"><i class="fas fa-check-double me-1"></i>TOTAL GENERAL</th>
+              <th class="num" id="tf-bruto"></th>
+              <th class="num" id="tf-fact"></th>
+              <th class="num" id="tf-dev"></th>
+              <th class="num" id="tf-neto"></th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tabla oculta para exportación DataTables -->
+    <table id="tbl-pf-export" style="display:none">
+      <thead><tr>
+        <th>Fecha</th><th>Supervisor</th><th>Cód.Rep</th><th>Representante</th>
+        <th>Cód.Cliente</th><th>Cliente</th><th>Secuencia</th>
+        <th>Bruto Pedido</th><th>Facturado</th><th>Devuelto</th><th>Neto Entregado</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+
+  </div><!-- /panel-pf -->
+
+</div><!-- /content -->
+
+<!-- ── SCRIPTS ── -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+// ── Utilidades ──────────────────────────────────────
+const FMT = v => parseFloat(v||0).toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2});
+const PCT = (a,b) => b ? ((a/b)*100).toFixed(1)+'%' : '0.0%';
+const spin = s => document.getElementById('spinner').classList.toggle('show',s);
+
+function ayer() {
+  const d = new Date(); d.setDate(d.getDate()-1);
+  return d.toISOString().slice(0,10);
+}
+function selVals(id) {
+  const v = $('#'+id).val()||[];
+  return (!v.length || v.includes('TODOS')) ? ['TODOS'] : v;
+}
+
+// ── Init ──────────────────────────────────────────
+$(function(){
+  // Empresa
+  fetch('/api/empresa').then(r=>r.json()).then(d=>{
+    if(d.nombre) document.getElementById('emp-nombre').textContent = d.nombre;
+    if(d.logo){ const i=document.getElementById('emp-logo'); i.src=d.logo; i.style.display='block'; }
+  });
+
+  // Select2
+  $('.s2').select2({placeholder:'– Todos –', allowClear:true, width:'100%'});
+
+  // Cargar filtros PF
+  cargarFiltrosPF();
+
+  // Fecha ayer por defecto
+  setFechasAyer();
+
+  // Abrir menú comercial
+  document.getElementById('hd-comercial').classList.add('open');
+});
+
+function setFechasAyer(){
+  const ay = ayer();
+  document.getElementById('f-fi').value = ay;
+  document.getElementById('f-ff').value = ay;
+}
+
+// ── Sidebar ──────────────────────────────────────
+function toggleMenu(smId, hdId){
+  const sm = document.getElementById(smId);
+  const hd = document.getElementById(hdId);
+  const open = sm.classList.contains('open');
+  document.querySelectorAll('.sub-menu').forEach(m=>m.classList.remove('open'));
+  document.querySelectorAll('.nav-head').forEach(h=>h.classList.remove('open'));
+  if(!open){ sm.classList.add('open'); hd.classList.add('open'); }
+}
+
+function loadReport(rptId, miId, cat, title){
+  document.querySelectorAll('.sub-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById(miId).classList.add('active');
+  document.querySelectorAll('[id^="panel-"]').forEach(p=>p.style.display='none');
+  document.getElementById('panel-welcome').style.display='none';
+  document.getElementById('tb-title').textContent = cat;
+  document.getElementById('tb-sub').textContent = ' › '+title;
+  document.getElementById('panel-'+rptId).style.display = 'block';
+}
+
+// ── Filtros PF ───────────────────────────────────
+function poblar(id, data, label){
+  const s = document.getElementById(id);
+  s.innerHTML = `<option value="TODOS" selected>${label}</option>`;
+  data.forEach(d=>{
+    const o = document.createElement('option');
+    o.value = d.id; o.textContent = d.id+' – '+d.nombre;
+    s.appendChild(o);
+  });
+  $('#'+id).trigger('change');
+}
+
+function cargarFiltrosPF(){
+  fetch('/api/suplidores').then(r=>r.json()).then(d=>poblar('f-sup',d,'– Todos –'));
+  fetch('/api/categorias').then(r=>r.json()).then(d=>poblar('f-cat',d,'– Todas –'));
+  fetch('/api/supervisores').then(r=>r.json()).then(d=>poblar('f-sv',d,'– Todos –'));
+  fetch('/api/representantes').then(r=>r.json()).then(d=>poblar('f-rep',d,'– Todos –'));
+  fetch('/api/centros').then(r=>r.json()).then(d=>poblar('f-ced',d,'– Todos –'));
+  fetch('/api/clientes').then(r=>r.json()).then(d=>poblar('f-cli',d,'– Todos –'));
+}
+
+// Cascadas
+$('#f-sup').on('change',function(){
+  const v=selVals('f-sup');
+  const qs = v.includes('TODOS')?'':'?suplidores='+v.join(',');
+  fetch('/api/categorias'+qs).then(r=>r.json()).then(d=>poblar('f-cat',d,'– Todas –'));
+});
+$('#f-sv').on('change',function(){
+  const v=selVals('f-sv');
+  const qs = v.includes('TODOS')?'':'?supervisores='+v.join(',');
+  fetch('/api/representantes'+qs).then(r=>r.json()).then(d=>poblar('f-rep',d,'– Todos –'));
+});
+
+// ── Generar PF ──────────────────────────────────
+let chartPF = null, _pfByFecha = {}, _pfTree = {}, _pfRows = [], _pfFi = '', _pfFf = '';
+
+function genPF(){
+  const fi=document.getElementById('f-fi').value;
+  const ff=document.getElementById('f-ff').value;
+  if(!fi||!ff){alert('Seleccione rango de fechas.');return;}
+  if(fi>ff){alert('La fecha inicial debe ser menor o igual a la fecha final.');return;}
+
+  spin(true);
+  fetch('/api/reporte/pedidos_facturacion',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      fecha_ini:fi, fecha_fin:ff,
+      suplidores:    selVals('f-sup'),
+      categorias:    selVals('f-cat'),
+      supervisores:  selVals('f-sv'),
+      representantes:selVals('f-rep'),
+      centros:       selVals('f-ced'),
+      clientes:      selVals('f-cli'),
+    })
+  })
+  .then(r=>r.json())
+  .then(data=>{ spin(false); if(data.error){alert('Error: '+data.error);return;} renderPF(data,fi,ff); })
+  .catch(e=>{ spin(false); alert('Error de conexión: '+e); });
+}
+
+// ══════════════════════════════════════════════════════
+//  ÁRBOL JERÁRQUICO: Día → Supervisor → Vendedor → Cliente
+// ══════════════════════════════════════════════════════
+
+// ── Construir jerarquía desde filas planas ──
+function buildTree(rows){
+  const tree = {}; // fecha → {b,fa,de,ne, sups:{}}
+  rows.forEach(r=>{
+    const f   = (r.pedfecha||'').slice(0,10);
+    const sup = r.supervisor_nombre || 'Sin Supervisor';
+    const rep = r.repcodigo || '';
+    const repN= r.rep_nombre || '';
+
+    if(!tree[f]) tree[f]={b:0,fa:0,de:0,ne:0,sups:{}};
+    tree[f].b+=+r.ValorBrutoPedido; tree[f].fa+=+r.ValorFacturado;
+    tree[f].de+=+r.ValorDevuelto;   tree[f].ne+=+r.NetoEntregado;
+
+    if(!tree[f].sups[sup]) tree[f].sups[sup]={b:0,fa:0,de:0,ne:0,reps:{}};
+    tree[f].sups[sup].b+=+r.ValorBrutoPedido; tree[f].sups[sup].fa+=+r.ValorFacturado;
+    tree[f].sups[sup].de+=+r.ValorDevuelto;   tree[f].sups[sup].ne+=+r.NetoEntregado;
+
+    if(!tree[f].sups[sup].reps[rep])
+      tree[f].sups[sup].reps[rep]={nombre:repN,b:0,fa:0,de:0,ne:0,rows:[]};
+    const rd=tree[f].sups[sup].reps[rep];
+    rd.b+=+r.ValorBrutoPedido; rd.fa+=+r.ValorFacturado;
+    rd.de+=+r.ValorDevuelto;   rd.ne+=+r.NetoEntregado;
+    rd.rows.push(r);
+  });
+  return tree;
+}
+
+// ── Crear fila de nodo (día / supervisor / vendedor) ──
+function mkNodeRow(type, gid, parentGid, label, sub, data){
+  const tr = document.createElement('tr');
+  tr.className = 'tree-row tree-'+type;
+  tr.dataset.gid = gid;
+  if(parentGid){ tr.dataset.pid = parentGid; tr.style.display='none'; }
+
+  const pad   = {day:10, sup:28, rep:46}[type];
+  const icon  = {day:'📅', sup:'👔', rep:'👤'}[type];
+  const color = {day:'var(--brand-accent)', sup:'#27ae60', rep:'#e67e22'}[type];
+
+  tr.innerHTML =
+    `<td style="padding-left:${pad}px">` +
+      `<span class="tree-toggle" data-gid="${gid}" style="color:${color}" onclick="treeToggle('${gid}')">+</span>` +
+      `${icon} <strong>${esc(label)}</strong>` +
+      (sub ? `<small style="color:#888;font-weight:400;margin-left:6px">${sub}</small>` : '') +
+    `</td>` +
+    `<td></td>` +
+    numCells(data);
+  return tr;
+}
+
+// ── Crear fila detalle (cliente / pedido) ──
+function mkDetailRow(parentGid, r){
+  const tr = document.createElement('tr');
+  tr.className = 'tree-row tree-detail';
+  tr.dataset.pid = parentGid;
+  tr.style.display = 'none';
+  tr.dataset.search = [
+    r.supervisor_nombre, r.rep_nombre, r.repcodigo,
+    r.cod_cliente, r.nombre_cliente, r.PedSecuencia
+  ].join(' ').toLowerCase();
+
+  tr.innerHTML =
+    `<td style="padding-left:64px">` +
+      `<span style="color:#bdc3c7;margin-right:4px">└</span>` +
+      `🏪 <span style="color:#555">${esc(r.cod_cliente||'')} – ${esc(r.nombre_cliente||'')}</span>` +
+    `</td>` +
+    `<td style="color:#666;font-size:.78rem">${esc(String(r.PedSecuencia||''))}</td>` +
+    numCells(r, false);
+  return tr;
+}
+
+function numCells(d, bold=true){
+  const w = bold ? '<strong>':'', ew = bold ? '</strong>':'';
+  return `<td class="num">${w}${FMT(d.b??d.ValorBrutoPedido)}${ew}</td>` +
+         `<td class="num">${w}${FMT(d.fa??d.ValorFacturado)}${ew}</td>` +
+         `<td class="num">${w}${FMT(d.de??d.ValorDevuelto)}${ew}</td>` +
+         `<td class="num">${w}${FMT(d.ne??d.NetoEntregado)}${ew}</td>`;
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── Renderizar árbol completo ──
+function renderTree(tree, tbody){
+  tbody.innerHTML = '';
+  const frag = document.createDocumentFragment();
+
+  Object.keys(tree).sort().forEach(fecha=>{
+    const dayD = tree[fecha];
+    const dayGid = 'D_'+fecha;
+    frag.appendChild(mkNodeRow('day', dayGid, null,
+      fmtFecha(fecha), Object.keys(dayD.sups).length+' supervisor(es)', dayD));
+
+    Object.keys(dayD.sups).sort().forEach(sup=>{
+      const supD = dayD.sups[sup];
+      const supGid = dayGid+'__S_'+slug(sup);
+      frag.appendChild(mkNodeRow('sup', supGid, dayGid,
+        sup, Object.keys(supD.reps).length+' vendedor(es)', supD));
+
+      Object.keys(supD.reps).sort().forEach(repCod=>{
+        const repD = supD.reps[repCod];
+        const repGid = supGid+'__R_'+repCod;
+        frag.appendChild(mkNodeRow('rep', repGid, supGid,
+          repCod+' – '+repD.nombre, repD.rows.length+' pedido(s)', repD));
+
+        repD.rows.forEach(r => frag.appendChild(mkDetailRow(repGid, r)));
+      });
+    });
+  });
+  tbody.appendChild(frag);
+}
+
+function slug(s){ return s.replace(/[^a-zA-Z0-9]/g,'_').slice(0,30); }
+
+// ── Toggle expandir/colapsar un nodo ──
+function treeToggle(gid){
+  const btn = document.querySelector(`.tree-toggle[data-gid="${gid}"]`);
+  if(!btn) return;
+  const expanded = btn.textContent.trim() === '−';
+  if(expanded){
+    collapseNode(gid);
+    btn.textContent = '+';
+  } else {
+    // Mostrar solo hijos directos
+    document.querySelectorAll(`tr.tree-row[data-pid="${gid}"]`).forEach(tr=>{
+      tr.style.display = '';
+    });
+    btn.textContent = '−';
+  }
+}
+
+function collapseNode(gid){
+  document.querySelectorAll(`tr.tree-row[data-pid="${gid}"]`).forEach(tr=>{
+    tr.style.display = 'none';
+    const childGid = tr.dataset.gid;
+    if(childGid){
+      collapseNode(childGid);
+      const cb = document.querySelector(`.tree-toggle[data-gid="${childGid}"]`);
+      if(cb) cb.textContent = '+';
+    }
+  });
+}
+
+function treeExpandAll(){
+  document.querySelectorAll('tr.tree-row').forEach(tr=>{ tr.style.display=''; });
+  document.querySelectorAll('.tree-toggle').forEach(b=>{ b.textContent='−'; });
+}
+function treeCollapseAll(){
+  document.querySelectorAll('tr.tree-row[data-pid]').forEach(tr=>{ tr.style.display='none'; });
+  document.querySelectorAll('.tree-toggle').forEach(b=>{ b.textContent='+'; });
+}
+
+// ── Búsqueda en árbol ──
+function treeSearch(q){
+  q = q.toLowerCase().trim();
+  if(!q){
+    // Restaurar estado colapsado
+    document.querySelectorAll('tr.tree-row').forEach(tr=>{
+      tr.classList.remove('search-hidden');
+      if(tr.dataset.pid) tr.style.display='none';
+      else tr.style.display='';
+    });
+    document.querySelectorAll('.tree-toggle').forEach(b=>b.textContent='+');
+    return;
+  }
+  // Mostrar detalles que coincidan y sus ancestros
+  document.querySelectorAll('tr.tree-row').forEach(tr=>tr.classList.add('search-hidden'));
+  document.querySelectorAll('tr.tree-detail').forEach(tr=>{
+    if((tr.dataset.search||'').includes(q)){
+      tr.classList.remove('search-hidden');
+      tr.style.display='';
+      // revelar ancestros
+      let pid = tr.dataset.pid;
+      while(pid){
+        const parent = document.querySelector(`tr.tree-row[data-gid="${pid}"]`);
+        if(!parent) break;
+        parent.classList.remove('search-hidden');
+        parent.style.display='';
+        const pb = parent.querySelector('.tree-toggle');
+        if(pb) pb.textContent='−';
+        pid = parent.dataset.pid;
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════════════════════════
+//  renderPF – punto de entrada principal
+// ══════════════════════════════════════════════════════
+function renderPF(rows, fi, ff){
+  _pfFi=fi; _pfFf=ff; _pfRows=rows;
+  document.getElementById('rpt-per').textContent = '('+fi+' al '+ff+')';
+
+  // Totales y datos de gráfico por fecha
+  _pfByFecha={}; _pfTree={};
+  let tBruto=0, tFact=0, tDev=0, tNeto=0;
+  rows.forEach(r=>{
+    tBruto+=+r.ValorBrutoPedido; tFact+=+r.ValorFacturado;
+    tDev+=+r.ValorDevuelto;      tNeto+=+r.NetoEntregado;
+    const f=(r.pedfecha||'').slice(0,10);
+    if(!_pfByFecha[f]) _pfByFecha[f]={b:0,fa:0,de:0,ne:0};
+    _pfByFecha[f].b+=+r.ValorBrutoPedido; _pfByFecha[f].fa+=+r.ValorFacturado;
+    _pfByFecha[f].de+=+r.ValorDevuelto;   _pfByFecha[f].ne+=+r.NetoEntregado;
+  });
+
+  // Construir y renderizar árbol
+  _pfTree = buildTree(rows);
+  renderTree(_pfTree, document.getElementById('tbody-pf-tree'));
+
+  // Mostrar toolbar
+  const tb = document.getElementById('tree-toolbar');
+  tb.style.display=''; tb.style.removeProperty('display');
+  // Forzar visibilidad (override del !important)
+  tb.setAttribute('style','display:flex!important;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px');
+
+  // Tfoot total general
+  document.getElementById('tf-bruto').textContent = FMT(tBruto);
+  document.getElementById('tf-fact').textContent  = FMT(tFact);
+  document.getElementById('tf-dev').textContent   = FMT(tDev);
+  document.getElementById('tf-neto').textContent  = FMT(tNeto);
+  document.getElementById('tfoot-grand').style.display = '';
+
+  // KPIs
+  document.getElementById('kpi-bruto').textContent = FMT(tBruto);
+  document.getElementById('kpi-fact').textContent  = FMT(tFact);
+  document.getElementById('kpi-dev').textContent   = FMT(tDev);
+  document.getElementById('kpi-neto').textContent  = FMT(tNeto);
+  document.getElementById('kpi-pct').textContent   = PCT(tFact, tBruto);
+  document.getElementById('kpis').style.display    = 'flex';
+
+  // Gráfico por día
+  const cL=[], cB=[], cF=[], cD=[];
+  Object.keys(_pfByFecha).sort().forEach(f=>{
+    cL.push(fmtFecha(f));
+    cB.push(+_pfByFecha[f].b.toFixed(2));
+    cF.push(+_pfByFecha[f].fa.toFixed(2));
+    cD.push(+_pfByFecha[f].de.toFixed(2));
+  });
+  if(chartPF){ chartPF.destroy(); chartPF=null; }
+  chartPF = new Chart(document.getElementById('chart-pf').getContext('2d'),{
+    type:'bar',
+    data:{ labels:cL, datasets:[
+      {label:'Bruto Pedido', data:cB, backgroundColor:'rgba(46,134,222,.78)', borderRadius:4},
+      {label:'Facturado',    data:cF, backgroundColor:'rgba(39,174,96,.78)',  borderRadius:4},
+      {label:'Devuelto',     data:cD, backgroundColor:'rgba(231,76,60,.68)',  borderRadius:4},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{position:'top', labels:{font:{size:11}, boxWidth:12}},
+        tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+FMT(c.raw)}}
+      },
+      scales:{
+        x:{grid:{display:false}, ticks:{font:{size:10}}},
+        y:{grid:{color:'rgba(0,0,0,.06)'}, ticks:{font:{size:10}, callback:v=>FMT(v)}}
+      }
+    }
+  });
+  document.getElementById('chart-card').style.display='block';
+}
+
+// ══════════════════════════════════════════════════════
+//  EXPORTACIONES
+// ══════════════════════════════════════════════════════
+
+// ── Construir filas planas con subtotales para exportar ──
+function buildExportRows(){
+  const out=[];
+  const HDRS=['Fecha','Supervisor','Cód.Rep','Representante','Cód.Cliente','Cliente','Secuencia','Bruto Pedido','Facturado','Devuelto','Neto Entregado'];
+  out.push(HDRS);
+
+  Object.keys(_pfTree).sort().forEach(fecha=>{
+    const dayD=_pfTree[fecha];
+    // Encabezado día
+    out.push([fmtFecha(fecha),'','','','','','SUBTOTAL DÍA',
+      +dayD.b.toFixed(2),+dayD.fa.toFixed(2),+dayD.de.toFixed(2),+dayD.ne.toFixed(2)]);
+
+    Object.keys(dayD.sups).sort().forEach(sup=>{
+      const supD=dayD.sups[sup];
+      out.push([fmtFecha(fecha),sup,'','','','','SUBTOTAL SUPERVISOR',
+        +supD.b.toFixed(2),+supD.fa.toFixed(2),+supD.de.toFixed(2),+supD.ne.toFixed(2)]);
+
+      Object.keys(supD.reps).sort().forEach(repCod=>{
+        const repD=supD.reps[repCod];
+        out.push([fmtFecha(fecha),sup,repCod,repD.nombre,'','','SUBTOTAL VENDEDOR',
+          +repD.b.toFixed(2),+repD.fa.toFixed(2),+repD.de.toFixed(2),+repD.ne.toFixed(2)]);
+
+        repD.rows.forEach(r=>{
+          out.push([
+            fmtFecha((r.pedfecha||'').slice(0,10)),
+            r.supervisor_nombre||'', r.repcodigo||'', r.rep_nombre||'',
+            r.cod_cliente||'', r.nombre_cliente||'', r.PedSecuencia||'',
+            +r.ValorBrutoPedido, +r.ValorFacturado, +r.ValorDevuelto, +r.NetoEntregado
+          ]);
+        });
+      });
+    });
+  });
+  // Total general
+  let tB=0,tF=0,tD=0,tN=0;
+  _pfRows.forEach(r=>{tB+=+r.ValorBrutoPedido;tF+=+r.ValorFacturado;tD+=+r.ValorDevuelto;tN+=+r.NetoEntregado;});
+  out.push(['','','','','','','TOTAL GENERAL',+tB.toFixed(2),+tF.toFixed(2),+tD.toFixed(2),+tN.toFixed(2)]);
+  return out;
+}
+
+// ── Excel (via tabla HTML oculta + DataTables) ──
+function exportExcelPF(){
+  if(!_pfRows.length){alert('Genere el reporte primero.');return;}
+  const eRows = buildExportRows();
+  const tbody  = document.querySelector('#tbl-pf-export tbody');
+  tbody.innerHTML='';
+  eRows.slice(1).forEach(r=>{
+    const tr=document.createElement('tr');
+    r.forEach(v=>{ const td=document.createElement('td'); td.textContent=v; tr.appendChild(td); });
+    tbody.appendChild(tr);
+  });
+
+  const dt = $('#tbl-pf-export').DataTable({
+    destroy:true,
+    dom:'B', pageLength:99999, searching:false, paging:false, info:false,
+    buttons:[{
+      extend:'excelHtml5',
+      title:'Pedidos_vs_Facturacion_'+_pfFi+'_'+_pfFf,
+      customize:function(xlsx){
+        const sheet=xlsx.xl.worksheets['sheet1.xml'];
+        // Pintar filas de subtotales y totales
+        $('row',sheet).each(function(){
+          const firstCell=$('c:first is t, c:first v',this).first().text()||'';
+          if(firstCell.includes('SUBTOTAL DÍA'))
+            $('c',this).attr('s','42'); // estilo amarillo DataTables
+          else if(firstCell.includes('SUBTOTAL SUPERVISOR'))
+            $('c',this).attr('s','38');
+          else if(firstCell.includes('SUBTOTAL VENDEDOR'))
+            $('c',this).attr('s','9');
+          else if(firstCell.includes('TOTAL GENERAL'))
+            $('c',this).attr('s','2');
+        });
+      }
+    }]
+  });
+  dt.button(0).trigger();
+  setTimeout(()=>dt.destroy(),1000);
+}
+
+// ── PDF (pdfmake directo) ──
+function exportPdfPF(){
+  if(!_pfRows.length){alert('Genere el reporte primero.');return;}
+  const eRows = buildExportRows();
+
+  const C = {day:'#ddeeff', sup:'#edf7f0', rep:'#fef9f0', det:'#ffffff', grand:'#1b3a5c'};
+  const body = eRows.map((r,i)=>{
+    if(i===0) return r.map(h=>({text:h,bold:true,fillColor:'#1b3a5c',color:'white',fontSize:6}));
+    const tipo = r[6];
+    let fill=C.det, bold=false, color='#333', fs=6;
+    if(tipo==='SUBTOTAL DÍA')       { fill=C.day;   bold=true; color='#0d1b2a'; fs=6.5; }
+    else if(tipo==='SUBTOTAL SUPERVISOR'){ fill=C.sup; bold=true; color='#1a5c33'; fs=6.5; }
+    else if(tipo==='SUBTOTAL VENDEDOR')  { fill=C.rep; bold=true; color='#7a4a00'; fs=6.5; }
+    else if(tipo==='TOTAL GENERAL')      { fill=C.grand; bold=true; color='white'; fs=7; }
+    return r.map((v,ci)=>({
+      text: ci>=7 ? FMT(v) : String(v||''),
+      bold, fillColor:fill, color, fontSize:fs,
+      alignment: ci>=7?'right':'left'
+    }));
+  });
+
+  pdfMake.createPdf({
+    pageOrientation:'landscape', pageSize:'A4',
+    pageMargins:[18,40,18,30],
+    content:[
+      {text:'Pedidos Vs. Facturado Vs. Devoluciones', style:'title'},
+      {text:'Período: '+_pfFi+' al '+_pfFf, style:'sub', margin:[0,0,0,8]},
+      {table:{headerRows:1, widths:['auto','auto','auto','auto','auto','*','auto',55,55,50,55], body},
+       layout:{hLineWidth:()=>0.3, vLineWidth:()=>0.3, hLineColor:()=>'#ccc', vLineColor:()=>'#ccc'}}
+    ],
+    styles:{
+      title:{fontSize:11,bold:true,color:'#0d1b2a',margin:[0,0,0,2]},
+      sub:{fontSize:8,color:'#555'}
+    }
+  }).download('Pedidos_vs_Facturacion_'+_pfFi+'_'+_pfFf+'.pdf');
+}
+
+// ── Imprimir ──
+function exportPrintPF(){
+  if(!_pfRows.length){alert('Genere el reporte primero.');return;}
+  const eRows=buildExportRows();
+  const C={day:'#ddeeff',sup:'#edf7f0',rep:'#fef9f0',grand:'#1b3a5c'};
+  let html=`<html><head><meta charset="UTF-8">
+  <title>Pedidos vs Facturación – ${_pfFi} al ${_pfFf}</title>
+  <style>
+    body{font-family:Arial,sans-serif;font-size:8px;margin:10px}
+    h2{font-size:11px;margin:0 0 2px}p{font-size:8px;margin:0 0 8px;color:#555}
+    table{border-collapse:collapse;width:100%}
+    th,td{border:0.5px solid #ccc;padding:2px 4px}
+    th{background:#1b3a5c;color:#fff;font-size:7px}
+    .day{background:${C.day};font-weight:bold}
+    .sup{background:${C.sup};font-weight:bold}
+    .rep{background:${C.rep};font-weight:bold}
+    .grand{background:${C.grand};color:#fff;font-weight:bold}
+    .num{text-align:right}
+    @media print{@page{size:A4 landscape;margin:10mm}}
+  </style></head><body>
+  <h2>Pedidos Vs. Facturado Vs. Devoluciones</h2>
+  <p>Período: ${_pfFi} al ${_pfFf}</p>
+  <table><thead><tr>${eRows[0].map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>`;
+
+  eRows.slice(1).forEach(r=>{
+    const tipo=r[6];
+    const cls = tipo==='SUBTOTAL DÍA'?'day': tipo==='SUBTOTAL SUPERVISOR'?'sup':
+                tipo==='SUBTOTAL VENDEDOR'?'rep': tipo==='TOTAL GENERAL'?'grand':'';
+    html+=`<tr class="${cls}">${r.map((v,i)=>`<td class="${i>=7?'num':''}">${i>=7?FMT(v):(v||'')}</td>`).join('')}</tr>`;
+  });
+
+  html+='</tbody></table></body></html>';
+  const w=window.open('','_blank','width=1000,height=700');
+  w.document.write(html); w.document.close();
+  setTimeout(()=>w.print(),600);
+}
+
+// ── Limpiar ──
+function limpiarPF(){
+  setFechasAyer();
+  ['f-sup','f-cat','f-sv','f-rep','f-ced','f-cli'].forEach(id=>{
+    $('#'+id).val(['TODOS']).trigger('change');
+  });
+  if(chartPF){chartPF.destroy();chartPF=null;}
+  document.getElementById('tbody-pf-tree').innerHTML='';
+  document.getElementById('tfoot-grand').style.display='none';
+  document.getElementById('tree-toolbar').setAttribute('style','display:none!important');
+  document.getElementById('kpis').style.display='none';
+  document.getElementById('chart-card').style.display='none';
+  document.getElementById('rpt-per').textContent='';
+  _pfByFecha={}; _pfTree={}; _pfRows=[];
+}
+
+function fmtFecha(iso){
+  if(!iso) return '';
+  const s = typeof iso==='string' ? iso : iso.toISOString();
+  return s.slice(0,10).split('-').reverse().join('/');
+}
+</script>
+</body>
+</html>

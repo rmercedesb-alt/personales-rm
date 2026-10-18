@@ -1,0 +1,971 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geolocalizaciones &mdash; AM COMERCIAL</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px;display:flex;overflow:hidden}
+
+/* ─── Sidebar fija ───────────────────────────────────────────────────────── */
+.side{width:224px;flex-shrink:0;background:#0b0f14;border-right:1px solid #21262d;display:flex;flex-direction:column;height:100vh}
+.side-brand{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid #21262d}
+.side-brand img{height:36px;width:auto;border-radius:6px;object-fit:contain}
+.side-brand .bn{font-size:14px;font-weight:800;line-height:1.1}
+.side-brand .bs{font-size:10px;color:#bc8cff;margin-top:2px}
+.side-nav{flex:1;overflow-y:auto;padding:10px 8px}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;color:#8b949e;transition:all .15s;margin-bottom:4px;border:1px solid transparent}
+.nav-item:hover{background:#161b22;color:#e6edf3}
+.nav-item.active{background:#161b22;color:#e6edf3;border-color:#30363d}
+.nav-item.active .ni-bar{opacity:1}
+.ni-ico{font-size:19px;line-height:1;width:22px;text-align:center;flex-shrink:0}
+.ni-txt{font-size:12.5px;font-weight:600;line-height:1.25}
+.ni-bar{position:absolute;left:0;width:3px;height:24px;border-radius:0 3px 3px 0;background:#bc8cff;opacity:0;transition:opacity .15s}
+.nav-item{position:relative}
+.side-foot{padding:12px 14px;border-top:1px solid #21262d;font-size:11px;color:#8b949e;display:flex;flex-direction:column;gap:8px}
+.side-foot .u{color:#e6edf3;font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.foot-links{display:flex;gap:8px}
+.btn-s{flex:1;text-align:center;background:#161b22;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:6px 8px;font-size:11px;text-decoration:none;transition:all .15s}
+.btn-s:hover{border-color:#58a6ff;color:#58a6ff}
+.btn-s.out:hover{border-color:#f85149;color:#f85149}
+
+/* ─── Panel principal ────────────────────────────────────────────────────── */
+.main{flex:1;display:flex;flex-direction:column;height:100vh;min-width:0}
+.topbar{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid #21262d;flex-wrap:wrap;flex-shrink:0}
+.topbar h1{font-size:15px;font-weight:800}
+.topbar .sub{font-size:11px;color:#8b949e}
+.spacer{flex:1}
+.clock{font-family:monospace;font-size:14px;color:#bc8cff;font-weight:700}
+
+/* ─── Barra de filtros ───────────────────────────────────────────────────── */
+.filters{display:flex;align-items:center;gap:9px;padding:9px 18px;border-bottom:1px solid #21262d;flex-wrap:wrap;background:#0b0f14;flex-shrink:0}
+.f-lbl{font-size:11px;color:#8b949e;white-space:nowrap}
+.filters input[type=date],.filters input[type=number],.filters select{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 8px;font-size:12px;outline:none;height:30px;color-scheme:dark}
+.filters input:focus,.filters select:focus{border-color:#bc8cff}
+.filters input[type=number]{width:70px}
+.btn-ref{background:#8957e5;border:none;color:#fff;border-radius:6px;padding:6px 14px;cursor:pointer;font-size:12px;font-weight:700;height:30px}
+.btn-ref:hover{background:#9d6ef0}
+.btn-clear{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;height:30px}
+.btn-clear:hover{border-color:#f85149;color:#f85149}
+.modo-group{display:flex;gap:0;margin-right:4px}
+.btn-modo{background:#21262d;border:1px solid #30363d;color:#8b949e;padding:6px 12px;cursor:pointer;font-size:12px;height:30px}
+.btn-modo:first-child{border-radius:6px 0 0 6px}
+.btn-modo:last-child{border-radius:0 6px 6px 0;border-left:none}
+.btn-modo.on{background:#1f6feb;border-color:#1f6feb;color:#fff;font-weight:700}
+
+/* Multiselect */
+.ms{position:relative}
+.ms-btn{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 9px;font-size:12px;cursor:pointer;height:30px;display:flex;align-items:center;gap:6px;white-space:nowrap;min-width:110px}
+.ms-btn:hover{border-color:#bc8cff}
+.ms-btn .cnt{background:#8957e5;color:#fff;border-radius:10px;font-size:10px;padding:1px 7px;font-weight:700}
+.ms-pop{display:none;position:absolute;top:34px;left:0;z-index:1200;background:#161b22;border:1px solid #30363d;border-radius:8px;min-width:230px;max-height:320px;overflow-y:auto;box-shadow:0 10px 30px rgba(0,0,0,.5);padding:6px}
+.ms-pop.open{display:block}
+.ms-search{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px 8px;font-size:12px;margin-bottom:6px;outline:none}
+.ms-opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:12px}
+.ms-opt:hover{background:#21262d}
+.ms-opt input{accent-color:#8957e5}
+.ms-empty{color:#8b949e;font-size:11px;padding:8px;text-align:center}
+.ms-head{display:flex;gap:12px;padding:4px 8px 6px;border-bottom:1px solid #21262d;margin-bottom:4px}
+.ms-link{font-size:11px;color:#58a6ff;cursor:pointer;font-weight:600}
+.ms-link:hover{text-decoration:underline}
+
+/* ─── Contenido / mapa ───────────────────────────────────────────────────── */
+.content{flex:1;position:relative;min-height:0}
+#map{position:absolute;inset:0;background:#0d1117}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#161b22;color:#e6edf3;border:1px solid #30363d}
+.leaflet-popup-content{margin:10px 12px;font-size:12px;line-height:1.5}
+.pop-t{font-weight:800;font-size:13px;margin-bottom:4px}
+.pop-r{color:#8b949e}
+.leaflet-container{background:#0d1117}
+
+/* Cards flotantes */
+.cards{position:absolute;top:12px;right:12px;z-index:800;display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 80px)}
+.warns{position:absolute;top:14px;left:50%;transform:translateX(-50%);z-index:810;display:flex;flex-direction:column;gap:6px;align-items:center;pointer-events:none}
+.warn{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:700;backdrop-filter:blur(4px);border:1px solid;white-space:nowrap}
+.warn.blue{background:rgba(31,111,235,.18);color:#79c0ff;border-color:#1f6feb}
+.warn.red{background:rgba(248,81,73,.18);color:#ff7b7b;border-color:#f85149}
+.card{background:rgba(22,27,34,.94);border:1px solid #30363d;border-radius:11px;padding:11px 15px;min-width:150px;backdrop-filter:blur(4px)}
+.card .cl{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.6px;font-weight:600;margin-bottom:5px}
+.card .cv{font-size:26px;font-weight:800;line-height:1}
+.card.c1 .cv{color:#3fb950}.card.c2 .cv{color:#e3b341}.card.c3 .cv{color:#bc8cff}
+.card .ch{font-size:10px;color:#8b949e;margin-top:3px}
+.card .li{font-size:11px;padding:2px 0;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .li b{color:#bc8cff;margin-right:4px}
+
+/* Leyenda */
+.legend{position:absolute;bottom:16px;left:12px;z-index:800;background:rgba(22,27,34,.94);border:1px solid #30363d;border-radius:10px;padding:9px 12px;font-size:11px;backdrop-filter:blur(4px)}
+.legend .lt{font-weight:700;margin-bottom:5px;color:#8b949e;text-transform:uppercase;font-size:10px;letter-spacing:.5px}
+.lg-row{display:flex;align-items:center;gap:7px;padding:2px 0}
+.lg-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;border:2px solid #fff}
+
+/* Estado carga / placeholder */
+.overlay{position:absolute;inset:0;z-index:900;display:none;align-items:center;justify-content:center;background:rgba(13,17,23,.6);backdrop-filter:blur(2px)}
+.overlay.show{display:flex}
+.spin{width:34px;height:34px;border:3px solid #30363d;border-top-color:#bc8cff;border-radius:50%;animation:sp 1s linear infinite}
+@@keyframes sp{to{transform:rotate(360deg)}}
+.soon{position:absolute;inset:0;z-index:850;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b949e;text-align:center;padding:30px}
+.soon .si{font-size:54px;opacity:.5}
+.soon h2{font-size:18px;color:#e6edf3}
+.soon p{font-size:13px;max-width:440px;line-height:1.6}
+.badge{background:#21262d;border:1px solid #30363d;color:#bc8cff;font-size:11px;padding:3px 10px;border-radius:10px;font-weight:600}
+.marker-lbl{background:none;border:none}
+/* Impresion / PDF: ocultar controles y mostrar solo el mapa + tarjetas */
+@@media print {
+  body{display:block !important}
+  .side, .filters, .gear, #btn-print, #btn-excel, .leaflet-control-zoom, .overlay{display:none !important}
+  .main{height:auto !important}
+  .content{position:relative !important;height:640px !important}
+  .topbar{border:none}
+}
+/* Engranaje + modal de configuracion */
+.gear{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:8px;width:32px;height:32px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.gear:hover{border-color:#bc8cff;color:#bc8cff}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:22px 24px;width:460px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.modal h2{font-size:16px;margin-bottom:4px}
+.modal .msub{font-size:12px;color:#8b949e;margin-bottom:18px}
+.cfg-sec{margin-bottom:18px}
+.cfg-sec h3{font-size:12px;color:#bc8cff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.cfg-row{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.cfg-row .dot{width:12px;height:12px;border-radius:50%;flex-shrink:0}
+.cfg-row label{flex:1;font-size:12px;color:#e6edf3}
+.cfg-row input{width:84px;background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:5px 8px;font-size:12px;outline:none}
+.cfg-row input:focus{border-color:#bc8cff}
+.cfg-row .u{font-size:11px;color:#8b949e;width:34px}
+.modal-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.card.wide{min-width:200px}
+.card .top3{margin-top:5px}
+.card .t3{font-size:11px;padding:2px 0;color:#e6edf3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card .t3 b{color:#bc8cff;margin-right:5px}
+.card .t3 .m{color:#8b949e;float:right;margin-left:6px}
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+<aside class="side">
+  <div class="side-brand">
+    <img src="@(Context.Request.PathBase)/apigeo/logo" alt="" onerror="this.style.display='none'">
+    <div>
+      <div class="bn" id="brand-name">AM COMERCIAL</div>
+      <div class="bs">Geolocalizaciones</div>
+    </div>
+  </div>
+  <nav class="side-nav" id="nav">
+    <div class="nav-item active" data-view="ubicacion"><span class="ni-bar"></span><span class="ni-ico">&#128205;</span><span class="ni-txt">Ubicaci&oacute;n de Vendedores</span></div>
+    <div class="nav-item" data-view="clientes"><span class="ni-bar"></span><span class="ni-ico">&#127968;</span><span class="ni-txt">Visitados Con / Sin Pedidos</span></div>
+    <div class="nav-item" data-view="oportunidad"><span class="ni-bar"></span><span class="ni-ico">&#127919;</span><span class="ni-txt">Oportunidades por Suplidor</span></div>
+    <div class="nav-item" data-view="promedio"><span class="ni-bar"></span><span class="ni-ico">&#128201;</span><span class="ni-txt">Compr&oacute; menos que el promedio</span></div>
+    <div class="nav-item" data-view="fueraruta"><span class="ni-bar"></span><span class="ni-ico">&#128666;</span><span class="ni-txt">Pedidos fuera de Ruta</span></div>
+  </nav>
+  <div class="side-foot">
+    <span class="u" id="user-nombre">&nbsp;</span>
+    <div class="foot-links">
+@if (ViewBag.ShowMenu as bool? != false)
+{
+      <a class="btn-s" href="@(Context.Request.PathBase)/menu">&#8592; Men&uacute;</a>
+}
+      <a class="btn-s out" href="@(Context.Request.PathBase)/account/logout">Salir</a>
+    </div>
+  </div>
+</aside>
+
+<!-- ── Main ── -->
+<div class="main">
+  <div class="topbar">
+    <h1 id="view-title">Ubicaci&oacute;n de Vendedores</h1>
+    <span class="sub" id="view-sub">&Uacute;ltima sincronizaci&oacute;n de cada representante</span>
+    <div class="spacer"></div>
+    <button class="gear" id="btn-excel" title="Exportar datos a Excel (CSV)">&#128229;</button>
+    <button class="gear" id="btn-print" title="Imprimir / Guardar como PDF">&#128424;</button>
+    <button class="gear" id="btn-cfg" title="Configuración de umbrales">&#9881;</button>
+    <span class="clock" id="clock">--:--:--</span>
+  </div>
+
+  <div class="filters" id="filters"><!-- filtros dinamicos por vista --></div>
+
+  <div class="content">
+    <div id="map"></div>
+    <div class="warns" id="warns"></div>
+    <div class="cards" id="cards"></div>
+    <div class="legend" id="legend" style="display:none"></div>
+    <div class="overlay" id="overlay"><div class="spin"></div></div>
+    <div class="soon" id="soon" style="display:none">
+      <div class="si" id="soon-icon">&#128736;</div>
+      <h2 id="soon-t">En construcci&oacute;n</h2>
+      <p id="soon-p">Este sub-m&oacute;dulo se conectar&aacute; en la siguiente iteraci&oacute;n.</p>
+      <span class="badge" id="soon-badge">Pr&oacute;ximamente</span>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de configuracion de umbrales -->
+<div class="modal-bg" id="cfg-modal">
+  <div class="modal">
+    <h2>Configuración de umbrales</h2>
+    <div class="msub">Define los rangos de color para cada pestaña. Se guardan en este navegador.</div>
+
+    <div class="cfg-sec">
+      <h3>Ubicación de Vendedores (tiempo de sincronización)</h3>
+      <div class="cfg-row"><span class="dot" style="background:#3fb950"></span><label>En verde: menos de</label><input type="number" id="cfg-sv" min="1"><span class="u">min</span></div>
+      <div class="cfg-row"><span class="dot" style="background:#e3b341"></span><label>En amarillo: hasta</label><input type="number" id="cfg-sa" min="1"><span class="u">min</span></div>
+      <div class="cfg-row"><span class="dot" style="background:#f85149"></span><label>En rojo: más de (el amarillo)</label><span class="u">&nbsp;</span></div>
+    </div>
+
+    <div class="cfg-sec">
+      <h3>Ubicación en la Ruta (metros)</h3>
+      <div class="cfg-row"><span class="dot" style="background:#3fb950"></span><label>En verde: menos de</label><input type="number" id="cfg-rv" min="1"><span class="u">m</span></div>
+      <div class="cfg-row"><span class="dot" style="background:#e3b341"></span><label>En amarillo: hasta</label><input type="number" id="cfg-ra" min="1"><span class="u">m</span></div>
+      <div class="cfg-row"><span class="dot" style="background:#f85149"></span><label>En rojo: más de (el amarillo)</label><span class="u">&nbsp;</span></div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="btn-clear" id="cfg-cancel">Cancelar</button>
+      <button class="btn-ref" id="cfg-save">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+const $ = s => document.querySelector(s);
+
+/* ── Reloj ── */
+setInterval(()=>{ $('#clock').textContent = new Date().toLocaleTimeString('es-DO'); },1000);
+
+/* ── Empresa / usuario ── */
+fetch(BASE+'/apigeo/me').then(r=>r.json()).then(j=>{ if(j&&j.ok) $('#user-nombre').textContent=j.nombre||j.login; }).catch(()=>{});
+fetch(BASE+'/apigeo/empresa').then(r=>r.json()).then(j=>{
+  if(j&&j.ok&&j.nombre){ $('#brand-name').textContent=j.nombre; document.title='Geolocalizaciones — '+j.nombre; }
+}).catch(()=>{});
+
+/* ── Mapa Leaflet ── */
+const map = L.map('map',{zoomControl:true,attributionControl:false,preferCanvas:true}).setView([18.75,-70.16],8); // Rep. Dominicana
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
+let layer = L.layerGroup().addTo(map);
+let vecLayer = L.layerGroup().addTo(map);   // capa de vecinos (fuera de ruta)
+function clearMap(){ layer.clearLayers(); vecLayer.clearLayers(); }
+function fitTo(pts){ if(pts.length){ map.fitBounds(L.latLngBounds(pts).pad(0.15)); } }
+setTimeout(()=>map.invalidateSize(),200);
+
+/* ── Estado global de filtros / catalogo de reps ── */
+let REPS = [];               // catalogo de representantes (jerarquia)
+let REPMAP = {};             // RepCodigo -> RepNombre (para etiquetas)
+let CAT  = { suplidores:[], categorias:[], divisiones:[] }; // catalogo suplidor/categoria/division
+const state = { view:'ubicacion' };
+
+/* ── Configuracion de umbrales (persistida en localStorage) ── */
+const CFG_DEF = { sync:{verde:30, amarillo:45}, ruta:{verde:400, amarillo:1000} };
+let CFG = loadCfg();
+function loadCfg(){
+  try{ const s=JSON.parse(localStorage.getItem('geoCfg')); if(s&&s.sync&&s.ruta) return s; }catch(e){}
+  return JSON.parse(JSON.stringify(CFG_DEF));
+}
+function saveCfg(){ localStorage.setItem('geoCfg', JSON.stringify(CFG)); }
+function openCfg(){
+  $('#cfg-sv').value=CFG.sync.verde; $('#cfg-sa').value=CFG.sync.amarillo;
+  $('#cfg-rv').value=CFG.ruta.verde; $('#cfg-ra').value=CFG.ruta.amarillo;
+  $('#cfg-modal').classList.add('open');
+}
+function closeCfg(){ $('#cfg-modal').classList.remove('open'); }
+document.addEventListener('DOMContentLoaded',()=>{});
+$('#btn-cfg').onclick=openCfg;
+$('#cfg-cancel').onclick=closeCfg;
+$('#cfg-modal').onclick=e=>{ if(e.target.id==='cfg-modal') closeCfg(); };
+$('#cfg-save').onclick=()=>{
+  const sv=+$('#cfg-sv').value||CFG_DEF.sync.verde, sa=+$('#cfg-sa').value||CFG_DEF.sync.amarillo;
+  const rv=+$('#cfg-rv').value||CFG_DEF.ruta.verde, ra=+$('#cfg-ra').value||CFG_DEF.ruta.amarillo;
+  CFG={ sync:{verde:sv, amarillo:Math.max(sa,sv)}, ruta:{verde:rv, amarillo:Math.max(ra,rv)} };
+  saveCfg(); closeCfg();
+  if(state.view==='ubicacion') loadUbicacion();
+};
+/* Color segun umbrales configurables */
+function colorSync(min){ return min < CFG.sync.verde ? '#3fb950' : (min <= CFG.sync.amarillo ? '#e3b341' : '#f85149'); }
+function colorRuta(d){ if(d==null) return '#8b949e'; return d < CFG.ruta.verde ? '#3fb950' : (d <= CFG.ruta.amarillo ? '#e3b341' : '#f85149'); }
+
+/* ── Exportar a Excel (CSV con BOM) e Imprimir/PDF ── */
+function downloadCSV(name, headers, rows){
+  const esc=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';
+  const lines=[headers.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(',')));
+  const blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=name+'_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function exportExcel(){
+  const v=state.view;
+  if(v==='ubicacion' && V.lastUbic){
+    downloadCSV('ubicacion_vendedores',['Rep','Nombre','Cargo','Supervisor','Centro','Latitud','Longitud','Sync','DistanciaRutaM','ClienteCercano'],
+      V.lastUbic.reps.map(r=>[r.RepCodigo,r.RepNombre,r.RepCargo,r.SupervisorNombre,r.CentroNombre,r.Latitud,r.Longitud,r.Sync,(r.MinDistM!=null?r.MinDistM:''),(r.NearCliNombre||'')])); return;
+  }
+  if(v==='clientes' && V.lastClientesData){
+    downloadCSV('visitados_con_sin_pedidos',['Codigo','Cliente','Rep','Vendedor','Estado','Comentario','Latitud','Longitud'],
+      V.lastClientesData.clientes.map(r=>{const e=estadoCliente(r);return [r.CliID,r.Nombre,r.RepCodigo,(REPMAP[r.RepCodigo]||''),e.txt,(r.Comentario||''),r.Latitud,r.Longitud];})); return;
+  }
+  if(v==='oportunidad'){
+    if(V.modoOp==='recuperados' && V.lastRecup && V.lastRecup.clientes){
+      downloadCSV('clientes_retencion',['Codigo','Cliente','Rep','Vendedor','Estado','UnidadesActivo','ValorBrutoActivo','Latitud','Longitud'],
+        V.lastRecup.clientes.map(r=>[r.CliID,r.Nombre,r.RepCodigo,(REPMAP[r.RepCodigo]||''),(EST_REC_TXT[r.Estado]||r.Estado),Math.round(r.Unidades),Math.round(r.ValorBruto),r.Latitud,r.Longitud])); return;
+    }
+    if(V.lastOport && V.lastOport.clientes){
+      downloadCSV('oportunidades_suplidor',['Codigo','Cliente','Rep','Vendedor','Estado','Unidades','ValorBruto','Latitud','Longitud'],
+        V.lastOport.clientes.map(r=>[r.CliID,r.Nombre,r.RepCodigo,(REPMAP[r.RepCodigo]||''),(r.Compra?'Si pidio':'Oportunidad perdida'),Math.round(r.Unidades||0),Math.round(r.ValorBruto||0),r.Latitud,r.Longitud])); return;
+    }
+  }
+  if(v==='fueraruta' && V.lastFR){
+    downloadCSV('pedidos_fuera_ruta',['Codigo','Cliente','Rep','Vendedor','Supervisor','PedidosFueraRuta','UltimoPedido','Latitud','Longitud'],
+      V.lastFR.clientes.map(r=>[r.CliID,r.Nombre,r.RepCodigo,(r.RepNombre||''),(r.SupNombre||''),r.Pedidos,(r.UltPedido||''),r.Latitud,r.Longitud])); return;
+  }
+  alert('No hay datos cargados para exportar en esta vista.');
+}
+$('#btn-excel').onclick=exportExcel;
+$('#btn-print').onclick=()=>{ map.invalidateSize(); setTimeout(()=>window.print(),120); };
+
+/* ── Multiselect reutilizable ── */
+function multiselect(host, label, opts, onChange){
+  // opts: [{v, t}] ; devuelve API {values(), set(), setOptions()}
+  const wrap=document.createElement('div'); wrap.className='ms';
+  const btn=document.createElement('div'); btn.className='ms-btn';
+  const txt=document.createElement('span'); txt.textContent=label;
+  const cnt=document.createElement('span'); cnt.className='cnt'; cnt.style.display='none';
+  btn.appendChild(txt); btn.appendChild(cnt);
+  const pop=document.createElement('div'); pop.className='ms-pop';
+  const search=document.createElement('input'); search.className='ms-search'; search.placeholder='Buscar...';
+  const head=document.createElement('div'); head.className='ms-head';
+  const allBtn=document.createElement('span'); allBtn.className='ms-link'; allBtn.textContent='✓ Todos';
+  const noneBtn=document.createElement('span'); noneBtn.className='ms-link'; noneBtn.textContent='✕ Ninguno';
+  head.append(allBtn,noneBtn);
+  const list=document.createElement('div');
+  pop.appendChild(search); pop.appendChild(head); pop.appendChild(list);
+  wrap.appendChild(btn); wrap.appendChild(pop); host.appendChild(wrap);
+  let options=opts.slice(), selected=new Set();
+  function visibles(){ const q=(search.value||'').toLowerCase(); return options.filter(o=>o.t.toLowerCase().includes(q)); }
+  allBtn.onclick=e=>{ e.stopPropagation(); visibles().forEach(o=>selected.add(o.v)); render(); sync(); onChange&&onChange(); };
+  noneBtn.onclick=e=>{ e.stopPropagation(); visibles().forEach(o=>selected.delete(o.v)); render(); sync(); onChange&&onChange(); };
+  function render(){
+    const q=(search.value||'').toLowerCase();
+    list.innerHTML='';
+    const f=options.filter(o=>o.t.toLowerCase().includes(q));
+    if(!f.length){ list.innerHTML='<div class="ms-empty">Sin opciones</div>'; }
+    f.forEach(o=>{
+      const row=document.createElement('label'); row.className='ms-opt';
+      const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=selected.has(o.v);
+      cb.onchange=()=>{ cb.checked?selected.add(o.v):selected.delete(o.v); sync(); onChange&&onChange(); };
+      const sp=document.createElement('span'); sp.textContent=o.t;
+      row.appendChild(cb); row.appendChild(sp); list.appendChild(row);
+    });
+  }
+  function sync(){ const n=selected.size; cnt.style.display=n?'inline-block':'none'; cnt.textContent=n; }
+  btn.onclick=e=>{ e.stopPropagation(); document.querySelectorAll('.ms-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open');}); pop.classList.toggle('open'); if(pop.classList.contains('open')){search.value='';render();search.focus();} };
+  search.oninput=render;
+  pop.onclick=e=>e.stopPropagation();
+  render(); sync();
+  return {
+    values:()=>Array.from(selected),
+    setOptions:(newOpts,keep)=>{ options=newOpts.slice(); if(!keep) selected=new Set([...selected].filter(v=>options.some(o=>o.v===v))); render(); sync(); },
+    selectAll:()=>{ options.forEach(o=>selected.add(o.v)); render(); sync(); },
+    select:(vals)=>{ (vals||[]).forEach(v=>selected.add(v)); render(); sync(); },
+    clear:()=>{ selected.clear(); render(); sync(); }
+  };
+}
+document.addEventListener('click',()=>document.querySelectorAll('.ms-pop.open').forEach(p=>p.classList.remove('open')));
+
+/* ── Utilidades ── */
+function fmtAgo(iso, serverIso){
+  const t=new Date(iso), now=serverIso?new Date(serverIso):new Date();
+  const min=Math.max(0,Math.round((now-t)/60000));
+  if(min<60) return min+' min';
+  const h=Math.floor(min/60); return h+'h '+(min%60)+'m';
+}
+function freshColor(min){ return min<=30?'#3fb950':(min<=120?'#e3b341':'#8b949e'); }
+function showOverlay(b){ $('#overlay').classList.toggle('show',b); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function dateInput(val){ const i=document.createElement('input'); i.type='date'; i.value=val||todayStr(); return i; }
+function lblEl(t){ const s=document.createElement('span'); s.className='f-lbl'; s.textContent=t; return s; }
+// Icono de casita SVG coloreable (para conjuntos pequenos); circulos para miles.
+function houseIcon(color){
+  const svg='<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">'+
+    '<path d="M12 3 L21 11 H18 V20 H14 V14 H10 V20 H6 V11 H3 Z" fill="'+color+'" stroke="#0d1117" stroke-width="1.2"/></svg>';
+  return L.divIcon({className:'marker-lbl',html:svg,iconSize:[20,20],iconAnchor:[10,18],popupAnchor:[0,-16]});
+}
+function addClientMarker(r,color,useHouse){
+  let m;
+  if(useHouse) m=L.marker([r.Latitud,r.Longitud],{icon:houseIcon(color)});
+  else m=L.circleMarker([r.Latitud,r.Longitud],{radius:6,color:'#0d1117',weight:1,fillColor:color,fillOpacity:.9});
+  return m;
+}
+function showSoon(t,p,isHint){ $('#soon').style.display='flex'; $('#soon-t').textContent=t; $('#soon-p').textContent=p; $('#soon-badge').style.display=isHint?'none':'inline-block'; $('#soon-icon').innerHTML=isHint?'&#128269;':'&#128736;'; $('#legend').style.display='none'; $('#cards').innerHTML=''; $('#warns').innerHTML=''; clearMap(); }
+function hideSoon(){ $('#soon').style.display='none'; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISTA 1 — UBICACION DE VENDEDORES
+   ═══════════════════════════════════════════════════════════════════════════ */
+const V = {}; // controles por vista
+
+function buildFiltersUbicacion(){
+  const f=$('#filters'); f.innerHTML='';
+  V.modo = V.modo || 'sync';
+
+  // Toggle de modo: Tiempo de sincronizacion (actual) | Ubicacion de la Ruta
+  const grp=document.createElement('div'); grp.className='modo-group';
+  const bSync=document.createElement('button'); bSync.className='btn-modo'; bSync.textContent='Tiempo de sincronización';
+  const bRuta=document.createElement('button'); bRuta.className='btn-modo'; bRuta.textContent='Ubicación de la Ruta';
+  V.bSync=bSync; V.bRuta=bRuta;
+  function paintModo(){ bSync.classList.toggle('on',V.modo==='sync'); bRuta.classList.toggle('on',V.modo==='ruta'); }
+  bSync.onclick=()=>{ V.modo='sync'; paintModo(); loadUbicacion(); };
+  bRuta.onclick=()=>{ V.modo='ruta'; paintModo(); loadUbicacion(); };
+  grp.append(bSync,bRuta); f.append(grp); paintModo();
+
+  const msCentro=document.createElement('span'), msSup=document.createElement('span'),
+        msVen=document.createElement('span'), msCargo=document.createElement('span');
+  f.append(msCentro,msSup,msVen,msCargo);
+
+  const centros=[...new Map(REPS.filter(r=>r.CedCodigo).map(r=>[r.CedCodigo,r.CentroNombre])).entries()].map(([v,t])=>({v,t}));
+  const cargos=[...new Set(REPS.map(r=>r.RepCargo).filter(Boolean))].sort().map(v=>({v,t:v}));
+
+  V.centro = multiselect(msCentro,'Centro',centros,refreshDependents);
+  V.sup    = multiselect(msSup,'Supervisor',[],refreshDependents);
+  V.ven    = multiselect(msVen,'Vendedor',[]);
+  V.cargo  = multiselect(msCargo,'Cargo',cargos);
+
+  const lbl=document.createElement('span'); lbl.className='f-lbl'; lbl.textContent='Ventana (h):';
+  const horas=document.createElement('input'); horas.type='number'; horas.value='48'; horas.min='1'; horas.max='720'; V.horas=horas;
+  const btn=document.createElement('button'); btn.className='btn-ref'; btn.textContent='Actualizar'; btn.onclick=loadUbicacion;
+  const clr=document.createElement('button'); clr.className='btn-clear'; clr.textContent='Limpiar';
+  clr.onclick=()=>{ V.centro.clear();V.sup.clear();V.ven.clear();V.cargo.clear(); refreshDependents(); loadUbicacion(); };
+  f.append(lbl,horas,btn,clr);
+  refreshDependents();
+}
+function refreshDependents(){
+  const cen=new Set(V.centro.values());
+  const repsCen = cen.size?REPS.filter(r=>cen.has(r.CedCodigo)):REPS;
+  const sups=[...new Map(repsCen.filter(r=>r.SupervisorCod).map(r=>[r.SupervisorCod,r.SupervisorNombre])).entries()].map(([v,t])=>({v,t}));
+  V.sup.setOptions(sups);
+  const sup=new Set(V.sup.values());
+  const repsSup = sup.size?repsCen.filter(r=>sup.has(r.SupervisorCod)):repsCen;
+  V.ven.setOptions(repsSup.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre})));
+}
+function loadUbicacion(){
+  hideSoon(); showOverlay(true);
+  const p=new URLSearchParams();
+  if(V.centro.values().length) p.set('centros',V.centro.values().join(','));
+  if(V.sup.values().length)    p.set('supervisores',V.sup.values().join(','));
+  if(V.ven.values().length)    p.set('reps',V.ven.values().join(','));
+  if(V.cargo.values().length)  p.set('cargos',V.cargo.values().join(','));
+  p.set('horas',V.horas.value||'48');
+  p.set('modo',V.modo||'sync');
+  fetch(BASE+'/apigeo/ubicaciones?'+p.toString()).then(r=>r.json()).then(j=>{
+    showOverlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'desconocido')); return; }
+    renderUbicacion(j);
+  }).catch(e=>{ showOverlay(false); alert('Error de conexion: '+e); });
+}
+function renderUbicacion(j){
+  V.lastUbic=j;
+  clearMap();
+  const now=j.servidor?new Date(j.servidor):new Date();
+  const ruta=(j.modo==='ruta');
+  const pts=[];
+  j.reps.forEach(r=>r._min=Math.max(0,Math.round((now-new Date(r.Sync))/60000)));
+
+  j.reps.forEach(r=>{
+    const col = ruta ? colorRuta(r.MinDistM) : colorSync(r._min);
+    const m=L.circleMarker([r.Latitud,r.Longitud],{radius:8,color:'#fff',weight:2,fillColor:col,fillOpacity:.95});
+    let extra='';
+    if(ruta){
+      extra = (r.MinDistM!=null)
+        ? '<div class="pop-r">Cliente más cercano: <b>'+(r.NearCliID||'—')+' - '+(r.NearCliNombre||'—')+'</b></div>'+
+          '<div class="pop-r">Distancia: <b style="color:'+col+'">'+r.MinDistM+' m</b></div>'
+        : '<div class="pop-r" style="color:#8b949e">Sin clientes de ruta hoy</div>';
+    }
+    m.bindPopup('<div class="pop-t">'+r.RepNombre+' ('+r.RepCodigo+')</div>'+
+      '<div class="pop-r">Cargo: '+(r.RepCargo||'—')+'</div>'+
+      '<div class="pop-r">Supervisor: '+(r.SupervisorNombre||'—')+'</div>'+
+      '<div class="pop-r">Centro: '+(r.CentroNombre||'—')+'</div>'+
+      '<div class="pop-r">Sync: '+new Date(r.Sync).toLocaleString('es-DO')+' ('+fmtAgo(r.Sync,j.servidor)+')</div>'+
+      extra);
+    m.addTo(layer); pts.push([r.Latitud,r.Longitud]);
+  });
+  fitTo(pts);
+  $('#legend').style.display='block';
+
+  if(ruta){
+    let verde=0,amar=0,rojo=0;
+    j.reps.forEach(r=>{ const c=colorRuta(r.MinDistM); if(c==='#3fb950')verde++; else if(c==='#e3b341')amar++; else if(c==='#f85149')rojo++; });
+    const top3 = j.reps.filter(r=>r.MinDistM!=null).sort((a,b)=>b.MinDistM-a.MinDistM).slice(0,3)
+                 .map(r=>({n:r.RepNombre,v:r.MinDistM+' m'}));
+    $('#cards').innerHTML =
+      card('c1','En ruta',verde,'&lt; '+CFG.ruta.verde+' m')+
+      '<div class="card"><div class="cl">Alejados</div><div class="cv" style="color:#e3b341">'+amar+'</div><div class="ch">'+CFG.ruta.verde+'–'+CFG.ruta.amarillo+' m</div></div>'+
+      '<div class="card"><div class="cl">Fuera de ruta</div><div class="cv" style="color:#f85149">'+rojo+'</div><div class="ch">&gt; '+CFG.ruta.amarillo+' m</div></div>'+
+      top3Card('','Top 3 más lejos',top3);
+    $('#legend').innerHTML='<div class="lt">Cercanía a ruta (hoy)</div>'+
+      lg('#3fb950','&lt; '+CFG.ruta.verde+' m')+lg('#e3b341',CFG.ruta.verde+' – '+CFG.ruta.amarillo+' m')+lg('#f85149','&gt; '+CFG.ruta.amarillo+' m');
+  } else {
+    let c1=0,c2=0,c3=0;
+    j.reps.forEach(r=>{ if(r._min<CFG.sync.verde)c1++; else if(r._min<=CFG.sync.amarillo)c2++; else c3++; });
+    const top3 = j.reps.slice().sort((a,b)=>b._min-a._min).slice(0,3)
+                 .map(r=>({n:r.RepNombre,v:fmtAgo(r.Sync,j.servidor)}));
+    $('#cards').innerHTML =
+      card('c1','Menos de '+CFG.sync.verde+' min',c1,'sincronizados')+
+      '<div class="card"><div class="cl">Entre '+CFG.sync.verde+' y '+CFG.sync.amarillo+' min</div><div class="cv" style="color:#e3b341">'+c2+'</div><div class="ch">&nbsp;</div></div>'+
+      '<div class="card"><div class="cl">Más de '+CFG.sync.amarillo+' min</div><div class="cv" style="color:#f85149">'+c3+'</div><div class="ch">&nbsp;</div></div>'+
+      top3Card('','Top 3 más tiempo sin sync',top3);
+    $('#legend').innerHTML='<div class="lt">Tiempo de sincronización</div>'+
+      lg('#3fb950','&lt; '+CFG.sync.verde+' min')+lg('#e3b341',CFG.sync.verde+' – '+CFG.sync.amarillo+' min')+lg('#f85149','&gt; '+CFG.sync.amarillo+' min');
+  }
+}
+function card(cls,l,v,h){ return '<div class="card '+cls+'"><div class="cl">'+l+'</div><div class="cv">'+v+'</div><div class="ch">'+h+'</div></div>'; }
+function lg(c,t){ return '<div class="lg-row"><span class="lg-dot" style="background:'+c+'"></span>'+t+'</div>'; }
+
+/* Reutilizable: crea los 3 multiselect dependientes Centro→Supervisor→Vendedor en V */
+function buildRepFilters(f){
+  const mc=document.createElement('span'), ms=document.createElement('span'), mv=document.createElement('span');
+  f.append(mc,ms,mv);
+  const centros=[...new Map(REPS.filter(r=>r.CedCodigo).map(r=>[r.CedCodigo,r.CentroNombre])).entries()].map(([v,t])=>({v,t}));
+  V.centro=multiselect(mc,'Centro',centros,refreshDependents);
+  V.sup   =multiselect(ms,'Supervisor',[],refreshDependents);
+  V.ven   =multiselect(mv,'Vendedor',[]);
+}
+/* Tarjeta con lista Top-3 (nombre + valor a la derecha) */
+function top3Card(cls,titulo,items){
+  const lis=items.slice(0,3).map((it,i)=>'<div class="t3"><b>'+(i+1)+'</b>'+it.n+'<span class="m">'+it.v+'</span></div>').join('')
+    || '<div class="t3" style="color:#8b949e">Sin datos</div>';
+  return '<div class="card '+cls+' wide"><div class="cl">'+titulo+'</div><div class="top3">'+lis+'</div></div>';
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISTA 2 — CLIENTES CON / SIN VENTAS
+   ═══════════════════════════════════════════════════════════════════════════ */
+/* División con default 10 y 11 (aplica a todos los análisis) */
+function divMultiselect(host){ const ms=multiselect(host,'División',(CAT.divisiones||[])); ms.select(['10','11']); return ms; }
+/* Cargo desde el catálogo de reps */
+function cargoOpts(){ return [...new Set(REPS.map(r=>r.RepCargo).filter(Boolean))].sort().map(v=>({v,t:v})); }
+
+function buildFiltersClientes(){
+  const f=$('#filters'); f.innerHTML='';
+  f.append(lblEl('Desde:')); V.desde=dateInput(); f.append(V.desde);
+  f.append(lblEl('Hasta:')); V.hasta=dateInput(); f.append(V.hasta);
+  buildRepFilters(f);
+  const msCg=document.createElement('span'), msDv=document.createElement('span'); f.append(msCg,msDv);
+  V.cargo=multiselect(msCg,'Cargo',cargoOpts());
+  V.division=divMultiselect(msDv);
+  const msSp=document.createElement('span'), msCt=document.createElement('span'), msPr=document.createElement('span');
+  f.append(msSp,msCt,msPr);
+  V.suplidor=multiselect(msSp,'Suplidor',(CAT.suplidores||[]),onSuplidorChange);
+  V.categoria=multiselect(msCt,'Categoría',[],onCategoriaChange);
+  V.producto=multiselect(msPr,'Producto',[]);
+  const msEst=document.createElement('span'); f.append(msEst);
+  const estadoOpts=[{v:'verde',t:'Con pedido'},{v:'azul',t:'Con pedido (virtual)'},{v:'otros',t:'Pedido (otro día)'},{v:'amar',t:'Sin pedido (comentario)'},{v:'rojo',t:'Sin pedido'},{v:'gris',t:'No visitado'}];
+  V.estado=multiselect(msEst,'Estado',estadoOpts,()=>{ if(V.lastClientesData) renderClientes(V.lastClientesData); });
+  const btn=document.createElement('button'); btn.className='btn-ref'; btn.textContent='Actualizar'; btn.onclick=loadClientes;
+  const clr=document.createElement('button'); clr.className='btn-clear'; clr.textContent='Limpiar';
+  clr.onclick=()=>{ V.centro.clear();V.sup.clear();V.ven.clear();V.cargo.clear();V.division.clear();V.suplidor.clear();V.categoria.clear();V.producto.clear();V.estado.clear(); refreshDependents(); onSuplidorChange(); loadClientes(); };
+  f.append(btn,clr);
+  refreshDependents();
+  onSuplidorChange();
+}
+function onSuplidorChange(){
+  const sel=new Set(V.suplidor.values());
+  const cats = sel.size ? (CAT.categorias||[]).filter(c=>sel.has(c.sup)) : (CAT.categorias||[]);
+  // dedup por nombre de categoria
+  const uniq=[...new Map(cats.map(c=>[c.v,c])).values()];
+  V.categoria.setOptions(uniq);
+  onCategoriaChange();
+}
+function onCategoriaChange(){
+  const p=new URLSearchParams();
+  if(V.suplidor.values().length) p.set('suplidores',V.suplidor.values().join(','));
+  if(V.categoria.values().length) p.set('categorias',V.categoria.values().join(','));
+  fetch(BASE+'/apigeo/productos?'+p.toString()).then(r=>r.json()).then(j=>{
+    V.producto.setOptions((j&&j.ok&&j.productos)||[]);
+  }).catch(()=>V.producto.setOptions([]));
+}
+function loadClientes(){
+  hideSoon(); showOverlay(true);
+  const p=new URLSearchParams();
+  p.set('fechaIni',V.desde.value); p.set('fechaFin',V.hasta.value);
+  if(V.centro.values().length)   p.set('centros',V.centro.values().join(','));
+  if(V.sup.values().length)      p.set('supervisores',V.sup.values().join(','));
+  if(V.ven.values().length)      p.set('reps',V.ven.values().join(','));
+  if(V.suplidor.values().length) p.set('suplidores',V.suplidor.values().join(','));
+  if(V.categoria.values().length)p.set('categorias',V.categoria.values().join(','));
+  if(V.producto.values().length) p.set('productos',V.producto.values().join(','));
+  if(V.cargo&&V.cargo.values().length)      p.set('cargos',V.cargo.values().join(','));
+  if(V.division&&V.division.values().length) p.set('divisiones',V.division.values().join(','));
+  fetch(BASE+'/apigeo/clientes-ventas?'+p.toString()).then(r=>r.json()).then(j=>{
+    showOverlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'desconocido')); return; }
+    renderClientes(j);
+  }).catch(e=>{ showOverlay(false); alert('Error de conexion: '+e); });
+}
+function estadoCliente(r){
+  // Prioridad al pedido. Fuera de ruta con pedido = azul claro "otro dia".
+  if(r.ConPedido){
+    if(!r.EnRuta) return {col:'#79c0ff', key:'otros', txt:'Pedido (Cte otro día)'};
+    return r.Virtual ? {col:'#1f6feb', key:'azul', txt:'Con pedido (virtual)'} : {col:'#3fb950', key:'verde', txt:'Con pedido'};
+  }
+  if(!r.Visitado) return {col:'#8b949e', key:'gris', txt:'No visitado'};
+  if(r.Comentario) return {col:'#e3b341', key:'amar', txt:(r.Virtual?'Visitado virtual':'Visitado')+' — sin pedido (con comentario)'};
+  return {col:'#f85149', key:'rojo', txt:(r.Virtual?'Visitado virtual':'Visitado')+' — sin pedido'};
+}
+function renderClientes(j){
+  V.lastClientesData=j;
+  clearMap();
+  const useHouse = j.clientes.length<=800;
+  const sel = (V.estado?V.estado.values():[]);
+  const pts=[]; let mostrados=0; const dupe={};
+  j.clientes.forEach(r=>{
+    const e=estadoCliente(r);
+    if(sel.length && sel.indexOf(e.key)<0) return;   // filtro de estado (puntos)
+    mostrados++;
+    // Mismo cliente en 2 vendedores → desplazar el 2do marcador ~15m para que ambos se vean
+    const n=(dupe[r.CliID]=(dupe[r.CliID]||0)+1)-1;
+    const pos = n>0 ? {Latitud:r.Latitud+0.00013*Math.cos(n*2.4), Longitud:r.Longitud+0.00013*Math.sin(n*2.4)} : r;
+    const m=addClientMarker(pos,e.col,useHouse);
+    const comTxt = r.Comentario ? ('<div class="pop-r" style="margin-top:4px;color:#e3b341">Comentario: '+r.Comentario+'</div>') : '';
+    const venNom = REPMAP[r.RepCodigo]?(' - '+REPMAP[r.RepCodigo]):'';
+    m.bindPopup('<div class="pop-t">'+r.Nombre+'</div>'+
+      '<div class="pop-r">Código: '+r.CliID+'</div>'+
+      '<div class="pop-r">Vendedor: '+(r.RepCodigo||'—')+venNom+'</div>'+
+      '<div class="pop-r" style="color:'+e.col+';font-weight:700">'+e.txt+'</div>'+comTxt);
+    m.addTo(layer); pts.push([pos.Latitud,pos.Longitud]);
+  });
+  fitTo(pts);
+  const P=j.pedidos||{delDia:0,virtuales:0,otrosDias:0,total:0};
+  const S=j.sinPedido||{comentario:0,rojo:0,noVisitado:0};
+  // Tarjeta "Pedidos a Ctes." (estilo imagen)
+  const t3=(c,l,v)=>'<div class="t3" style="color:'+c+'">'+l+'<span class="m" style="color:'+c+'">'+v+'</span></div>';
+  const pedCard =
+    '<div class="card wide"><div class="cl">Pedidos a Ctes.</div><div class="top3">'+
+      t3('#3fb950','del día',P.delDia)+
+      t3('#1f6feb','del día Virtuales',P.virtuales)+
+      t3('#79c0ff','de otros días',P.otrosDias)+
+      '<div class="t3" style="font-weight:800;border-top:1px solid #30363d;padding-top:3px;margin-top:2px">Total Pedidos<span class="m" style="color:#e6edf3">'+P.total+'</span></div>'+
+    '</div></div>';
+  const sinCard =
+    '<div class="card wide"><div class="cl">Sin pedido</div><div class="top3">'+
+      t3('#e3b341','Con comentario',S.comentario)+
+      t3('#f85149','Sin comentario',S.rojo)+
+      t3('#8b949e','No visitado',S.noVisitado)+
+    '</div></div>';
+  const uniCard = card('c3','Universo (ruta)', j.rutaTotal, (sel.length?(mostrados+' mostrados'):(j.sinGps?(j.sinGps+' sin GPS'):'clientes')));
+  const alertCard = (j.virtualSinPedido>0)
+    ? '<div class="card"><div class="cl">&#9888; Virtual sin pedido</div><div class="cv" style="color:#ff7b7b">'+j.virtualSinPedido+'</div><div class="ch">visitados virtual</div></div>'
+    : '';
+  $('#cards').innerHTML = pedCard + sinCard + uniCard + alertCard;
+  $('#warns').innerHTML='';
+  $('#legend').style.display='block';
+  $('#legend').innerHTML='<div class="lt">Estado'+(useHouse?'':' (puntos)')+'</div>'+
+    lg('#3fb950','Con pedido')+lg('#1f6feb','Con pedido (virtual)')+lg('#79c0ff','Pedido (otro día)')+
+    lg('#e3b341','Sin pedido (comentario)')+lg('#f85149','Sin pedido')+lg('#8b949e','No visitado');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISTA 5 — PEDIDOS FUERA DE RUTA
+   ═══════════════════════════════════════════════════════════════════════════ */
+function buildFiltersFueraRuta(){
+  const f=$('#filters'); f.innerHTML='';
+  V.modoFR = V.modoFR || 'vendedor';
+  const grp=document.createElement('div'); grp.className='modo-group';
+  const bV=document.createElement('button'); bV.className='btn-modo'; bV.textContent='Por Vendedor';
+  const bS=document.createElement('button'); bS.className='btn-modo'; bS.textContent='Por Supervisor';
+  function paint(){ bV.classList.toggle('on',V.modoFR==='vendedor'); bS.classList.toggle('on',V.modoFR==='supervisor'); }
+  bV.onclick=()=>{ V.modoFR='vendedor'; paint(); if(V.lastFR) renderFueraRuta(V.lastFR); };
+  bS.onclick=()=>{ V.modoFR='supervisor'; paint(); if(V.lastFR) renderFueraRuta(V.lastFR); };
+  grp.append(bV,bS); f.append(grp); paint();
+
+  f.append(lblEl('Desde:')); V.desde=dateInput(); f.append(V.desde);
+  f.append(lblEl('Hasta:')); V.hasta=dateInput(); f.append(V.hasta);
+  buildRepFilters(f);
+  const btn=document.createElement('button'); btn.className='btn-ref'; btn.textContent='Actualizar'; btn.onclick=loadFueraRuta;
+  const clr=document.createElement('button'); clr.className='btn-clear'; clr.textContent='Limpiar';
+  clr.onclick=()=>{ V.centro.clear();V.sup.clear();V.ven.clear(); refreshDependents(); loadFueraRuta(); };
+  f.append(btn,clr);
+  refreshDependents();
+}
+function loadFueraRuta(){
+  hideSoon(); showOverlay(true);
+  const p=new URLSearchParams();
+  p.set('fechaIni',V.desde.value); p.set('fechaFin',V.hasta.value);
+  if(V.centro.values().length) p.set('centros',V.centro.values().join(','));
+  if(V.sup.values().length)    p.set('supervisores',V.sup.values().join(','));
+  if(V.ven.values().length)    p.set('reps',V.ven.values().join(','));
+  fetch(BASE+'/apigeo/fuera-ruta?'+p.toString()).then(r=>r.json()).then(j=>{
+    showOverlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'desconocido')); return; }
+    renderFueraRuta(j);
+  }).catch(e=>{ showOverlay(false); alert('Error de conexion: '+e); });
+}
+function renderFueraRuta(j){
+  V.lastFR=j; clearMap();
+  const pts=[];
+  j.clientes.forEach(r=>{
+    const m=L.circleMarker([r.Latitud,r.Longitud],{radius:8,color:'#fff',weight:2,fillColor:'#f0883e',fillOpacity:.95});
+    m.bindPopup('<div class="pop-t">&#9888; '+r.Nombre+'</div>'+
+      '<div class="pop-r">Código: '+r.CliID+'</div>'+
+      '<div class="pop-r">Vendedor: '+r.RepCodigo+(r.RepNombre?(' - '+r.RepNombre):'')+'</div>'+
+      '<div class="pop-r">Supervisor: '+(r.SupNombre||'—')+'</div>'+
+      '<div class="pop-r">Pedidos fuera de ruta: <b style="color:#f0883e">'+r.Pedidos+'</b></div>'+
+      '<div class="pop-r">Último pedido: '+(r.UltPedido||'—')+'</div>'+
+      '<div class="pop-r" style="color:#58a6ff">Clic para ver los 10 vecinos &darr;</div>');
+    m.on('click',()=>loadVecinos(r));
+    m.addTo(layer); pts.push([r.Latitud,r.Longitud]);
+  });
+  fitTo(pts);
+  // Tarjetas
+  const t3=(c,l,v)=>'<div class="t3" style="color:'+c+'">'+l+'<span class="m" style="color:#e6edf3">'+v+'</span></div>';
+  if(V.modoFR==='supervisor'){
+    const items=(j.topSups||[]).map(s=>'<div class="t3">'+s.Nombre+'<span class="m">'+s.pedidos+' ped</span></div>'+
+      '<div class="t3" style="color:#8b949e;font-size:10px;padding-top:0">&nbsp;&nbsp;'+s.vendedores+' vend · '+s.clientes+' ctes</span></div>').join('')||'<div class="t3" style="color:#8b949e">Sin datos</div>';
+    $('#cards').innerHTML =
+      '<div class="card"><div class="cl">Pedidos fuera ruta</div><div class="cv" style="color:#f0883e">'+j.totalPedidos+'</div><div class="ch">'+j.totalClientes+' clientes</div></div>'+
+      '<div class="card wide"><div class="cl">Top 3 supervisores</div><div class="top3">'+items+'</div></div>';
+  } else {
+    const items=(j.topReps||[]).map((r,i)=>'<div class="t3"><b>'+(i+1)+'</b>'+r.Nombre+'<span class="m">'+r.pedidos+' ped</span></div>'+
+      '<div class="t3" style="color:#8b949e;font-size:10px;padding-top:0">&nbsp;&nbsp;'+r.clientes+' clientes</div>').join('')||'<div class="t3" style="color:#8b949e">Sin datos</div>';
+    $('#cards').innerHTML =
+      '<div class="card"><div class="cl">Pedidos fuera ruta</div><div class="cv" style="color:#f0883e">'+j.totalPedidos+'</div><div class="ch">'+j.totalClientes+' clientes · '+j.totalReps+' reps</div></div>'+
+      '<div class="card wide"><div class="cl">Top 3 con más pedidos fuera de ruta</div><div class="top3">'+items+'</div></div>';
+  }
+  $('#legend').style.display='block';
+  $('#legend').innerHTML='<div class="lt">Fuera de ruta</div>'+lg('#f0883e','Cliente con pedido fuera de ruta')+lg('#58a6ff','10 vecinos (clic)')+
+    '<div class="lg-row" style="color:#8b949e;font-size:10px">Vecinos: &#9679; visitado presencial</div>';
+}
+function loadVecinos(sold){
+  vecLayer.clearLayers();
+  const p=new URLSearchParams();
+  p.set('rep',sold.RepCodigo); p.set('cli',sold.CliID);
+  p.set('fechaIni',V.desde.value); p.set('fechaFin',V.hasta.value);
+  fetch(BASE+'/apigeo/fuera-ruta-vecinos?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ return; }
+    (j.vecinos||[]).forEach(v=>{
+      // linea sutil del vendido al vecino
+      L.polyline([[sold.Latitud,sold.Longitud],[v.Latitud,v.Longitud]],{color:'#58a6ff',weight:1,opacity:.35}).addTo(vecLayer);
+      const visto = v.VisitadoPresencial;
+      const m=L.circleMarker([v.Latitud,v.Longitud],{radius:6,color:(visto?'#3fb950':'#58a6ff'),weight:2,fillColor:'#1c2f4a',fillOpacity:.95});
+      m.bindPopup('<div class="pop-t">'+v.Nombre+'</div>'+
+        '<div class="pop-r">Código: '+v.CliID+(v.CliCodigo?(' ('+v.CliCodigo+')'):'')+'</div>'+
+        '<div class="pop-r">Distancia: <b>'+v.Metros+' m</b></div>'+
+        '<div class="pop-r">Día que le toca visita: <b>'+(v.DiaVisita||'—')+'</b></div>'+
+        '<div class="pop-r" style="color:'+(visto?'#3fb950':'#f85149')+';font-weight:700">'+(visto?'Visitado presencial':'No visitado presencial')+'</div>'+
+        '<div class="pop-r" style="color:#8b949e">Vecino de: '+sold.Nombre+'</div>');
+      m.addTo(vecLayer);
+    });
+  }).catch(()=>{});
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VISTA 3 — OPORTUNIDADES POR SUPLIDOR / CATEGORIA
+   ═══════════════════════════════════════════════════════════════════════════ */
+function onSupOportChange(){
+  const selSup=new Set(V.suplidor.values());
+  const cats = selSup.size ? (CAT.categorias||[]).filter(c=>selSup.has(c.sup)) : (CAT.categorias||[]);
+  const uniq=[...new Map(cats.map(c=>[c.v,c])).values()];
+  V.categoria.setOptions(uniq);
+}
+function buildFiltersOportunidad(){
+  const f=$('#filters'); f.innerHTML='';
+  V.modoOp = V.modoOp || 'perdidas';
+  const grp=document.createElement('div'); grp.className='modo-group';
+  const bP=document.createElement('button'); bP.className='btn-modo'; bP.textContent='Ventas Perdidas';
+  const bR=document.createElement('button'); bR.className='btn-modo'; bR.textContent='Recuperados';
+  grp.append(bP,bR); f.append(grp);
+  // Rango principal (Ventas Perdidas) / Rango Activo (Recuperados)
+  const l1a=lblEl('Desde:'), l1b=lblEl('Hasta:'); V.desde=dateInput(); V.hasta=dateInput();
+  f.append(l1a,V.desde,l1b,V.hasta);
+  // Rango Evaluacion (solo Recuperados)
+  const l2a=lblEl('Eval desde:'), l2b=lblEl('Eval hasta:'); V.evalIni=dateInput(); V.evalFin=dateInput();
+  f.append(l2a,V.evalIni,l2b,V.evalFin);
+  const lblF=document.createElement('label'); lblF.className='f-lbl'; lblF.style.cssText='display:flex;align-items:center;gap:5px;cursor:pointer';
+  const chkF=document.createElement('input'); chkF.type='checkbox'; chkF.style.accentColor='#8957e5'; V.fuentePed=chkF;
+  lblF.append(chkF); lblF.append(document.createTextNode('Desde Pedidos (en línea)'));
+  f.append(lblF);
+  buildRepFilters(f);
+  const msSp=document.createElement('span'), msCt=document.createElement('span'), msDv=document.createElement('span');
+  f.append(msSp,msCt,msDv);
+  V.suplidor=multiselect(msSp,'Suplidor',(CAT.suplidores||[]),onSupOportChange);
+  V.categoria=multiselect(msCt,'Categoría',[]);
+  V.division=divMultiselect(msDv);
+  const msEst=document.createElement('span'); f.append(msEst);
+  V.estadoRec=multiselect(msEst,'Estado',[{v:'dejo',t:'Dejó de comprar'},{v:'recuperado',t:'Recuperado'},{v:'retenido',t:'Retenido'},{v:'inactivo',t:'Inactivo'}],()=>{ if(V.lastRecup) renderRecuperados(V.lastRecup); });
+  const lblC=document.createElement('label'); lblC.className='f-lbl'; lblC.style.cssText='display:flex;align-items:center;gap:5px;cursor:pointer';
+  const chk=document.createElement('input'); chk.type='checkbox'; chk.style.accentColor='#8957e5'; V.incluir=chk;
+  lblC.append(chk); lblC.append(document.createTextNode('Incluir los que compran'));
+  f.append(lblC);
+  const btnA=document.createElement('button'); btnA.className='btn-ref'; btnA.textContent='Actualizar';
+  const clr=document.createElement('button'); clr.className='btn-clear'; clr.textContent='Limpiar';
+  clr.onclick=()=>{ V.centro.clear();V.sup.clear();V.ven.clear();V.suplidor.clear();V.categoria.clear();V.division.clear();V.incluir.checked=false; refreshDependents(); onSupOportChange(); (V.modoOp==='recuperados'?loadRecuperados:loadOportunidad)(); };
+  f.append(btnA,clr);
+  function applyMode(){
+    const rec=V.modoOp==='recuperados';
+    bP.classList.toggle('on',!rec); bR.classList.toggle('on',rec);
+    [l2a,V.evalIni,l2b,V.evalFin,lblF,msEst].forEach(e=>e.style.display=rec?'':'none');
+    lblC.style.display=rec?'none':'';
+    l1a.textContent=rec?'Activo desde:':'Desde:'; l1b.textContent=rec?'Activo hasta:':'Hasta:';
+    btnA.onclick=rec?loadRecuperados:loadOportunidad;
+  }
+  function recDefaults(){
+    // Activo = 3 meses anteriores completos; Eval = 1ro del mes actual al día de hoy
+    const now=new Date();
+    const actDesde=new Date(now.getFullYear(), now.getMonth()-3, 1);
+    const actHasta=new Date(now.getFullYear(), now.getMonth(), 0);
+    const evDesde =new Date(now.getFullYear(), now.getMonth(), 1);
+    const fmt=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    V.desde.value=fmt(actDesde); V.hasta.value=fmt(actHasta);
+    V.evalIni.value=fmt(evDesde); V.evalFin.value=fmt(now);
+    if(!V.suplidor.values().length){ V.suplidor.selectAll(); onSupOportChange(); }  // todo el negocio
+  }
+  bP.onclick=()=>{ V.modoOp='perdidas'; applyMode(); loadOportunidad(); };
+  bR.onclick=()=>{ V.modoOp='recuperados'; applyMode(); recDefaults(); loadRecuperados(); };
+  applyMode();
+  if(V.modoOp==='recuperados') recDefaults();
+  refreshDependents(); onSupOportChange();
+}
+function loadRecuperados(){
+  hideSoon(); showOverlay(true);
+  const p=new URLSearchParams();
+  p.set('activoIni',V.desde.value); p.set('activoFin',V.hasta.value);
+  p.set('evalIni',V.evalIni.value); p.set('evalFin',V.evalFin.value);
+  if(V.centro.values().length)   p.set('centros',V.centro.values().join(','));
+  if(V.sup.values().length)      p.set('supervisores',V.sup.values().join(','));
+  if(V.ven.values().length)      p.set('reps',V.ven.values().join(','));
+  if(V.suplidor.values().length) p.set('suplidores',V.suplidor.values().join(','));
+  if(V.categoria.values().length)p.set('categorias',V.categoria.values().join(','));
+  if(V.division.values().length) p.set('divisiones',V.division.values().join(','));
+  if(V.fuentePed&&V.fuentePed.checked) p.set('fuente','pedidos');
+  fetch(BASE+'/apigeo/recuperados?'+p.toString()).then(r=>r.json()).then(j=>{
+    showOverlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'desconocido')); return; }
+    renderRecuperados(j);
+  }).catch(e=>{ showOverlay(false); alert('Error de conexion: '+e); });
+}
+const EST_REC={dejo:'#f85149',recuperado:'#3fb950',retenido:'#1f6feb',inactivo:'#8b949e'};
+const EST_REC_TXT={dejo:'Dejó de comprar',recuperado:'Recuperado',retenido:'Retenido (sigue comprando)',inactivo:'Inactivo'};
+function renderRecuperados(j){
+  V.lastRecup=j;
+  if(j.sinSeleccion){ showSoon('Selecciona un suplidor o categoría','Los clientes se evalúan contra un suplidor/categoría (o todos = todo el negocio). Elige y presiona Actualizar.',true); return; }
+  clearMap();
+  const sel = (V.estadoRec?V.estadoRec.values():[]);
+  const useHouse = j.clientes.length<=800;
+  const pts=[]; let mostrados=0;
+  j.clientes.forEach(r=>{
+    if(sel.length && sel.indexOf(r.Estado)<0) return;
+    mostrados++;
+    const col=EST_REC[r.Estado]||'#8b949e';
+    const m=addClientMarker(r,col,useHouse);
+    const venNom = REPMAP[r.RepCodigo]?(' - '+REPMAP[r.RepCodigo]):'';
+    m.bindPopup('<div class="pop-t">'+r.Nombre+'</div>'+
+      '<div class="pop-r">Código: '+r.CliID+'</div>'+
+      '<div class="pop-r">Vendedor: '+(r.RepCodigo||'—')+venNom+'</div>'+
+      '<div class="pop-r">Unidades (activo): <b>'+Math.round(r.Unidades)+'</b> · Valor: <b>'+Math.round(r.ValorBruto).toLocaleString('es-DO')+'</b></div>'+
+      '<div class="pop-r" style="color:'+col+';font-weight:700">'+(EST_REC_TXT[r.Estado]||r.Estado)+'</div>');
+    m.addTo(layer); pts.push([r.Latitud,r.Longitud]);
+  });
+  fitTo(pts);
+  const pctRet = j.universo? Math.round((j.retenidos+j.recuperados)*100/j.universo):0;
+  const dej=(j.topDejaron||[]).map((r,i)=>'<div class="t3"><b>'+(i+1)+'</b>'+(REPMAP[r.RepCodigo]||r.RepCodigo)+'<span class="m">'+r.clientes+'</span></div>').join('')||'<div class="t3" style="color:#8b949e">Sin datos</div>';
+  $('#cards').innerHTML =
+    '<div class="card"><div class="cl">&#9888; Dejó de comprar</div><div class="cv" style="color:#f85149">'+j.dejaron+'</div><div class="ch">compraba antes, no ahora</div></div>'+
+    '<div class="card"><div class="cl">Recuperados</div><div class="cv" style="color:#3fb950">'+j.recuperados+'</div><div class="ch">reactivados</div></div>'+
+    '<div class="card"><div class="cl">Retenidos</div><div class="cv" style="color:#58a6ff">'+j.retenidos+'</div><div class="ch">'+pctRet+'% activos del universo</div></div>'+
+    '<div class="card"><div class="cl">Inactivos</div><div class="cv" style="color:#8b949e">'+j.inactivos+'</div><div class="ch">'+(sel.length?(mostrados+' mostrados'):(j.sinGps+' sin GPS'))+'</div></div>'+
+    '<div class="card wide"><div class="cl">Top 3 Vendedores con más "dejó de comprar"</div><div class="top3">'+dej+'</div></div>';
+  $('#legend').style.display='block';
+  $('#legend').innerHTML='<div class="lt">Retención'+(useHouse?'':' (puntos)')+'</div>'+
+    lg('#f85149','Dejó de comprar')+lg('#3fb950','Recuperado')+lg('#1f6feb','Retenido')+lg('#8b949e','Inactivo');
+}
+function loadOportunidad(){
+  hideSoon(); showOverlay(true);
+  const p=new URLSearchParams();
+  p.set('fechaIni',V.desde.value); p.set('fechaFin',V.hasta.value);
+  if(V.centro.values().length)   p.set('centros',V.centro.values().join(','));
+  if(V.sup.values().length)      p.set('supervisores',V.sup.values().join(','));
+  if(V.ven.values().length)      p.set('reps',V.ven.values().join(','));
+  if(V.suplidor.values().length) p.set('suplidores',V.suplidor.values().join(','));
+  if(V.categoria.values().length)p.set('categorias',V.categoria.values().join(','));
+  if(V.division.values().length) p.set('divisiones',V.division.values().join(','));
+  if(V.incluir.checked)          p.set('incluirCompran','true');
+  fetch(BASE+'/apigeo/oportunidades?'+p.toString()).then(r=>r.json()).then(j=>{
+    showOverlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'desconocido')); return; }
+    renderOportunidad(j);
+  }).catch(e=>{ showOverlay(false); alert('Error de conexion: '+e); });
+}
+function renderOportunidad(j){
+  V.lastOport=j;
+  if(j.sinSeleccion){ showSoon('Selecciona un suplidor o categoría','La oportunidad se calcula contra un suplidor/categoría: elige al menos uno en los filtros de arriba y presiona Actualizar.',true); return; }
+  clearMap();
+  const useHouse = j.clientes.length<=800;
+  const pts=[];
+  j.clientes.forEach(r=>{
+    const col = r.Compra ? '#3fb950' : '#8b949e';
+    const m=addClientMarker(r,col,useHouse);
+    const venNom = REPMAP[r.RepCodigo]?(' - '+REPMAP[r.RepCodigo]):'';
+    m.bindPopup('<div class="pop-t">'+r.Nombre+'</div>'+
+      '<div class="pop-r">Código: '+r.CliID+'</div>'+
+      '<div class="pop-r">Vendedor: '+(r.RepCodigo||'—')+venNom+'</div>'+
+      ((r.Unidades!=null)?('<div class="pop-r">Unidades: <b>'+Math.round(r.Unidades)+'</b> · Valor bruto: <b>'+Math.round(r.ValorBruto).toLocaleString('es-DO')+'</b></div>'):'')+
+      '<div class="pop-r" style="color:'+col+';font-weight:700">'+(r.Compra?'Sí pidió lo filtrado':'Oportunidad — no pidió lo filtrado')+'</div>');
+    m.addTo(layer); pts.push([r.Latitud,r.Longitud]);
+  });
+  fitTo(pts);
+  const pctOp = j.compradores? Math.round(j.oportunidades*100/j.compradores):0;
+  const vend=(j.topVendedores||[]).map((r,i)=>'<div class="t3"><b>'+(i+1)+'</b>'+(REPMAP[r.RepCodigo]||r.RepCodigo)+'<span class="m">'+r.clientes+'</span></div>').join('')||'<div class="t3" style="color:#8b949e">Sin datos</div>';
+  const sup=(j.topSuplidores||[]).map((s,i)=>'<div class="t3"><b>'+(i+1)+'</b>'+s.Suplidor+'<span class="m">'+s.oportunidad+'</span></div>').join('')||'<div class="t3" style="color:#8b949e">Sin datos</div>';
+  $('#cards').innerHTML =
+    '<div class="card"><div class="cl">Oportunidades Perdidas</div><div class="cv" style="color:#f0883e">'+j.oportunidades+'</div><div class="ch">'+pctOp+'% de '+j.compradores+' con pedido'+(j.sinGps?(' · '+j.sinGps+' sin GPS'):'')+'</div></div>'+
+    '<div class="card wide"><div class="cl">Top 3 Vendedores con más Oportunidades</div><div class="top3">'+vend+'</div></div>'+
+    '<div class="card wide"><div class="cl">Top 3 Suplidores con Oportunidad</div><div class="top3">'+sup+'</div></div>';
+  $('#legend').style.display='block';
+  $('#legend').innerHTML='<div class="lt">Oportunidad'+(useHouse?'':' (puntos)')+'</div>'+
+    lg('#8b949e','Oportunidad (no pidió lo filtrado)')+(j.clientes.some(c=>c.Compra)?lg('#3fb950','Sí pidió lo filtrado'):'');
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NAVEGACION
+   ═══════════════════════════════════════════════════════════════════════════ */
+const META = {
+  ubicacion:{t:'Ubicaci&oacute;n de Vendedores', s:'&Uacute;ltima sincronizaci&oacute;n de cada representante'},
+  clientes:{t:'Visitados Con / Sin Pedidos', s:''},
+  oportunidad:{t:'Oportunidades por Suplidor / Categor&iacute;a', s:'Clientes sin ventas del suplidor filtrado'},
+  promedio:{t:'Compr&oacute; menos que el promedio', s:'Pedido vs. promedio de las &uacute;ltimas 6 facturas'},
+  fueraruta:{t:'Pedidos fuera de Ruta', s:'Pedidos hechos en d&iacute;a distinto al programado'}
+};
+function setView(v){
+  state.view=v;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===v));
+  $('#view-title').innerHTML=META[v].t; $('#view-sub').innerHTML=META[v].s;
+  $('#cards').innerHTML=''; $('#legend').style.display='none'; $('#warns').innerHTML='';
+  if(v==='ubicacion'){ buildFiltersUbicacion(); loadUbicacion(); }
+  else if(v==='clientes'){ buildFiltersClientes(); loadClientes(); }
+  else if(v==='fueraruta'){ buildFiltersFueraRuta(); loadFueraRuta(); }
+  else if(v==='oportunidad'){ buildFiltersOportunidad(); (V.modoOp==='recuperados'?loadRecuperados:loadOportunidad)(); }
+  else { $('#filters').innerHTML=''; showSoon('En construcci&oacute;n','Este sub-m&oacute;dulo ('+META[v].t.replace(/&[a-z]+;/g,'')+') se conectar&aacute; en la siguiente iteraci&oacute;n. La consulta ya fue validada contra la base de datos.'); }
+  setTimeout(()=>map.invalidateSize(),150);
+}
+document.querySelectorAll('.nav-item').forEach(n=>n.onclick=()=>setView(n.dataset.view));
+
+/* ── Arranque: cargar catalogos (reps + suplidor/categoria) y mostrar vista 1 ── */
+showOverlay(true);
+Promise.all([
+  fetch(BASE+'/apigeo/filtros').then(r=>r.json()).catch(()=>null),
+  fetch(BASE+'/apigeo/catalogo').then(r=>r.json()).catch(()=>null)
+]).then(([jf,jc])=>{
+  showOverlay(false);
+  REPS=(jf&&jf.ok&&jf.representantes)||[];
+  REPMAP={}; REPS.forEach(r=>{ REPMAP[r.RepCodigo]=r.RepNombre; });
+  if(jc&&jc.ok){ CAT.suplidores=jc.suplidores||[]; CAT.categorias=jc.categorias||[]; CAT.divisiones=jc.divisiones||[]; }
+  setView('ubicacion');
+}).catch(e=>{ showOverlay(false); alert('No se pudo cargar el cat&aacute;logo: '+e); });
+</script>
+</body>
+</html>

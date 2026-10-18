@@ -1,0 +1,33 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "optimizador-rutas",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "streamlit", "run", "optimizador_rutas.py", "--server.port=8766", "--server.headless=true", "--server.address=0.0.0.0"],
+      "port": 8766,
+      "cwd": "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\Optimizador de Ruta"
+    },
+    {
+      "name": "inmuebles-v4",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5174,
+      "cwd": "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\Sistema de Condominios\\web-app-v4\\inmuebles-web"
+    },
+    {
+      "name": "dashsmart",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--urls", "http://localhost:5012"],
+      "port": 5012,
+      "cwd": "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\MovilBusinessDashBoard\\MovilbusinessDashBoardSmart"
+    },
+    {
+      "name": "rutavisitas-smart",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "cwd": "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\MovilBusinessDashBoard\\RutaVisitasSmart"
+    }
+  ]
+}

@@ -1,0 +1,180 @@
+@page
+@model ADEnterprise.Pages.Reportes.LogTransaccionesModel
+@{ ViewData["Title"] = "Log de Transacciones"; }
+
+<div class="d-flex justify-content-between align-items-center mb-2 no-print">
+    <div>
+        <div class="page-title mb-0"><i class="bi bi-journal-text"></i> Log de Transacciones</div>
+        <div class="page-subtitle mb-0">Registro cronológico de todas las facturas creadas y pagos registrados</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="ExportarExcel">
+            <input type="hidden" name="desde"   value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="hasta"   value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="tipo"    value="@Model.FiltroTipo"/>
+            <input type="hidden" name="usuario" value="@Model.FiltroUsuario"/>
+            <button class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+        </form>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir / PDF</button>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-3 no-print"><div class="card-body py-2">
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Desde</label>
+        <input type="date" name="FechaDesde" class="form-control form-control-sm" value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Hasta</label>
+        <input type="date" name="FechaHasta" class="form-control form-control-sm" value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Tipo</label>
+        <select name="FiltroTipo" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @if (Model.FiltroTipo == "Factura") { <option value="Factura" selected>Factura</option> } else { <option value="Factura">Factura</option> }
+            @if (Model.FiltroTipo == "Pago")    { <option value="Pago" selected>Pago</option> }    else { <option value="Pago">Pago</option> }
+        </select></div>
+    <div class="col-6 col-md-2"><label class="form-label fw-semibold small mb-1">Usuario</label>
+        <select name="FiltroUsuario" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var u in Model.Usuarios)
+            { if (u == Model.FiltroUsuario) { <option value="@u" selected>@u</option> } else { <option value="@u">@u</option> } }
+        </select></div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-app"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="/Reportes/LogTransacciones" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+    </div>
+</form>
+</div></div>
+
+<!-- Encabezado impresión -->
+@inject Microsoft.Extensions.Configuration.IConfiguration _cfg
+@{ var _nomEmp = _cfg["Empresa:Nombre"] ?? "Fanny Mercedes & Asoc."; }
+<div class="print-only mb-3">
+    <h4 class="fw-bold">@_nomEmp — Log de Transacciones</h4>
+    <p class="text-muted small">
+        Período: @Model.FechaDesde.ToString("dd/MM/yyyy") al @Model.FechaHasta.ToString("dd/MM/yyyy") |
+        Total: @Model.Entradas.Count entradas | Generado: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+    </p>
+</div>
+
+<!-- Tarjetas resumen -->
+<div class="row g-3 mb-3 no-print">
+    @{ var totalFacturas = Model.Entradas.Count(e => e.Tipo == "Factura");
+       var totalPagos    = Model.Entradas.Count(e => e.Tipo == "Pago");
+       var ultimaTrans   = Model.Entradas.FirstOrDefault();
+    }
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm" style="border-left:4px solid var(--azul-marino)">
+            <div class="card-body py-2">
+                <div class="fs-2 fw-bold" style="color:var(--azul-marino)">@Model.Entradas.Count</div>
+                <div class="small text-muted">Total Transacciones</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm border-secondary">
+            <div class="card-body py-2">
+                <div class="fs-2 fw-bold text-secondary">@totalFacturas</div>
+                <div class="small text-muted">Facturas Creadas</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm border-success">
+            <div class="card-body py-2">
+                <div class="fs-2 fw-bold text-success">@totalPagos</div>
+                <div class="small text-muted">Pagos Registrados</div>
+                <div class="small fw-bold text-success">
+                    RD$ @Model.Entradas.Where(e => e.Tipo == "Pago").Sum(e => e.Monto).ToString("N2")
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm border-info">
+            <div class="card-body py-2">
+                @if (ultimaTrans != null)
+                {
+                    <div class="fw-bold small">Última transacción</div>
+                    <div class="badge @(ultimaTrans.Tipo == "Pago" ? "bg-success" : "bg-secondary") mb-1">@ultimaTrans.Tipo</div>
+                    <div class="small fw-bold">@ultimaTrans.Cliente</div>
+                    <div class="small text-muted">@ultimaTrans.Fecha.ToString("dd/MM/yyyy")</div>
+                    <div class="text-success fw-bold">RD$ @ultimaTrans.Monto.ToString("N2")</div>
+                    <div class="small text-muted">👤 @ultimaTrans.Usuario</div>
+                }
+                else
+                {
+                    <div class="text-muted small">Sin transacciones</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla log -->
+<div class="card shadow-sm">
+<div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+    <i class="bi bi-journal-text"></i> Registro Cronológico — @Model.Entradas.Count entradas
+    <span class="ms-3 small text-light">@Model.FechaDesde.ToString("dd/MM/yyyy") al @Model.FechaHasta.ToString("dd/MM/yyyy")</span>
+</div>
+<div class="card-body p-0">
+@if (!Model.Entradas.Any())
+{
+    <div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i> Sin transacciones en este período.</div>
+}
+else
+{
+<div class="table-responsive">
+<table class="table table-sm table-hover mb-0">
+    <thead class="table-light">
+        <tr>
+            <th>Fecha</th>
+            <th class="text-center">Tipo</th>
+            <th>N° Referencia</th>
+            <th class="text-center">Ticket</th>
+            <th>Compañía</th>
+            <th>Cliente</th>
+            <th class="text-end">Monto (RD$)</th>
+            <th>Detalle</th>
+            <th>Usuario</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var e in Model.Entradas)
+    {
+        <tr class="@(e.Tipo == "Pago" ? "table-success" : "")">
+            <td>@e.Fecha.ToString("dd/MM/yyyy")</td>
+            <td class="text-center">
+                <span class="badge @(e.Tipo == "Pago" ? "bg-success" : "bg-secondary")">
+                    <i class="bi @(e.Tipo == "Pago" ? "bi-cash-coin" : "bi-receipt")"></i> @e.Tipo
+                </span>
+            </td>
+            <td><small class="text-muted font-monospace">@e.NumRef</small></td>
+            <td class="text-center"><strong>#@e.NumTicket</strong></td>
+            <td>@e.Empresa</td>
+            <td>@e.Cliente</td>
+            <td class="text-end fw-bold @(e.Tipo == "Pago" ? "text-success" : "")">@e.Monto.ToString("N2")</td>
+            <td><small>@e.Detalle</small></td>
+            <td>
+                <span class="badge bg-light text-dark border">
+                    <i class="bi bi-person"></i> @e.Usuario
+                </span>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+</div>
+}
+</div>
+</div>
+
+@section Scripts {
+<style>
+@@media print {
+    .no-print { display: none !important; } .print-only { display: block !important; }
+    .app-header, .app-navbar, .app-footer { display: none !important; }
+    .main-content { padding: 0 !important; }
+}
+.print-only { display: none; }
+</style>
+}

@@ -1,0 +1,120 @@
+@model PorfiAcademy.Controllers.SubscribeViewModel
+@using PorfiAcademy.Data
+@{
+    ViewData["Title"] = "Planes y suscripción";
+    var sent = Context.Request.Query["enviado"] == "1";
+    var wa = Model.WhatsApp;
+}
+
+@if (sent)
+{
+    <div class="notice" id="gracias">¡Gracias! Recibimos tu solicitud y te contactaremos muy pronto.</div>
+}
+
+<section class="card">
+    <h1>Planes y suscripción</h1>
+    <p>Crea tu cuenta para ver los videos gratuitos. Con una suscripción desbloqueas todos los cursos y niveles.</p>
+
+    @if (Model.Access.HasPaid)
+    {
+        <p class="ok">✔ Tu suscripción@(Model.Access.PlanName is null ? "" : " (" + Model.Access.PlanName + ")") está activa hasta el <strong>@Model.Access.PaidUntil!.Value.ToLocalTime().ToString("dd/MM/yyyy")</strong> (@Model.Access.DaysLeft días). Puedes renovarla abajo y los días se suman.</p>
+    }
+
+    <div class="plans">
+        @foreach (var p in Model.Plans)
+        {
+            <div class="plan">
+                <h3>@p.Name</h3>
+                <div class="plan-price">@(p.Price is decimal pr && pr > 0 ? "RD$ " + pr.ToString("N0") : "Precio por definir")</div>
+                <div class="plan-days">@p.DurationDays días de acceso</div>
+                @if (!string.IsNullOrWhiteSpace(p.Description)) { <p class="hint">@p.Description</p> }
+            </div>
+        }
+        @if (Model.Plans.Count == 0) { <p class="hint">Los planes se publicarán pronto.</p> }
+    </div>
+</section>
+
+<section class="card" id="pin">
+    <h2>Cómo activar tu suscripción</h2>
+
+    <h3>1. Con un PIN de acceso</h3>
+    <p class="hint">Si ya pagaste, el administrador te entrega un PIN. Escríbelo aquí y tu acceso se activa al instante.</p>
+    @if (Model.Access.IsSignedIn)
+    {
+        <form asp-action="Redeem" method="post" class="inline-form">
+            <input name="code" placeholder="XXXX-XXXX-XXXX" maxlength="20" autocomplete="off" style="max-width:260px;text-transform:uppercase" />
+            <button class="btn" type="submit">Activar con PIN</button>
+        </form>
+    }
+    else
+    {
+        <p><a class="btn" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="/Subscribe">Inicia sesión</a>
+           <a class="btn ghost" asp-area="Identity" asp-page="/Account/Register" asp-route-returnUrl="/Subscribe">Crear mi cuenta</a></p>
+        <p class="hint">Necesitas una cuenta para activar tu PIN.</p>
+    }
+
+    <h3>2. Con un depósito a nuestra cuenta</h3>
+    @if (!string.IsNullOrWhiteSpace(Model.Deposit))
+    {
+        <pre class="deposit">@Model.Deposit</pre>
+    }
+    else
+    {
+        <p class="hint">Los datos para depositar se publicarán aquí.</p>
+    }
+    <p class="hint">Después de depositar, llena el formulario de abajo con tu número de referencia y activamos tu acceso.</p>
+
+    <h3>3. Con tarjeta de crédito</h3>
+    <p class="hint">Próximamente: pago en línea con tarjeta.</p>
+</section>
+
+<section class="card" id="evaluacion">
+    <h2>Solicitar información, evaluación gratis o avisar de mi depósito</h2>
+    <form asp-action="SendRequest" method="post">
+        <div asp-validation-summary="All" class="error"></div>
+
+        <label for="Form_Type">¿Qué necesitas?</label>
+        <select id="Form_Type" name="Type">
+            @foreach (var (value, label) in new[] {
+                (RequestType.Info, "Quiero información"),
+                (RequestType.FreeTraining, "Quiero mi evaluación / entrenamiento gratis"),
+                (RequestType.Subscription, "Quiero suscribirme"),
+                (RequestType.Deposit, "Ya hice mi depósito") })
+            {
+                <option value="@((int)value)" selected="@(Model.Form.Type == value)">@label</option>
+            }
+        </select>
+
+        <label for="Form_Name">Tu nombre</label>
+        <input id="Form_Name" name="Name" value="@Model.Form.Name" maxlength="120" />
+
+        <label for="Form_Phone">Teléfono / WhatsApp</label>
+        <input id="Form_Phone" name="Phone" value="@Model.Form.Phone" maxlength="40" inputmode="tel" />
+
+        <label for="Form_Email">Correo (el mismo con el que te registraste)</label>
+        <input id="Form_Email" name="Email" type="email" value="@Model.Form.Email" maxlength="256" />
+
+        <label for="Form_PlanId">Plan de interés</label>
+        <select id="Form_PlanId" name="PlanId">
+            <option value="">—</option>
+            @foreach (var p in Model.Plans)
+            {
+                <option value="@p.Id" selected="@(Model.Form.PlanId == p.Id)">@p.Name (@p.DurationDays días)</option>
+            }
+        </select>
+
+        <label for="Form_Ref">Número de referencia del depósito (si ya depositaste)</label>
+        <input id="Form_Ref" name="DepositReference" value="@Model.Form.DepositReference" maxlength="120" />
+
+        <label for="Form_Message">Mensaje (opcional)</label>
+        <textarea id="Form_Message" name="Message" rows="3" maxlength="1000">@Model.Form.Message</textarea>
+
+        <div class="hp" aria-hidden="true"><label>No llenar este campo <input name="Website" tabindex="-1" autocomplete="off" /></label></div>
+
+        <button class="btn" type="submit">Enviar solicitud</button>
+        @if (!string.IsNullOrEmpty(wa))
+        {
+            <a class="btn ghost" target="_blank" rel="noopener" href="https://wa.me/@wa?text=@Uri.EscapeDataString("Hola, quiero información de VeloX")">Escribir por WhatsApp</a>
+        }
+    </form>
+</section>

@@ -1,0 +1,52 @@
+@page
+@model ADEnterprise.Pages.Historicos.PagosModel
+@{ ViewData["Title"] = "Pagos Históricos"; }
+
+<div class="alert alert-warning border border-warning fw-bold mb-3">
+    <i class="bi bi-exclamation-triangle-fill fs-5 me-2"></i>
+    ⚠️ ATENCIÓN: ESTOS DATOS SON HISTÓRICOS. Solo lectura — período anterior al reinicio del sistema.
+</div>
+
+<div class="page-title mb-3"><i class="bi bi-credit-card"></i> Pagos Factoring — Datos Históricos</div>
+
+@if (!Model.Existe)
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle"></i> No hay datos históricos de Pagos disponibles.</div>
+}
+else if (!Model.Filas.Any())
+{
+    <div class="alert alert-secondary">La hoja histórica existe pero no contiene registros.</div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-app table-hover mb-0 table-sm">
+                    <thead>
+                        <tr>
+                            @foreach (var col in Model.Encabezados)
+                            {
+                                <th>@col</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var fila in Model.Filas)
+                        {
+                            <tr>
+                                @for (int i = 0; i < Model.Encabezados.Count; i++)
+                                {
+                                    <td class="small">@(i < fila.Count ? fila[i]?.ToString() : "")</td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer text-muted small">
+            Total de registros históricos: <strong>@Model.Filas.Count</strong>
+        </div>
+    </div>
+}

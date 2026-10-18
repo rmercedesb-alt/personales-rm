@@ -1,0 +1,48 @@
+@model PorfiAcademy.Controllers.SetupViewModel
+@{
+    ViewData["Title"] = "Instalación";
+    bool needsCode = ViewBag.NeedsCode == true;
+}
+
+<section class="card narrow">
+    <h1>Instalación de VeloX</h1>
+    <p>Configura al administrador y conecta el servicio de video (Mux). Las credenciales se guardan cifradas en el servidor, no en el código.</p>
+
+    <form asp-action="Index" method="post">
+        <div asp-validation-summary="ModelOnly" class="error"></div>
+
+        <h2>1. Administrador</h2>
+        <label asp-for="AdminEmail"></label>
+        <input asp-for="AdminEmail" autocomplete="username" />
+        <span asp-validation-for="AdminEmail" class="error"></span>
+
+        <label asp-for="AdminPassword"></label>
+        <input asp-for="AdminPassword" autocomplete="new-password" />
+        <span asp-validation-for="AdminPassword" class="error"></span>
+
+        <label asp-for="ConfirmPassword"></label>
+        <input asp-for="ConfirmPassword" autocomplete="new-password" />
+        <span asp-validation-for="ConfirmPassword" class="error"></span>
+
+        <h2>2. Mux (video)</h2>
+        <p class="hint">En Mux: Configuración → Tokens de acceso → Crear token (Mux Video: Leer y Escribir). Usa el environment de Desarrollo para pruebas.</p>
+        <label asp-for="MuxTokenId"></label>
+        <input asp-for="MuxTokenId" autocomplete="off" />
+        <span asp-validation-for="MuxTokenId" class="error"></span>
+
+        <label asp-for="MuxTokenSecret"></label>
+        <input asp-for="MuxTokenSecret" autocomplete="off" />
+        <span asp-validation-for="MuxTokenSecret" class="error"></span>
+
+        <label class="check"><input asp-for="SkipVerify" /> @Html.DisplayNameFor(m => m.SkipVerify)</label>
+
+        @if (needsCode)
+        {
+            <h2>3. Autorización</h2>
+            <label asp-for="SetupCode"></label>
+            <input asp-for="SetupCode" type="password" autocomplete="off" />
+        }
+
+        <button class="btn" type="submit">Completar instalación</button>
+    </form>
+</section>

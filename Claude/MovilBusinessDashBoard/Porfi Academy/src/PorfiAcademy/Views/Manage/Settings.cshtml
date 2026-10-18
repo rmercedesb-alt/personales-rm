@@ -1,0 +1,21 @@
+@{
+    ViewData["Title"] = "Ajustes";
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Ajustes</h1>
+    <form asp-action="Settings" method="post">
+        <label for="deposit">Datos para depósito bancario (se muestran en la página de planes)</label>
+        <textarea id="deposit" name="deposit" rows="5" maxlength="2000" placeholder="Banco: ...&#10;Cuenta: ...&#10;A nombre de: ...&#10;Envía tu comprobante por WhatsApp o usa el formulario de abajo.">@ViewBag.Deposit</textarea>
+
+        <label for="whatsapp">WhatsApp de contacto (con código de país, solo números; ej. 18095551234)</label>
+        <input id="whatsapp" name="whatsapp" value="@ViewBag.WhatsApp" maxlength="20" inputmode="numeric" />
+
+        <label for="email">Correo de contacto</label>
+        <input id="email" name="email" type="email" value="@ViewBag.Email" maxlength="256" />
+
+        <button class="btn" type="submit">Guardar ajustes</button>
+    </form>
+</section>

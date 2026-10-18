@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "docx": "^9.7.1",
+    "pptxgenjs": "^4.0.1",
+    "qrcode-terminal": "^0.12.0",
+    "whatsapp-web.js": "^1.34.7"
+  }
+}

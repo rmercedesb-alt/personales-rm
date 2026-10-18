@@ -1,0 +1,152 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu Principal &mdash; AM COMERCIAL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',Tahoma,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid #21262d}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-size:20px;font-weight:800}
+.brand-sub{font-size:12px;color:#58a6ff;margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:10px;font-size:12px;color:#8b949e}
+.btn-out{background:#21262d;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:5px 12px;font-size:12px;text-decoration:none;transition:all .15s}
+.btn-out:hover{border-color:#f85149;color:#f85149}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+h1{font-size:16px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:18px;width:100%;max-width:1200px}
+.dash-card{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;text-decoration:none;color:inherit;transition:all .2s;position:relative;overflow:hidden}
+.dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;transition:all .2s}
+.dash-card:hover{border-color:#58a6ff;background:#1c2128;transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dc-1::before{background:linear-gradient(90deg,#58a6ff,#388bfd)}
+.dc-2::before{background:linear-gradient(90deg,#3fb950,#2ea043)}
+.dc-3::before{background:linear-gradient(90deg,#e3b341,#d29922)}
+.dc-4::before{background:linear-gradient(90deg,#f0883e,#d18616)}
+.dc-5::before{background:linear-gradient(90deg,#bc8cff,#8957e5)}
+.dash-icon{font-size:38px;line-height:1}
+.dash-title{font-size:15px;font-weight:700;text-align:center}
+.dash-desc{font-size:11px;color:#8b949e;text-align:center;line-height:1.5}
+.badge-soon{background:#21262d;color:#8b949e;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:.5px}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.status-dot.online{background:#3fb950}
+.status-dot.offline{background:#f85149}
+.card-status{display:flex;align-items:center;gap:5px;font-size:10px;color:#8b949e;margin-top:-4px}
+footer{text-align:center;padding:16px;font-size:11px;color:#484f58;border-top:1px solid #21262d}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="@(Context.Request.PathBase)/api/logo" alt="Logo" style="height:44px;width:auto;border-radius:6px;object-fit:contain"
+         onerror="this.style.display='none'">
+    <div>
+      <div class="brand-name" id="brand-name">AM COMERCIAL</div>
+      <div class="brand-sub">Centro de Dashboards</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span id="user-nombre"></span>
+    <a href="@(Context.Request.PathBase)/account/logout" class="btn-out">&#x2192; Salir</a>
+  </div>
+</header>
+
+<main>
+  <h1>Selecciona un Dashboard</h1>
+  <div class="grid">
+
+    <a id="card-vis" href="#" class="dash-card dc-1" target="_blank">
+      <div class="dash-icon">&#128205;</div>
+      <div class="dash-title">Visitas</div>
+      <div class="dash-desc">Monitoreo en vivo de visitas y pedidos de representantes</div>
+      <div class="card-status"><span class="status-dot" id="dot-vis"></span><span id="txt-vis">Verificando...</span></div>
+    </a>
+
+    <a id="card-prod" href="#" class="dash-card dc-2" target="_blank">
+      <div class="dash-icon">&#128200;</div>
+      <div class="dash-title">Productividad</div>
+      <div class="dash-desc">Cumplimiento, efectividad y pedidos por representante</div>
+      <div class="card-status"><span class="status-dot" id="dot-prod"></span><span id="txt-prod">Verificando...</span></div>
+    </a>
+
+    <div class="dash-card dc-3" style="opacity:.5;cursor:default">
+      <div class="dash-icon">&#127919;</div>
+      <div class="dash-title">Presupuestos</div>
+      <div class="dash-desc">Seguimiento de presupuesto vs ejecucion mensual</div>
+      <span class="badge-soon">Proximamente</span>
+    </div>
+
+    <div class="dash-card dc-4" style="opacity:.5;cursor:default">
+      <div class="dash-icon">&#128202;</div>
+      <div class="dash-title">Historicos de Ventas</div>
+      <div class="dash-desc">Tendencias y comparativos de ventas por periodo</div>
+      <span class="badge-soon">Proximamente</span>
+    </div>
+
+    <div class="dash-card dc-5" style="opacity:.5;cursor:default">
+      <div class="dash-icon">&#127758;</div>
+      <div class="dash-title">Geolocalizaciones</div>
+      <div class="dash-desc">Mapa en vivo de la ubicacion de representantes</div>
+      <span class="badge-soon">Proximamente</span>
+    </div>
+
+  </div>
+</main>
+
+<footer id="footer-txt">AM COMERCIAL &mdash; Sistema de Dashboards Ejecutivos</footer>
+
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+// Cargar nombre de empresa desde DB
+fetch(BASE+'/api/empresa').then(r=>r.json()).then(j=>{
+  if(j&&j.ok&&j.nombre){
+    document.getElementById('brand-name').textContent = j.nombre;
+    document.getElementById('footer-txt').textContent = j.nombre + ' — Sistema de Dashboards Ejecutivos';
+    document.title = 'Menu Principal — ' + j.nombre;
+  }
+}).catch(()=>{});
+
+// Detectar URLs segun entorno
+const isLocal = location.hostname === 'localhost';
+const urlVis  = isLocal
+  ? 'http://localhost:5001/'
+  : ('http://' + location.hostname + ':86/movilbusinessdashboard/');
+const urlProd = isLocal
+  ? 'http://localhost:5002/'
+  : ('http://' + location.hostname + ':86/dashproductividad/');
+
+document.getElementById('card-vis').href  = urlVis;
+document.getElementById('card-prod').href = urlProd;
+
+// Usuario actual
+fetch(BASE+'/api/me').then(r=>r.json()).then(j=>{
+  if(j&&j.ok) document.getElementById('user-nombre').textContent=j.nombre||j.login;
+}).catch(()=>{});
+
+// Verificar disponibilidad de cada dashboard (solo en localhost)
+function checkStatus(url, dotId, txtId) {
+  if (!isLocal) {
+    // En produccion ambos siempre estan disponibles via IIS
+    document.getElementById(dotId).className = 'status-dot online';
+    document.getElementById(txtId).textContent = 'Disponible';
+    return;
+  }
+  fetch(url, { mode: 'no-cors', signal: AbortSignal.timeout(2500) })
+    .then(() => {
+      document.getElementById(dotId).className = 'status-dot online';
+      document.getElementById(txtId).textContent = 'En linea';
+    })
+    .catch(() => {
+      document.getElementById(dotId).className = 'status-dot offline';
+      document.getElementById(txtId).textContent = 'No iniciado';
+    });
+}
+
+checkStatus(urlVis,  'dot-vis',  'txt-vis');
+checkStatus(urlProd, 'dot-prod', 'txt-prod');
+</script>
+</body>
+</html>

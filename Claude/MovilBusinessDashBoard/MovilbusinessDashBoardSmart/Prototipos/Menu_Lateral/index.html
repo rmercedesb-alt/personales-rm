@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototipo — Menú lateral · AM COMERCIAL</title>
+<style>
+:root{
+  --bg:#F4F7F4;--panel:#FFFFFF;--panel2:#EEF3EE;--border:#D9E2D9;--line:#E6ECE6;
+  --text:#1F2A22;--muted:#5C6B5F;--accent:#283078;--accent2:#3357C4;--verde:#2F7D3F;--verde2:#4F9A5C;
+  --good:#2E9E4A;--warn:#D29922;--bad:#C0392B;
+  --nav1:#16235a;--nav2:#1f3a7a;--navtxt:#C9D3F2;--navmut:#8FA0D6;
+  --side:268px;--rail:68px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;display:flex;overflow:hidden}
+
+/* ───── Barra lateral ───── */
+.side{width:var(--side);flex:0 0 var(--side);height:100vh;background:linear-gradient(180deg,var(--nav1),var(--nav2) 70%,#1d4a6a);color:var(--navtxt);display:flex;flex-direction:column;transition:width .22s ease;z-index:40}
+.brand{display:flex;align-items:center;gap:11px;padding:16px 16px 12px;border-bottom:1px solid rgba(255,255,255,.08)}
+.logo{width:38px;height:38px;border-radius:10px;background:linear-gradient(140deg,var(--verde),var(--verde2));display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;flex:0 0 38px}
+.brand .n{font-weight:800;color:#fff;font-size:15px;line-height:1.15;white-space:nowrap}
+.brand .s{font-size:10.5px;color:var(--navmut);white-space:nowrap}
+.find{margin:12px 14px 6px;position:relative}
+.find input{width:100%;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:9px;padding:8px 10px 8px 31px;font:inherit;font-size:12.5px;outline:none}
+.find input::placeholder{color:var(--navmut)}
+.find input:focus{border-color:#7fa8f0;background:rgba(255,255,255,.14)}
+.find i{position:absolute;left:10px;top:7px;font-style:normal;font-size:13px;opacity:.8}
+nav{flex:1;overflow-y:auto;padding:6px 10px 12px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.25) transparent}
+.grp{font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--navmut);padding:14px 10px 5px;white-space:nowrap}
+.it{display:flex;align-items:center;gap:11px;padding:9px 10px;border-radius:10px;color:var(--navtxt);text-decoration:none;font-size:13.5px;font-weight:600;cursor:pointer;position:relative;border:0;background:transparent;width:100%;text-align:left;font-family:inherit;transition:background .15s}
+.it .ic{font-size:17px;width:22px;text-align:center;flex:0 0 22px}
+.it .tx{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it:hover{background:rgba(255,255,255,.09);color:#fff}
+.it.on{background:rgba(255,255,255,.16);color:#fff}
+.it.on::before{content:'';position:absolute;left:-10px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:#6BD07F}
+.bd{font-size:10px;font-weight:800;border-radius:999px;padding:1px 7px;background:#E5484D;color:#fff}
+.bd.nw{background:#6BD07F;color:#0f3318}
+.chev{font-size:10px;transition:transform .2s;opacity:.7}
+.has.open>.it .chev{transform:rotate(90deg)}
+.sub{max-height:0;overflow:hidden;transition:max-height .25s ease;margin-left:21px;border-left:1px solid rgba(255,255,255,.14)}
+.has.open>.sub{max-height:520px}
+.sub .it{font-size:12.8px;padding:7px 10px 7px 14px;font-weight:500;color:#B7C3EA}
+.sub .it .ic{font-size:13px;width:18px;flex-basis:18px}
+.me{display:flex;align-items:center;gap:10px;padding:12px 14px;border-top:1px solid rgba(255,255,255,.1)}
+.av{width:34px;height:34px;border-radius:50%;background:#3a56b8;color:#fff;display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 34px}
+.me .nm{font-size:12.5px;color:#fff;font-weight:700;white-space:nowrap}.me .rl{font-size:10.5px;color:var(--navmut);white-space:nowrap}
+.me .out{margin-left:auto;color:var(--navmut);text-decoration:none;font-size:16px;cursor:pointer}
+
+/* riel colapsado */
+body.rail .side{width:var(--rail);flex-basis:var(--rail)}
+body.rail .brand .t,body.rail .find,body.rail .grp,body.rail .it .tx,body.rail .bd,body.rail .chev,body.rail .me .t{display:none}
+body.rail .sub{display:none}
+body.rail .it{justify-content:center;padding:10px 0}
+body.rail .brand{justify-content:center;padding:16px 0 12px}
+body.rail .me{justify-content:center}
+body.rail .it:hover::after{content:attr(data-tip);position:absolute;left:62px;top:50%;transform:translateY(-50%);background:#0e1738;color:#fff;font-size:12px;padding:5px 10px;border-radius:7px;white-space:nowrap;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+
+/* ───── Zona principal ───── */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh}
+.top{height:58px;flex:0 0 58px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 20px}
+.burger{border:1px solid var(--border);background:var(--panel2);border-radius:9px;width:36px;height:36px;cursor:pointer;font-size:16px}
+.crumb{font-size:13px;color:var(--muted)}.crumb b{color:var(--text)}
+.top .sp{flex:1}
+.pill{font-size:11px;font-weight:700;border-radius:999px;padding:4px 11px;background:#EAF7EE;color:var(--good)}
+.pill.w{background:#FBF3DA;color:var(--warn)}
+.tbtn{border:1px solid var(--border);background:var(--panel);border-radius:9px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer;color:var(--muted)}
+.content{flex:1;overflow:auto;padding:22px 26px 40px}
+h1{font-size:21px;font-weight:800;letter-spacing:-.01em}
+.sub1{font-size:12.5px;color:var(--muted);margin:2px 0 14px}
+.tabs{display:inline-flex;background:var(--panel2);border:1px solid var(--border);border-radius:11px;padding:3px;gap:2px;margin-bottom:14px;flex-wrap:wrap}
+.tabs button{border:0;background:transparent;font:inherit;font-weight:600;font-size:12.5px;padding:6px 13px;border-radius:8px;color:var(--muted);cursor:pointer}
+.tabs button.on{background:var(--panel);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:14px 16px}
+.kpi .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700}
+.kpi .v{font-size:25px;font-weight:800;margin-top:4px}.kpi .s{font-size:11.5px;color:var(--muted)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:13px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px 14px;border-bottom:1px solid var(--line);text-align:right}
+th{background:var(--panel2);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+td:first-child,th:first-child{text-align:left}
+.ph{height:160px;display:grid;place-items:center;color:var(--muted);font-size:13px;background:repeating-linear-gradient(45deg,#f7faf7,#f7faf7 10px,#f1f6f1 10px,#f1f6f1 20px)}
+.note{background:#FBF3DA;border:1px solid #e7c76a;border-radius:11px;padding:10px 14px;font-size:12.5px;margin-top:16px}
+.home{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.mod{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:.15s}
+.mod:hover{border-color:var(--accent2);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.08)}
+.mod .i{font-size:26px}.mod .t{font-weight:800;margin-top:6px}.mod .d{font-size:12px;color:var(--muted)}
+
+/* móvil */
+.scrim{display:none}
+@media(max-width:900px){
+  .side{position:fixed;left:0;top:0;transform:translateX(-100%);transition:transform .22s;width:var(--side)}
+  body.drawer .side{transform:none}
+  body.drawer .scrim{display:block;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30}
+  body.rail .side{width:var(--side)}
+  .kpis,.home{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:560px){.kpis,.home{grid-template-columns:1fr}.content{padding:16px}}
+</style>
+</head>
+<body>
+
+<aside class="side" id="side">
+  <div class="brand"><div class="logo">AM</div><div class="t"><div class="n">AM COMERCIAL</div><div class="s">Centro de Dashboards</div></div></div>
+  <div class="find"><i>🔎</i><input id="q" placeholder="Buscar módulo o pantalla…" autocomplete="off"></div>
+  <nav id="nav"></nav>
+  <div class="me"><div class="av">RM</div><div class="t"><div class="nm">Rudy Mercedes</div><div class="rl">Gerencia</div></div><a class="out" title="Salir">⏻</a></div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<section class="main">
+  <header class="top">
+    <button class="burger" id="burger" title="Mostrar / ocultar menú">☰</button>
+    <div class="crumb" id="crumb"></div>
+    <span class="sp"></span>
+    <span class="pill">● En línea</span>
+    <span class="pill w">3 planes por aprobar</span>
+    <button class="tbtn">v1.16.0</button>
+  </header>
+  <div class="content" id="content"></div>
+</section>
+
+<script>
+/* ── Estructura del menú: mismos módulos del Menú actual, agrupados por función; los módulos con pestañas internas se despliegan ── */
+const MENU=[
+ {g:'Inicio',items:[{id:'home',ic:'🏠',t:'Inicio'}]},
+ {g:'Operación del día',items:[
+   {id:'torre',ic:'🛡️',t:'Torre de Control',d:'Vigilancia operativa diaria: alarmas en vivo y bitácora de contactos',badge:'7'},
+   {id:'vis',ic:'📍',t:'Visitas',d:'Monitoreo en vivo de visitas y pedidos de representantes'},
+   {id:'geo',ic:'🌎',t:'Geolocalizaciones',d:'Mapa en vivo: ubicación, ventas, oportunidades y rutas'},
+   {id:'prod',ic:'📈',t:'Productividad',d:'Cumplimiento, efectividad y pedidos por representante'}]},
+ {g:'Supervisión y seguimiento',items:[
+   {id:'seg',ic:'📋',t:'Seguimientos Semanales',d:'AMCO-GT, informe y conclusiones por supervisor'},
+   {id:'sup',ic:'🧭',t:'Supervisión Dinámica',d:'Acompañamiento, auditoría, plan de trabajo y reportes',badge:'3',sub:[
+      {id:'sup-plan',ic:'🗓️',t:'Plan de trabajo'},{id:'sup-ejec',ic:'✅',t:'Ejecución del plan',badge:'3'},{id:'sup-calle',ic:'📍',t:'Calle'},{id:'sup-virt',ic:'🖥️',t:'Virtual'},
+      {id:'sup-cob',ic:'💰',t:'Cobros del día'},{id:'sup-rep',ic:'📊',t:'Reportes'},{id:'sup-ana',ic:'📈',t:'Análisis'},{id:'sup-pdf',ic:'📑',t:'PDF Presentaciones'},{id:'sup-cfg',ic:'⚙️',t:'Configuración'}]}]},
+ {g:'Análisis y presupuesto',items:[
+   {id:'hist',ic:'📊',t:'Históricos',d:'Ventas por vendedor, suplidor, activaciones y comparativos',sub:[
+      {id:'h-ven',ic:'👤',t:'Ventas (Sup./Vend.)'},{id:'h-sup',ic:'🏷️',t:'Suplidor / Categoría'},{id:'h-act',ic:'⚡',t:'Activaciones'},{id:'h-ped',ic:'🧾',t:'Pedidos'},{id:'h-inv',ic:'📦',t:'Inventarios Físicos'},{id:'h-ana',ic:'🔍',t:'Análisis'}]},
+   {id:'pres',ic:'💰',t:'Presupuestos',d:'Dinero, unidades, facturas y activaciones: del día, del mes y del año',sub:[
+      {id:'p-dia',ic:'☀️',t:'Del día'},{id:'p-mes',ic:'🗓️',t:'Del mes'},{id:'p-ano',ic:'📆',t:'Del año'},{id:'p-gra',ic:'📊',t:'Dashboard gráficos'}]}]},
+ {g:'Administración',items:[
+   {id:'pgest',ic:'📝',t:'Presupuestos — Gestión',d:'Crear, editar y publicar presupuestos',badge:'Gerencia',nw:true},
+   {id:'lic',ic:'🔑',t:'Licencia y módulos',d:'Estado de la licencia y módulos activos'}]}
+];
+const FLAT={}; MENU.forEach(g=>g.items.forEach(i=>{FLAT[i.id]={...i,grupo:g.g}; (i.sub||[]).forEach(s=>FLAT[s.id]={...s,grupo:g.g,padre:i});}));
+const nav=document.getElementById('nav'), content=document.getElementById('content'), crumb=document.getElementById('crumb');
+let actual='home';
+function pinta(filtro){
+  const f=(filtro||'').toLowerCase().trim(); let h='';
+  MENU.forEach(g=>{
+    const its=g.items.map(i=>{
+      const subs=(i.sub||[]).filter(s=>!f||s.t.toLowerCase().includes(f)||i.t.toLowerCase().includes(f));
+      const okI=!f||i.t.toLowerCase().includes(f)||subs.length; if(!okI) return '';
+      const abierto=f||(actual===i.id||(FLAT[actual]&&FLAT[actual].padre&&FLAT[actual].padre.id===i.id));
+      const badge=i.badge?'<span class="bd'+(i.nw?' nw':'')+'">'+i.badge+'</span>':'';
+      if(!i.sub) return '<a class="it'+(actual===i.id?' on':'')+'" data-go="'+i.id+'" data-tip="'+i.t+'"><span class="ic">'+i.ic+'</span><span class="tx">'+i.t+'</span>'+badge+'</a>';
+      return '<div class="has'+(abierto?' open':'')+'"><button class="it'+(actual===i.id?' on':'')+'" data-tog="'+i.id+'" data-tip="'+i.t+'"><span class="ic">'+i.ic+'</span><span class="tx">'+i.t+'</span>'+badge+'<span class="chev">▶</span></button><div class="sub">'
+        +subs.map(s=>'<a class="it'+(actual===s.id?' on':'')+'" data-go="'+s.id+'"><span class="ic">'+s.ic+'</span><span class="tx">'+s.t+'</span>'+(s.badge?'<span class="bd">'+s.badge+'</span>':'')+'</a>').join('')+'</div></div>';
+    }).join('');
+    if(its) h+='<div class="grp">'+g.g+'</div>'+its;
+  });
+  nav.innerHTML=h||'<div class="grp">Sin resultados</div>';
+}
+function ir(id){
+  actual=id; const m=FLAT[id]; if(!m) return; pinta(document.getElementById('q').value);
+  crumb.innerHTML=(m.padre?m.padre.t+' › ':'')+'<b>'+m.t+'</b>';
+  document.body.classList.remove('drawer');
+  if(id==='home') return home();
+  const nombre=m.padre?m.padre.t:m.t, tabs=(m.padre?m.padre.sub:(m.sub||[]));
+  content.innerHTML='<h1>'+(m.padre?m.t:m.t)+'</h1><div class="sub1">'+(m.padre?m.padre.t+' · ':'')+(m.d||(m.padre&&m.padre.d)||'Pantalla del módulo')+'</div>'
+   +(tabs.length?'<div class="tabs">'+tabs.map(s=>'<button class="'+(s.id===id?'on':'')+'" data-go="'+s.id+'">'+s.t+'</button>').join('')+'</div>':'')
+   +'<div class="kpis"><div class="kpi"><div class="k">Indicador 1</div><div class="v">24.2%</div><div class="s">vs. mes anterior ▲</div></div><div class="kpi"><div class="k">Indicador 2</div><div class="v">19.1 M</div><div class="s">a la fecha</div></div><div class="kpi"><div class="k">Indicador 3</div><div class="v">76.8%</div><div class="s">proyectado</div></div><div class="kpi"><div class="k">Indicador 4</div><div class="v">3.4 M</div><div class="s">necesidad diaria</div></div></div>'
+   +'<div class="card"><table><thead><tr><th>#  Nombre</th><th>Presupuesto</th><th>Ejecutado</th><th>Alcance %</th></tr></thead><tbody>'
+   +['Minorista','Mayorista','Institucional'].map((n,i)=>'<tr><td>'+(i+1)+'  '+n+'</td><td>'+[65590444,18342197,1250000][i].toLocaleString()+'</td><td>'+[15873475,3231080,310000][i].toLocaleString()+'</td><td>'+['24.2%','17.6%','24.8%'][i]+'</td></tr>').join('')
+   +'</tbody></table><div class="ph">Aquí se carga la pantalla real de «'+m.t+'» (el módulo existente, sin cambios)</div></div>';
+}
+function home(){
+  content.innerHTML='<h1>Bienvenido, Rudy</h1><div class="sub1">Elige un módulo en el menú de la izquierda, o entra directo desde aquí.</div>'
+   +'<div class="kpis"><div class="kpi"><div class="k">Ventas del mes</div><div class="v">19.1 M</div><div class="s">22.8% del presupuesto</div></div><div class="kpi"><div class="k">Logro al día</div><div class="v">76.8%</div><div class="s">Ejecutado / Pres. al día</div></div><div class="kpi"><div class="k">Alertas Torre</div><div class="v">7</div><div class="s">2 críticas</div></div><div class="kpi"><div class="k">Planes por aprobar</div><div class="v">3</div><div class="s">Supervisión Dinámica</div></div></div>'
+   +'<div class="home">'+Object.values(FLAT).filter(x=>!x.padre&&x.id!=='home').map(x=>'<div class="mod" data-go="'+x.id+'"><div class="i">'+x.ic+'</div><div class="t">'+x.t+'</div><div class="d">'+(x.d||'')+'</div></div>').join('')+'</div>'
+   +'<div class="note">💡 <b>Prototipo:</b> el menú lateral reemplaza las tarjetas; la página de Inicio queda como resumen con accesos rápidos. Cada pantalla del menú abre el módulo real dentro de esta misma estructura.</div>';
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]'); if(g){ir(g.dataset.go);return;}
+  const t=e.target.closest('[data-tog]'); if(t){const h=t.parentElement; h.classList.toggle('open'); if(!document.body.classList.contains('rail')) {} ; const id=t.dataset.tog; if(h.classList.contains('open')&&FLAT[id].sub) { ir(FLAT[id].sub[0].id); } }
+});
+document.getElementById('q').addEventListener('input',e=>pinta(e.target.value));
+document.getElementById('burger').onclick=()=>{ if(window.innerWidth<=900) document.body.classList.toggle('drawer'); else document.body.classList.toggle('rail'); };
+document.getElementById('scrim').onclick=()=>document.body.classList.remove('drawer');
+pinta(); ir('home');
+</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.ImportarModel
+@{ ViewData["Title"] = "Importar Datos"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-upload"></i> Importar Datos</div>
+        <div class="page-subtitle">Cargue masivamente Facturas, Pagos, Compañías, Clientes, Egresos e Ingresos de Capital desde Excel</div>
+    </div>
+    <a href="?handler=Plantilla" class="btn btn-outline-primary">
+        <i class="bi bi-file-earmark-excel"></i> Descargar Plantilla Excel
+    </a>
+</div>
+
+<!-- ── INSTRUCCIONES ──────────────────────────────────────────────────── -->
+<div class="card shadow-sm mb-4" style="border-left:4px solid #fd7e14">
+    <div class="card-body">
+        <h6 class="fw-bold"><i class="bi bi-info-circle text-warning"></i> La plantilla tiene 6 pestañas:</h6>
+        <div class="row g-2 mt-1">
+            <div class="col-md-4 col-lg-2">
+                <span class="badge" style="background:#0a2463">📋 Facturas</span>
+                <small class="d-block text-muted">Ticket, Empresa, Cliente, Monto, Fecha, Estado, Pagado, Notas</small>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <span class="badge bg-success">💰 Pagos</span>
+                <small class="d-block text-muted">Ticket, Fecha Pago, Monto, Forma de Pago, Referencia, Notas</small>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <span class="badge" style="background:#154360">🏢 Companias</span>
+                <small class="d-block text-muted">Nombre, RNC, Teléfono, Dirección, Correo, Días Crédito</small>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <span class="badge" style="background:#4a235a">👤 Clientes</span>
+                <small class="d-block text-muted">Nombre Completo, Cédula, Teléfono, Correo</small>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <span class="badge" style="background:#7b241c">📤 Egresos</span>
+                <small class="d-block text-muted">Tipo, A Nombre De, Fecha, Monto, Nota</small>
+            </div>
+            <div class="col-md-4 col-lg-2">
+                <span class="badge" style="background:#1a5276">💵 Ing. Capital</span>
+                <small class="d-block text-muted">Nombre, Fecha, Monto, Observaciones</small>
+            </div>
+        </div>
+        <p class="text-muted small mt-2 mb-0">
+            <i class="bi bi-lightbulb"></i> Puede llenar solo las pestañas que necesite.
+            Compañías y Clientes que ya existan no se duplicarán.
+            Egresos e Ingresos de Capital se importan como datos históricos.
+        </p>
+    </div>
+</div>
+
+<!-- ── FORMULARIO DE CARGA ─────────────────────────────────────────────── -->
+@if (Model.Resultado == null)
+{
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white;">
+        <i class="bi bi-cloud-upload"></i> Paso 1: Seleccione el archivo Excel
+    </div>
+    <div class="card-body">
+        <form method="post" enctype="multipart/form-data" asp-page-handler="Validar">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold">Archivo Excel (.xlsx)</label>
+                    <input name="Archivo" type="file" accept=".xlsx" class="form-control" required/>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary-app w-100">
+                        <i class="bi bi-search"></i> Validar y Previsualizar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+}
+
+<!-- ── RESULTADOS DE VALIDACIÓN ───────────────────────────────────────── -->
+@if (Model.Resultado != null)
+{
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white;">
+        <i class="bi bi-clipboard-check"></i> Paso 2: Revisión del archivo
+    </div>
+    <div class="card-body">
+
+        <!-- Contadores por tipo -->
+        <div class="row g-3 mb-3">
+            <div class="col-6 col-md-2">
+                <div class="card text-center border-success">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold text-success">@Model.Resultado.Exitosas</div>
+                        <div class="small text-muted">Válidos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center border-danger">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold text-danger">@Model.Resultado.Errores</div>
+                        <div class="small text-muted">Errores</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center border-primary">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold text-primary">@Model.Resultado.VistaFacturas.Count</div>
+                        <div class="small text-muted">Facturas</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center border-success">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold text-success">@Model.Resultado.VistaPagos.Count</div>
+                        <div class="small text-muted">Pagos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center" style="border-color:#154360">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold" style="color:#154360">@Model.Resultado.VistaCompanias.Count</div>
+                        <div class="small text-muted">Compañías</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="card text-center" style="border-color:#4a235a">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold" style="color:#4a235a">@Model.Resultado.VistaClientes.Count</div>
+                        <div class="small text-muted">Clientes</div>
+                    </div>
+                </div>
+            </div>
+            @if (Model.Resultado.VistaEgresos.Any())
+            {
+            <div class="col-6 col-md-2">
+                <div class="card text-center" style="border-color:#7b241c">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold" style="color:#7b241c">@Model.Resultado.VistaEgresos.Count</div>
+                        <div class="small text-muted">Egresos</div>
+                    </div>
+                </div>
+            </div>
+            }
+            @if (Model.Resultado.VistaIngresosCapital.Any())
+            {
+            <div class="col-6 col-md-2">
+                <div class="card text-center" style="border-color:#1a5276">
+                    <div class="card-body py-2">
+                        <div class="fs-3 fw-bold" style="color:#1a5276">@Model.Resultado.VistaIngresosCapital.Count</div>
+                        <div class="small text-muted">Ing. Capital</div>
+                    </div>
+                </div>
+            </div>
+            }
+        </div>
+
+        <!-- Errores -->
+        @if (Model.Resultado.MensajesError.Any())
+        {
+        <div class="alert alert-danger">
+            <h6 class="fw-bold"><i class="bi bi-exclamation-triangle"></i> Corrija estos errores en el archivo:</h6>
+            <ul class="mb-0 small">
+                @foreach (var err in Model.Resultado.MensajesError)
+                {
+                    <li>@err</li>
+                }
+            </ul>
+        </div>
+        }
+
+        <!-- Vista previa facturas -->
+        @if (Model.Resultado.VistaFacturas.Any())
+        {
+        <h6 class="fw-bold mt-3">Vista previa — Facturas (primeras 10):</h6>
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered table-hover">
+            <thead class="table-dark">
+                <tr><th>Ticket</th><th>Empresa</th><th>Cliente</th><th>Monto</th><th>Fecha</th><th>Estado</th><th>Pagado</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var f in Model.Resultado.VistaFacturas.Take(10))
+            {
+                <tr>
+                    <td>@f.NumTicket</td>
+                    <td>@f.EmpresaNombre</td>
+                    <td>@f.ClienteNombre</td>
+                    <td class="text-end">RD$ @f.Monto.ToString("N2")</td>
+                    <td>@f.FechaFactura.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <span class="badge @(f.Estado == ADEnterprise.Models.EstadoFactura.Pagada ? "bg-success" :
+                                             f.Estado == ADEnterprise.Models.EstadoFactura.PagadoParcial ? "bg-warning text-dark" :
+                                             "bg-secondary")">@f.Estado</span>
+                    </td>
+                    <td class="text-end text-success">RD$ @f.PagadoALaFecha.ToString("N2")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+        @if (Model.Resultado.VistaFacturas.Count > 10)
+        {
+            <p class="text-muted small">...y @(Model.Resultado.VistaFacturas.Count - 10) facturas más.</p>
+        }
+        }
+
+        <!-- Vista previa pagos -->
+        @if (Model.Resultado.VistaPagos.Any())
+        {
+        <h6 class="fw-bold mt-3">Vista previa — Pagos (primeros 5):</h6>
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead class="table-success">
+                <tr><th>Ticket</th><th>Fecha Pago</th><th>Monto</th><th>Forma de Pago</th><th>Referencia</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var p in Model.Resultado.VistaPagos.Take(5))
+            {
+                <tr>
+                    <td>@p.NumTicket</td>
+                    <td>@p.FechaPago.ToString("dd/MM/yyyy")</td>
+                    <td class="text-end text-success">RD$ @p.MontoPagado.ToString("N2")</td>
+                    <td>@p.FormaPago</td>
+                    <td>@p.NumChequeReferencia</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+        @if (Model.Resultado.VistaPagos.Count > 5)
+        {
+            <p class="text-muted small">...y @(Model.Resultado.VistaPagos.Count - 5) pagos más.</p>
+        }
+        }
+
+        <!-- Vista previa egresos -->
+        @if (Model.Resultado.VistaEgresos.Any())
+        {
+        <h6 class="fw-bold mt-3">Vista previa — Egresos (primeros 5):</h6>
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead style="background:#7b241c;color:white">
+                <tr><th>Tipo</th><th>A Nombre De</th><th>Fecha</th><th>Monto</th><th>Nota</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var e in Model.Resultado.VistaEgresos.Take(5))
+            {
+                <tr>
+                    <td>@e.TipoEgreso</td>
+                    <td>@e.ANombreDe</td>
+                    <td>@e.Fecha.ToString("dd/MM/yyyy")</td>
+                    <td class="text-end text-danger">RD$ @e.Monto.ToString("N2")</td>
+                    <td>@e.Nota</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+        @if (Model.Resultado.VistaEgresos.Count > 5)
+        {
+            <p class="text-muted small">...y @(Model.Resultado.VistaEgresos.Count - 5) egresos más.</p>
+        }
+        }
+
+        <!-- Vista previa ingresos de capital -->
+        @if (Model.Resultado.VistaIngresosCapital.Any())
+        {
+        <h6 class="fw-bold mt-3">Vista previa — Ingresos de Capital (primeros 5):</h6>
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead style="background:#1a5276;color:white">
+                <tr><th>Nombre</th><th>Fecha</th><th>Monto</th><th>Observaciones</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var i in Model.Resultado.VistaIngresosCapital.Take(5))
+            {
+                <tr>
+                    <td>@i.Nombre</td>
+                    <td>@i.Fecha.ToString("dd/MM/yyyy")</td>
+                    <td class="text-end text-success">RD$ @i.Monto.ToString("N2")</td>
+                    <td>@i.Observaciones</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+        @if (Model.Resultado.VistaIngresosCapital.Count > 5)
+        {
+            <p class="text-muted small">...y @(Model.Resultado.VistaIngresosCapital.Count - 5) ingresos más.</p>
+        }
+        }
+
+        <!-- Botones de acción -->
+        <div class="d-flex gap-2 mt-4">
+            <a href="/Mantenimiento/Importar" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a subir
+            </a>
+            @if (Model.Resultado.Exitosas > 0)
+            {
+            <form method="post" asp-page-handler="Confirmar">
+                <input type="hidden" name="ArchivoTemp" value="@Model.ArchivoTemp"/>
+                <button type="submit" class="btn btn-success"
+                        onclick="return confirmarAccion('¿Confirma importar @Model.Resultado.Exitosas registros al sistema?')">
+                    <i class="bi bi-check-circle"></i> Confirmar Importación (@Model.Resultado.Exitosas registros)
+                </button>
+            </form>
+            }
+        </div>
+    </div>
+</div>
+}

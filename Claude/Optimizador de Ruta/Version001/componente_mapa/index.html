@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- Leaflet desde CDN (mapa de tiles) -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;
+     display:flex;flex-direction:column;height:720px;overflow:hidden}
+#topbar{background:#161b22;border-bottom:1px solid #30363d;padding:5px 8px;
+        display:flex;align-items:center;gap:6px;flex-wrap:wrap;z-index:1000}
+#map{flex:1;min-height:0}
+.btn{background:#238636;border:none;color:#fff;padding:4px 11px;border-radius:5px;
+     cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.btn:hover{background:#2ea043}
+.btn.red{background:#da3633}.btn.red:hover{background:#f85149}
+.btn.orange{background:#b45309;border:1px solid #d97706}.btn.orange:hover{background:#d97706}
+.btn.confirm{background:#1f6feb;border:1px solid #58a6ff;animation:pulse 1.5s infinite}
+.btn.confirm:hover{background:#388bfd;animation:none}
+.btn.hidden{display:none!important}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(88,166,255,.4)}50%{box-shadow:0 0 0 5px rgba(88,166,255,0)}}
+.sep{width:1px;height:20px;background:#30363d;flex-shrink:0}
+.lbl{font-size:10px;color:#8b949e;white-space:nowrap}
+select{background:#21262d;border:1px solid #30363d;color:#e6edf3;
+       border-radius:4px;padding:2px 6px;font-size:11px;outline:none}
+.spd{background:#21262d;border:1px solid #30363d;color:#8b949e;
+     padding:2px 7px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600}
+.spd.on{background:#1f6feb;border-color:#388bfd;color:#fff}
+.rtbtn{background:#21262d;border:1px solid #30363d;color:#8b949e;
+       padding:2px 8px;border-radius:4px;cursor:pointer;font-size:10px;font-weight:600}
+.rtbtn.act{background:#152535;border-color:#3498db;color:#3498db}
+.rtbtn.rec{background:#152518;border-color:#27ae60;color:#27ae60}
+.rtbtn.pend{background:#2d1b00;border-color:#d97706;color:#f59e0b}
+#prog{font-size:10px;color:#58a6ff;padding:2px 7px;background:#0d1117;
+      border-radius:4px;border:1px solid #21262d;white-space:nowrap;
+      max-width:200px;overflow:hidden;text-overflow:ellipsis}
+#badge{font-size:10px;padding:2px 7px;border-radius:10px;white-space:nowrap}
+.b-ors{background:#1f3c6e;color:#79b8ff;border:1px solid #1f6feb}
+.b-hav{background:#2d2000;color:#e3b341;border:1px solid #d29922}
+.b-ok {background:#0f4c2a;color:#3fb950;border:1px solid #238636}
+.b-pend{background:#3d1f00;color:#f59e0b;border:1px solid #d97706}
+.leaflet-popup-content-wrapper{background:#1c2128;color:#e6edf3;
+  border:1px solid #30363d;border-radius:8px}
+.leaflet-popup-tip{background:#1c2128}
+</style>
+</head>
+<body>
+<div id="topbar">
+  <button class="btn" id="btn-play" onclick="togglePlay()">&#9654; Play</button>
+  <button class="btn red" onclick="resetAnim()">&#8635; Reset</button>
+  <div class="sep"></div>
+  <span class="lbl">Vel:</span>
+  <button class="spd" onclick="setSp(3000,this)">M.Lento</button>
+  <button class="spd" onclick="setSp(1400,this)">Lento</button>
+  <button class="spd on" onclick="setSp(600,this)">Normal</button>
+  <button class="spd" onclick="setSp(220,this)">Rápido</button>
+  <button class="spd" onclick="setSp(80,this)">M.Rápido</button>
+  <div class="sep"></div>
+  <button class="rtbtn act" id="tb-act" onclick="togLyr('act')">&#9632; Actual</button>
+  <button class="rtbtn rec" id="tb-rec" onclick="togLyr('rec')">&#9632; Óptima</button>
+  <div class="sep"></div>
+  <span class="lbl">Inicio:</span>
+  <select id="sel-s" onchange="onSelS()" style="max-width:130px"></select>
+  <span class="lbl">Fin:</span>
+  <select id="sel-e" onchange="onSelE()" style="max-width:130px">
+    <option value="">Auto (opuesto)</option>
+  </select>
+  <div class="sep"></div>
+  <button class="btn orange" onclick="recalcular()" title="Calcula nueva secuencia con el inicio/fin seleccionado">&#10227; Recalcular</button>
+  <button class="btn confirm hidden" id="btn-confirm" onclick="confirmar()">&#10003; Confirmar Secuencia</button>
+  <div class="sep"></div>
+  <span id="prog">&#9679; Listo</span>
+  <span id="badge" class="b-hav">&#8776; Línea recta</span>
+</div>
+<div id="map"></div>
+
+<script>
+// ─── Streamlit Component Protocol (sin CDN) ───────────────────────────────────
+(function(){
+  const handlers = {};
+  window.Streamlit = {
+    RENDER_EVENT: 'streamlit:render',
+    events: {
+      addEventListener(t,fn){ (handlers[t]=handlers[t]||[]).push(fn); },
+      _fire(t,d){ (handlers[t]||[]).forEach(fn=>fn({detail:d})); }
+    },
+    setComponentReady(){
+      window.parent.postMessage({type:'streamlit:componentReady',apiVersion:1},'*');
+    },
+    setFrameHeight(h){
+      window.parent.postMessage({type:'streamlit:setFrameHeight',height:h},'*');
+    },
+    setComponentValue(v){
+      window.parent.postMessage({type:'streamlit:setComponentValue',value:v,dataType:'json'},'*');
+    }
+  };
+  window.addEventListener('message',function(e){
+    if(e.data&&e.data.type==='streamlit:render'){
+      window.Streamlit.events._fire('streamlit:render',{args:e.data.args||{}});
+    }
+  });
+})();
+
+// ─── Estado global ────────────────────────────────────────────────────────────
+let D=null, mapInst=null, inited=false;
+let playing=false,step=0,delay=600,timer=null;
+let sIdx=0,eIdx=null,showAct=true,showRec=true;
+let pendingRoute=null, displayRoute=null;
+let lgA,lgR,lgV,polyA=null,polyR=null;
+let mA=[],mR=[],veh=null;
+
+// ─── Init Streamlit ───────────────────────────────────────────────────────────
+Streamlit.events.addEventListener(Streamlit.RENDER_EVENT, onRender);
+Streamlit.setComponentReady();
+Streamlit.setFrameHeight(720);
+
+function onRender(evt){
+  D = evt.detail.args;
+  if(!inited){ initMap(); inited=true; }
+  else if(D.confirmed_order&&D.confirmed_order.length>0){ applyConfirmed(D.confirmed_order); }
+}
+
+// ─── Inicializar mapa ─────────────────────────────────────────────────────────
+function initMap(){
+  const pts=[...(D.route_actual||[]),...(D.route_rec||[])];
+  if(!pts.length){ setProg('Sin datos'); return; }
+  const clat=pts.reduce((s,c)=>s+c.lat,0)/pts.length;
+  const clon=pts.reduce((s,c)=>s+c.lon,0)/pts.length;
+
+  mapInst=L.map('map').setView([clat,clon],13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    {attribution:'© OpenStreetMap',maxZoom:19}).addTo(mapInst);
+  lgA=L.layerGroup().addTo(mapInst);
+  lgR=L.layerGroup().addTo(mapInst);
+  lgV=L.layerGroup().addTo(mapInst);
+
+  displayRoute=[...(D.route_rec||[])];
+
+  if(D.confirmed_order&&D.confirmed_order.length>0){
+    applyConfirmed(D.confirmed_order);
+  } else {
+    drawAll();
+    setBadge(D.method||'haversine');
+  }
+  populateSels();
+
+  const fit=D.poly_rec&&D.poly_rec.length>1?D.poly_rec:displayRoute.map(c=>[c.lat,c.lon]);
+  try{ mapInst.fitBounds(L.polyline(fit).getBounds().pad(0.07)); }catch(e){}
+}
+
+// ─── Iconos ───────────────────────────────────────────────────────────────────
+function numIcon(n,bg,bd,sz=24){
+  return L.divIcon({className:'',iconSize:[sz,sz],iconAnchor:[sz/2,sz/2],
+    html:`<div style="background:${bg};color:#fff;border-radius:50%;width:${sz}px;height:${sz}px;
+      display:flex;align-items:center;justify-content:center;font-size:${sz<22?9:11}px;font-weight:700;
+      border:2px solid ${bd};box-shadow:0 2px 5px rgba(0,0,0,.5)">${n}</div>`});
+}
+const ICO_S=L.divIcon({className:'',iconSize:[34,34],iconAnchor:[17,34],
+  html:'<div style="font-size:28px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.7))">&#128994;</div>'});
+const ICO_E=L.divIcon({className:'',iconSize:[34,34],iconAnchor:[17,34],
+  html:'<div style="font-size:28px;filter:drop-shadow(0 2px 5px rgba(0,0,0,.7))">&#127937;</div>'});
+function vehIcon(){return L.divIcon({className:'',iconSize:[34,34],iconAnchor:[17,17],
+  html:'<div style="font-size:26px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.7))">&#128663;</div>'});}
+
+// ─── Dibujo ───────────────────────────────────────────────────────────────────
+function drawAll(){ drawPoly(); drawMarkers(); drawPins(); }
+
+function drawPoly(){
+  lgA.clearLayers(); lgR.clearLayers();
+  const pA=D.poly_actual&&D.poly_actual.length>1?D.poly_actual:(D.route_actual||[]).map(c=>[c.lat,c.lon]);
+  polyA=L.polyline(pA,{color:'#3498db',weight:3,opacity:0.65,dashArray:'7,5'})
+    .bindTooltip('Ruta Actual',{sticky:true});
+  if(showAct) lgA.addLayer(polyA);
+
+  const pR=pendingRoute?displayRoute.map(c=>[c.lat,c.lon])
+    :(D.poly_rec&&D.poly_rec.length>1?D.poly_rec:displayRoute.map(c=>[c.lat,c.lon]));
+  const rcol=pendingRoute?'#d97706':'#27ae60';
+  polyR=L.polyline(pR,{color:rcol,weight:3.5,opacity:0.85})
+    .bindTooltip(pendingRoute?'Recalculado (pendiente confirmar)':'Ruta Óptima',{sticky:true});
+  if(showRec) lgR.addLayer(polyR);
+}
+
+function drawMarkers(){
+  mA.forEach(m=>lgA.removeLayer(m)); mA.length=0;
+  mR.forEach(m=>lgR.removeLayer(m)); mR.length=0;
+
+  (D.route_actual||[]).forEach(c=>{
+    const m=L.marker([c.lat,c.lon],{icon:numIcon(c.pos_actual,'#2980b9','#85c1e9')})
+      .bindPopup(`<b>[${c.pos_actual}] ${c.nombre}</b><br>Cód:${c.id}<br>${c.cla}<br>
+        <span style="color:#3498db">Actual pos ${c.pos_actual}</span>`,{maxWidth:200});
+    mA.push(m); if(showAct) lgA.addLayer(m);
+  });
+
+  displayRoute.forEach((c,i)=>{
+    const pos=pendingRoute?(i+1)*5:(c.pos_rec||c.pos_actual);
+    const [bg,bd]=pendingRoute?['#b45309','#f59e0b']:['#27ae60','#82e0aa'];
+    const note=pendingRoute
+      ?`<span style="color:#f59e0b">&#10227; Recalculado pos ${(i+1)*5}</span>`
+      :`<span style="color:#27ae60">Óptima pos ${pos}</span>`;
+    const m=L.marker([c.lat,c.lon],{icon:numIcon(pos,bg,bd)})
+      .bindPopup(`<b>[${pos}] ${c.nombre}</b><br>Cód:${c.id}<br>${c.cla}<br>${note}`,{maxWidth:200});
+    mR.push(m); if(showRec) lgR.addLayer(m);
+  });
+}
+
+// ─── Pins inicio/fin ──────────────────────────────────────────────────────────
+function ordRoute(){
+  const r=displayRoute; if(!r||!r.length) return [];
+  let o=[...r.slice(sIdx),...r.slice(0,sIdx)];
+  if(eIdx!==null&&eIdx!==sIdx){
+    const ec=r[eIdx]; const ei=o.findIndex(c=>c.id===ec.id);
+    if(ei>-1){const[x]=o.splice(ei,1);o.push(x);}
+  } else if(o.length>1){
+    const s=o[0]; let md=-1,fi=o.length-1;
+    o.forEach((c,i)=>{if(!i)return;const d=hav(s.lat,s.lon,c.lat,c.lon);if(d>md){md=d;fi=i;}});
+    const[f]=o.splice(fi,1);o.push(f);
+  }
+  return o;
+}
+
+function drawPins(){
+  lgV.clearLayers(); veh=null;
+  const o=ordRoute(); if(!o.length) return;
+  const pS=L.marker([o[0].lat,o[0].lon],{icon:ICO_S,draggable:true,zIndexOffset:2000})
+    .bindTooltip('&#128994; Inicio — arrastra para cambiar');
+  pS.on('dragend',e=>{const ll=e.target.getLatLng();
+    const ni=nearest(ll.lat,ll.lng,displayRoute);
+    document.getElementById('sel-s').value=ni; sIdx=ni; drawPins(); resetAnim();});
+  lgV.addLayer(pS);
+  const last=o[o.length-1];
+  const pE=L.marker([last.lat,last.lon],{icon:ICO_E,draggable:true,zIndexOffset:2000})
+    .bindTooltip('&#127937; Fin — arrastra para cambiar');
+  pE.on('dragend',e=>{const ll=e.target.getLatLng();
+    const ni=nearest(ll.lat,ll.lng,displayRoute);
+    document.getElementById('sel-e').value=ni; eIdx=ni; drawPins(); resetAnim();});
+  lgV.addLayer(pE);
+}
+
+function nearest(lat,lng,r){let b=0,bd=Infinity;
+  r.forEach((c,i)=>{const d=Math.hypot(c.lat-lat,c.lon-lng);if(d<bd){bd=d;b=i;}});return b;}
+
+// ─── Haversine JS ─────────────────────────────────────────────────────────────
+function hav(la1,lo1,la2,lo2){
+  const R=6371,dLa=(la2-la1)*Math.PI/180,dLo=(lo2-lo1)*Math.PI/180;
+  const a=Math.sin(dLa/2)**2+Math.cos(la1*Math.PI/180)*Math.cos(la2*Math.PI/180)*Math.sin(dLo/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ─── Nearest Neighbor JS ──────────────────────────────────────────────────────
+function nnJS(clients,si,ei){
+  const n=clients.length; if(n<2) return clients;
+  const vis=new Array(n).fill(false); const ord=[si]; vis[si]=true;
+  let res=null;
+  if(ei!==null&&ei!==si){ res=ei; }
+  else{ let md=-1;
+    clients.forEach((c,i)=>{ if(i===si)return;
+      const d=hav(clients[si].lat,clients[si].lon,c.lat,c.lon);
+      if(d>md){md=d;res=i;}});
+  }
+  while(ord.length<n){
+    const last=ord[ord.length-1]; const src=clients[last];
+    let best=-1,bd=Infinity;
+    for(let j=0;j<n;j++){
+      if(vis[j])continue; if(j===res&&ord.length<n-1)continue;
+      const d=hav(src.lat,src.lon,clients[j].lat,clients[j].lon);
+      if(d<bd){bd=d;best=j;}
+    }
+    if(best===-1){ if(res!==null&&!vis[res]){ord.push(res);vis[res]=true;} break; }
+    ord.push(best); vis[best]=true;
+  }
+  if(res!==null&&!ord.includes(res)) ord.push(res);
+  return ord.map(i=>clients[i]);
+}
+
+// ─── Recalcular ───────────────────────────────────────────────────────────────
+function recalcular(){
+  const base=D.route_rec||[];
+  if(!base.length){ setProg('Sin datos para recalcular'); return; }
+  const nr=nnJS(base,sIdx,eIdx);
+  pendingRoute=nr; displayRoute=nr;
+  drawAll();
+  document.getElementById('btn-confirm').classList.remove('hidden');
+  document.getElementById('tb-rec').className='rtbtn pend';
+  document.getElementById('tb-rec').textContent='■ Recalc.';
+  setBadge('recalc');
+  setProg('&#10227; '+nr.length+' clientes — confirma para guardar');
+  resetAnim();
+}
+
+// ─── Confirmar → Streamlit ────────────────────────────────────────────────────
+function confirmar(){
+  if(!pendingRoute) return;
+  const data=pendingRoute.map((c,i)=>({id:c.id,nombre:c.nombre,new_pos:(i+1)*5}));
+  setProg('&#10003; Enviando...');
+  Streamlit.setComponentValue(data);
+}
+
+// ─── Aplicar orden confirmado ─────────────────────────────────────────────────
+function applyConfirmed(confirmed){
+  const pm={}; confirmed.forEach(x=>{pm[x.id]=x.new_pos;});
+  const sorted=[...(D.route_rec||[])].sort((a,b)=>(pm[a.id]||9999)-(pm[b.id]||9999));
+  displayRoute=sorted; pendingRoute=null;
+  document.getElementById('btn-confirm').classList.add('hidden');
+  document.getElementById('tb-rec').className='rtbtn rec';
+  document.getElementById('tb-rec').textContent='■ Óptima';
+  setBadge('confirmed');
+  drawAll();
+  setProg('&#10003; Secuencia confirmada');
+}
+
+// ─── Badge ────────────────────────────────────────────────────────────────────
+function setBadge(m){
+  const b=document.getElementById('badge');
+  const map={'ors_matrix':'b-ors','ors':'b-ors','recalc':'b-pend','confirmed':'b-ok'};
+  const txt={'ors_matrix':'&#127758; ORS','ors':'&#127758; ORS',
+             'recalc':'&#10227; Recalc. JS','confirmed':'&#10003; Confirmado'};
+  b.className='badge '+(map[m]||'b-hav');
+  b.innerHTML=txt[m]||'&#8776; Línea recta';
+}
+
+// ─── Animación ────────────────────────────────────────────────────────────────
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('btn-play').innerHTML=playing?'&#9646;&#9646; Pausa':'&#9654; Play';
+  if(playing){ensureVeh();if(step===0)resetHL();doStep();}
+  else clearTimeout(timer);
+}
+function resetAnim(){
+  playing=false;step=0;clearTimeout(timer);
+  if(veh){lgV.removeLayer(veh);veh=null;}
+  document.getElementById('btn-play').innerHTML='&#9654; Play';
+  setProg('&#9679; Listo'); resetHL(); drawPins();
+}
+function resetHL(){
+  mR.forEach(m=>{m.setOpacity(1);const e=m.getElement();if(e)e.style.filter='';});
+  mA.forEach(m=>m.setOpacity(1));
+}
+function setProg(t){document.getElementById('prog').innerHTML=t;}
+function ensureVeh(){
+  if(!veh){const o=ordRoute();if(!o.length)return;
+    veh=L.marker([o[0].lat,o[0].lon],{icon:vehIcon(),zIndexOffset:3000});lgV.addLayer(veh);}
+}
+function doStep(){
+  if(!playing)return;
+  const o=ordRoute();
+  if(step>=o.length){playing=false;document.getElementById('btn-play').innerHTML='&#9654; Play';
+    setProg('&#10003; Ruta completa');return;}
+  const c=o[step]; ensureVeh();
+  animTo(veh,[c.lat,c.lon],Math.min(delay*.65,500),()=>{
+    mapInst.panTo([c.lat,c.lon],{animate:true,duration:0.25});
+    hlCli(step,o);
+    const pos=pendingRoute?(step+1)*5:(c.pos_rec||c.pos_actual);
+    setProg(`&#8594;${step+1}/${o.length}: <b>${c.nombre.slice(0,20)}</b> [${pos}]`);
+    step++;if(playing)timer=setTimeout(doStep,delay*.35);
+  });
+}
+function animTo(mk,tgt,dur,cb){
+  const t0=performance.now(),sl=mk.getLatLng();
+  function fr(now){const t=Math.min((now-t0)/dur,1),e=t<.5?2*t*t:-1+(4-2*t)*t;
+    mk.setLatLng([sl.lat+(tgt[0]-sl.lat)*e,sl.lng+(tgt[1]-sl.lng)*e]);
+    t<1?requestAnimationFrame(fr):cb();}
+  requestAnimationFrame(fr);
+}
+function hlCli(i,ord){
+  const cli=ord[i];
+  displayRoute.forEach((c,mi)=>{const m=mR[mi];if(!m)return;
+    if(c.id===cli.id){const e=m.getElement();if(e)e.style.filter='brightness(1.6) drop-shadow(0 0 8px gold)';}
+    else{const v=ord.slice(0,i+1).map(x=>x.id);if(v.includes(c.id))m.setOpacity(0.35);}
+  });
+}
+
+// ─── Toggles / controles ──────────────────────────────────────────────────────
+function togLyr(w){
+  if(w==='act'){showAct=!showAct;
+    document.getElementById('tb-act').className='rtbtn'+(showAct?' act':'');
+    mA.forEach(m=>showAct?lgA.addLayer(m):lgA.removeLayer(m));
+    if(polyA)showAct?lgA.addLayer(polyA):lgA.removeLayer(polyA);
+  }else{showRec=!showRec;
+    const cls='rtbtn'+(showRec?(pendingRoute?' pend':' rec'):'');
+    document.getElementById('tb-rec').className=cls;
+    mR.forEach(m=>showRec?lgR.addLayer(m):lgR.removeLayer(m));
+    if(polyR)showRec?lgR.addLayer(polyR):lgR.removeLayer(polyR);
+  }
+}
+function setSp(ms,el){delay=ms;document.querySelectorAll('.spd').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+
+// ─── Selectores ───────────────────────────────────────────────────────────────
+function populateSels(){
+  const ss=document.getElementById('sel-s'),es=document.getElementById('sel-e');
+  ss.innerHTML='';es.innerHTML='<option value="">Auto (opuesto)</option>';
+  (D.route_rec||[]).forEach((c,i)=>{
+    const p=c.pos_rec||c.pos_actual,lb=`${p} — ${c.nombre.slice(0,20)}`;
+    ss.add(new Option(lb,i));es.add(new Option(lb,i));
+  });
+}
+function onSelS(){sIdx=parseInt(document.getElementById('sel-s').value)||0;drawPins();resetAnim();}
+function onSelE(){const v=document.getElementById('sel-e').value;eIdx=v===''?null:parseInt(v);drawPins();resetAnim();}
+</script>
+</body>
+</html>

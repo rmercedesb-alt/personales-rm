@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <!-- Roll-forward al runtime MAYOR disponible (p.ej. si el server ya trae .NET 11).
+         OJO: el FULL/DELTA (framework-dependent) ahora requiere .NET 10 como minimo en el server;
+         ya NO corre en servidores que solo tengan .NET 8 o 9. Para esos, usar el instalable STANDALONE. -->
+    <RollForward>Major</RollForward>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>DashVisitas</RootNamespace>
+    <!-- Genera un .exe en Windows -->
+    <AssemblyName>DashSmart</AssemblyName>
+    <!-- === VERSION DEL DASHBOARD ===
+         Sube este numero con CADA cambio que quieras congelar como release.
+         El instalable se nombra con esta version y /version la reporta en vivo. -->
+    <Version>1.16.1</Version>
+    <Product>MovilBusiness Dashboard Smart</Product>
+    <Company>AM Comercial, S.A.S.</Company>
+    <!-- Excluir carpetas de trabajo (paquetes, scripts, SQL) para que NO se publiquen dentro del app.
+         Sin esto, cada publish metia la carpeta Instalables\ (todos los ZIP previos) dentro del paquete. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Instalables\**;SQL\**;deploy_iis\**;DEPLOY_DashVisitas\**;Manuales\**;*.bat</DefaultItemExcludes>
+    <!-- Menos idiomas satelite (la UI es propia; no necesitamos los .resources.dll traducidos del framework) -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Remove="Instalables\**" />
+    <None Remove="Instalables\**" />
+    <!-- App_Data (license.lic y huella_servidor.txt) es POR SERVIDOR/CLIENTE: nunca debe viajar
+         dentro de un instalable. En desarrollo los archivos siguen en disco y el sistema los lee;
+         solo se excluyen del publish. El instalador (INSTALAR_IIS/ACTUALIZAR_IIS) la pide o
+         conserva la que ya tenga el servidor. -->
+    <Content Remove="App_Data\**" />
+    <None Remove="App_Data\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+    <!-- Miniaturas de las fotos de representantes (Geolocalizaciones). Windows-only, igual que el servidor IIS. -->
+    <PackageReference Include="System.Drawing.Common" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
+    <!-- Soporte para instalar como Servicio de Windows -->
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.10" />
+  </ItemGroup>
+</Project>

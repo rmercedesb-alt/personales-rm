@@ -1,0 +1,12 @@
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:8768
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Development
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Optimizador de Ruta\Version003\OptimizadorRutas
+warn: Microsoft.AspNetCore.HttpsPolicy.HttpsRedirectionMiddleware[3]
+      Failed to determine the https port for redirect.
+warn: Microsoft.AspNetCore.Server.Kestrel[22]
+      As of "06/02/2026 16:59:09 +00:00", the heartbeat has been running for "00:04:35.1756374" which is longer than "00:00:01". This could be caused by thread pool starvation.

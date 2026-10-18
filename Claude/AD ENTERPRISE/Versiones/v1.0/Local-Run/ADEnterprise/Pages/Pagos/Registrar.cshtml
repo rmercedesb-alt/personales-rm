@@ -1,0 +1,460 @@
+@page
+@model ADEnterprise.Pages.Pagos.RegistrarModel
+@{ ViewData["Title"] = "Registrar Recibo de Pago"; }
+
+<div class="d-flex align-items-center gap-2 mb-3">
+    <div class="page-title mb-0"><i class="bi bi-receipt-cutoff"></i> Registrar Recibo de Pago</div>
+    <span class="badge bg-primary ms-2">v1.1</span>
+</div>
+<p class="page-subtitle">Ingrese el instrumento de pago, luego agregue una o varias facturas. El sistema calculará el balance automáticamente.</p>
+
+<form method="post" id="frmRecibo">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Input.DetalleJson" id="hDetalleJson" />
+    <input type="hidden" asp-for="Input.TieneAbono"  id="hTieneAbono" value="false" />
+    <input type="hidden" asp-for="Input.AbonoTicket" id="hAbonoTicket" />
+    <input type="hidden" asp-for="Input.AbonoIdComp" id="hAbonoIdComp" />
+    <input type="hidden" asp-for="Input.AbonoIdCli"  id="hAbonoIdCli" />
+    <input type="hidden" asp-for="Input.AbonoMonto"  id="hAbonoMonto" />
+
+<!-- ═══════════════════════════════════════════════════════
+     ENCABEZADO DEL RECIBO
+═══════════════════════════════════════════════════════════ -->
+<div class="card shadow-sm mb-3">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-journal-check"></i> Encabezado del Recibo
+    </div>
+    <div class="card-body">
+        <div class="row g-3">
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Fecha <span class="text-danger">*</span></label>
+                <input asp-for="Input.FechaPago" type="date" class="form-control form-control-sm"
+                       onchange="calcularTotales()" />
+                <span asp-validation-for="Input.FechaPago" class="text-danger small"></span>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Forma de Pago <span class="text-danger">*</span></label>
+                <select asp-for="Input.FormaPago" id="selFormaPago"
+                        class="form-select form-select-sm" onchange="toggleRef()">
+                    <option value="Cheque">Cheque</option>
+                    <option value="Transferencia">Transferencia</option>
+                    <option value="Deposito">Depósito</option>
+                    <option value="Efectivo">Efectivo</option>
+                    <option value="Abono">Abono</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Monto Total del Instrumento (RD$) <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">RD$</span>
+                    <input asp-for="Input.MontoInstrumento" id="inpMontoInstrumento"
+                           type="number" step="0.01" min="0.01"
+                           class="form-control fw-bold"
+                           placeholder="0.00" onchange="calcularTotales()" oninput="calcularTotales()" />
+                </div>
+                <span asp-validation-for="Input.MontoInstrumento" class="text-danger small"></span>
+            </div>
+            <div class="col-md-3" id="campoRef">
+                <label class="form-label fw-semibold small">N° Cheque / Referencia</label>
+                <input asp-for="Input.NumChequeReferencia" id="inpNumCheque"
+                       class="form-control form-control-sm" placeholder="Núm. cheque o ref. bancaria" />
+                <span asp-validation-for="Input.NumChequeReferencia" class="text-danger small"></span>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Notas</label>
+                <input asp-for="Input.Notas" class="form-control form-control-sm"
+                       placeholder="Observaciones..." />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     LAYOUT DOS COLUMNAS
+═══════════════════════════════════════════════════════════ -->
+<div class="row g-3 mb-3">
+
+<!-- ── COL IZQ: Facturas disponibles ───────────────────────── -->
+<div class="col-lg-7">
+<div class="card shadow-sm h-100">
+    <div class="card-header d-flex align-items-center justify-content-between"
+         style="background:#e8f0fe;color:var(--azul-marino)">
+        <span class="fw-bold"><i class="bi bi-list-check"></i> Facturas Pendientes</span>
+        <span class="badge bg-secondary" id="lblContFact">0</span>
+    </div>
+    <div class="card-body p-2">
+        <input type="text" id="buscarFact" class="form-control form-control-sm mb-2"
+               placeholder="🔍 Buscar por ticket, empresa, cliente..."/>
+        <div style="max-height:340px;overflow-y:auto">
+        <table class="table table-sm table-hover mb-0" id="tablaFact" style="font-size:.8rem">
+            <thead class="table-light sticky-top">
+                <tr>
+                    <th>#Ticket</th><th>Empresa</th><th>Cliente</th>
+                    <th class="text-end">Saldo</th><th>Estado</th><th></th>
+                </tr>
+            </thead>
+            <tbody id="tbodyFact"></tbody>
+        </table>
+        <div id="sinFacturas" class="text-center text-muted py-3 small" style="display:none">
+            No hay facturas pendientes disponibles
+        </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- ── COL DER: Detalle del Recibo ─────────────────────────── -->
+<div class="col-lg-5">
+<div class="card shadow-sm h-100">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-receipt"></i> Detalle del Recibo
+    </div>
+    <div class="card-body p-0">
+        <div style="max-height:280px;overflow-y:auto">
+        <table class="table table-sm mb-0" id="tablaDetalle" style="font-size:.8rem">
+            <thead class="table-light">
+                <tr>
+                    <th>#</th><th>Ticket</th><th>Empresa / Cliente</th>
+                    <th class="text-end">Aplicado</th><th></th>
+                </tr>
+            </thead>
+            <tbody id="tbodyDetalle"></tbody>
+            <tfoot id="tfootDetalle" style="display:none">
+                <tr class="fw-bold table-light">
+                    <td colspan="3" class="text-end small">Sub-total:</td>
+                    <td class="text-end" id="lblSubtotal">RD$ 0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+        <div id="sinDetalle" class="text-center text-muted py-3 small">
+            Agregue facturas desde la tabla de la izquierda
+        </div>
+        </div>
+
+        <!-- Balance disponible -->
+        <div class="border-top px-3 py-2">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">Monto del instrumento:</span>
+                <strong id="lblInstrumento" class="text-primary">RD$ 0.00</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small text-muted">Total aplicado:</span>
+                <strong id="lblAplicado" class="text-success">RD$ 0.00</strong>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold">Balance disponible:</span>
+                <strong id="lblBalance" class="fs-5">RD$ 0.00</strong>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+</div><!-- /row -->
+
+<!-- ═══════════════════════════════════════════════════════
+     ABONO A CUENTA (visible si balance > 0)
+═══════════════════════════════════════════════════════════ -->
+<div id="seccionAbono" class="card shadow-sm mb-3 border-warning" style="display:none">
+    <div class="card-header fw-bold bg-warning text-dark">
+        <i class="bi bi-piggy-bank"></i> Abono a Cuenta
+        <small class="fw-normal ms-2">
+            El balance disponible de <strong id="lblBalanceAbono">RD$ 0.00</strong>
+            se puede registrar como crédito del cliente
+        </small>
+    </div>
+    <div class="card-body">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">N° Ticket</label>
+                <input type="number" id="abonoTicket" class="form-control form-control-sm"
+                       placeholder="Ej: 9999"/>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Compañía</label>
+                <select id="abonoComp" class="form-select form-select-sm"></select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Cliente</label>
+                <select id="abonoCli" class="form-select form-select-sm"></select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Monto (= Balance)</label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text">RD$</span>
+                    <input type="text" id="abonoMonto" class="form-control bg-light fw-bold" readonly/>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-warning btn-sm w-100"
+                        onclick="agregarAbono()">
+                    <i class="bi bi-plus-circle"></i> Agregar Abono
+                </button>
+            </div>
+        </div>
+        <div id="abonoAgregado" class="alert alert-success mt-2 py-1 small" style="display:none">
+            <i class="bi bi-check-circle"></i> Abono a cuenta incluido en el recibo
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     ACCIONES
+═══════════════════════════════════════════════════════════ -->
+<div class="d-flex gap-2 justify-content-end">
+    <a href="/Pagos/Consulta" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i> Cancelar
+    </a>
+    <button type="button" class="btn btn-success btn-lg px-4" onclick="confirmarRecibo()">
+        <i class="bi bi-check-circle-fill"></i> Confirmar Recibo
+    </button>
+</div>
+
+</form>
+
+@section Scripts {
+<script>
+// ─── Datos del servidor ───────────────────────────────────────────────────────
+const facturasDisp   = @Html.Raw(Model.FacturasPendientesJson);
+const companiasData  = @Html.Raw(Model.CompaniasJson);
+const clientesData   = @Html.Raw(Model.ClientesJson);
+
+// ─── Estado del recibo ────────────────────────────────────────────────────────
+let detalleItems = [];
+let tieneAbono   = false;
+
+// Pre-cargar si vienen datos (ej: ticket pre-seleccionado)
+try {
+    const preloaded = JSON.parse(document.getElementById('hDetalleJson').value || '[]');
+    if (preloaded.length > 0) { detalleItems = preloaded; }
+} catch(e) {}
+
+// ─── Inicializar ─────────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+    toggleRef();
+    renderTablaDisponibles();
+    renderTablaDetalle();
+    calcularTotales();
+
+    // Llenar selects de abono
+    const selC = document.getElementById('abonoComp');
+    const selCl = document.getElementById('abonoCli');
+    selC.innerHTML  = '<option value="">-- Compañía --</option>' +
+        companiasData.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+    selCl.innerHTML = '<option value="">-- Cliente --</option>' +
+        clientesData.map(c => `<option value="${c.id}">${c.nombre}</option>`).join('');
+
+    // Filtro en tiempo real
+    document.getElementById('buscarFact').addEventListener('input', function() {
+        filtrarDisponibles(this.value.toLowerCase());
+    });
+});
+
+// ─── Tabla de disponibles ─────────────────────────────────────────────────────
+function renderTablaDisponibles() {
+    filtrarDisponibles(document.getElementById('buscarFact')?.value?.toLowerCase() ?? '');
+}
+
+function filtrarDisponibles(txt) {
+    const tbody = document.getElementById('tbodyFact');
+    const idsEnDetalle = new Set(detalleItems.map(d => d.numTransaccion));
+    const rows = facturasDisp.filter(f =>
+        !idsEnDetalle.has(f.numTransaccion) && (
+            txt === '' ||
+            String(f.numTicket).includes(txt) ||
+            f.empresaNombre.toLowerCase().includes(txt) ||
+            f.clienteNombre.toLowerCase().includes(txt)
+        )
+    );
+    document.getElementById('lblContFact').textContent = rows.length;
+    if (rows.length === 0) {
+        tbody.innerHTML = '';
+        document.getElementById('sinFacturas').style.display = '';
+        return;
+    }
+    document.getElementById('sinFacturas').style.display = 'none';
+    tbody.innerHTML = rows.map(f => {
+        const estadoBadge = f.estado === 'Vencida' ? 'bg-danger' :
+                            f.estado === 'PagadoParcial' ? 'bg-warning text-dark' : 'bg-secondary';
+        return `<tr>
+            <td class="fw-bold">#${f.numTicket}</td>
+            <td class="text-truncate" style="max-width:100px" title="${f.empresaNombre}">${f.empresaNombre}</td>
+            <td class="text-truncate" style="max-width:90px" title="${f.clienteNombre}">${f.clienteNombre}</td>
+            <td class="text-end text-danger fw-bold">${fmt(f.saldoPendiente)}</td>
+            <td><span class="badge ${estadoBadge}" style="font-size:.65rem">${f.estado}</span></td>
+            <td>
+                <button type="button" class="btn btn-xs btn-success py-0 px-1"
+                        style="font-size:.7rem" onclick="agregarFactura('${f.numTransaccion}')">
+                    <i class="bi bi-plus-lg"></i> Agregar
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+}
+
+// ─── Agregar factura al recibo ────────────────────────────────────────────────
+function agregarFactura(numTransaccion) {
+    const fac = facturasDisp.find(f => f.numTransaccion === numTransaccion);
+    if (!fac) return;
+    if (detalleItems.some(d => d.numTransaccion === numTransaccion)) return;
+
+    detalleItems.push({
+        numTransaccion: fac.numTransaccion,
+        numTicket:      fac.numTicket,
+        montoAplicado:  fac.saldoPendiente,
+        saldoOriginal:  fac.saldoPendiente,
+        empresaNombre:  fac.empresaNombre,
+        clienteNombre:  fac.clienteNombre,
+        idCompania:     fac.idCompania,
+        idCliente:      fac.idCliente
+    });
+
+    renderTablaDetalle();
+    renderTablaDisponibles();
+    calcularTotales();
+}
+
+// ─── Quitar factura del recibo ────────────────────────────────────────────────
+function quitarItem(numTransaccion) {
+    detalleItems = detalleItems.filter(d => d.numTransaccion !== numTransaccion);
+    renderTablaDetalle();
+    renderTablaDisponibles();
+    calcularTotales();
+}
+
+// ─── Cambiar monto aplicado en el detalle ────────────────────────────────────
+function cambiarMonto(numTransaccion, val) {
+    const item = detalleItems.find(d => d.numTransaccion === numTransaccion);
+    if (!item) return;
+    const v = parseFloat(val) || 0;
+    item.montoAplicado = Math.min(Math.max(0.01, v), item.saldoOriginal);
+    calcularTotales();
+}
+
+// ─── Render tabla detalle ─────────────────────────────────────────────────────
+function renderTablaDetalle() {
+    const tbody  = document.getElementById('tbodyDetalle');
+    const tfoot  = document.getElementById('tfootDetalle');
+    const noData = document.getElementById('sinDetalle');
+
+    if (detalleItems.length === 0) {
+        tbody.innerHTML  = '';
+        tfoot.style.display = 'none';
+        noData.style.display = '';
+        return;
+    }
+    noData.style.display = 'none';
+    tfoot.style.display  = '';
+
+    tbody.innerHTML = detalleItems.map((d, i) => `
+        <tr>
+            <td class="text-muted">${i + 1}</td>
+            <td class="fw-bold">#${d.numTicket}</td>
+            <td>
+                <div class="text-truncate" style="max-width:120px" title="${d.empresaNombre}">${d.empresaNombre}</div>
+                <div class="text-muted" style="font-size:.72rem;max-width:120px">${d.clienteNombre}</div>
+            </td>
+            <td class="text-end">
+                <input type="number" step="0.01" min="0.01" max="${d.saldoOriginal}"
+                       value="${d.montoAplicado.toFixed(2)}"
+                       style="width:100px;font-size:.8rem"
+                       class="form-control form-control-sm text-end p-1"
+                       onchange="cambiarMonto('${d.numTransaccion}', this.value)"
+                       oninput="cambiarMonto('${d.numTransaccion}', this.value)" />
+                <div class="text-muted" style="font-size:.68rem">Saldo: ${fmt(d.saldoOriginal)}</div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1"
+                        style="font-size:.7rem" onclick="quitarItem('${d.numTransaccion}')">
+                    <i class="bi bi-x"></i>
+                </button>
+            </td>
+        </tr>`).join('');
+}
+
+// ─── Calcular totales ─────────────────────────────────────────────────────────
+function calcularTotales() {
+    const instrumento = parseFloat(document.getElementById('inpMontoInstrumento').value) || 0;
+    const subtotal    = detalleItems.reduce((s, d) => s + (d.montoAplicado || 0), 0);
+    const balance     = instrumento - subtotal;
+
+    document.getElementById('lblSubtotal').textContent   = fmt(subtotal);
+    document.getElementById('lblAplicado').textContent   = fmt(subtotal);
+    document.getElementById('lblInstrumento').textContent= fmt(instrumento);
+    document.getElementById('lblBalance').textContent    = fmt(balance);
+    document.getElementById('lblBalance').className =
+        balance < 0 ? 'fs-5 text-danger' : balance > 0 ? 'fs-5 text-warning' : 'fs-5 text-success';
+
+    // Mostrar/ocultar sección abono
+    const secAbono = document.getElementById('seccionAbono');
+    if (balance > 0.01 && instrumento > 0) {
+        secAbono.style.display = '';
+        document.getElementById('lblBalanceAbono').textContent = fmt(balance);
+        document.getElementById('abonoMonto').value = balance.toFixed(2);
+    } else {
+        secAbono.style.display = 'none';
+        tieneAbono = false;
+        document.getElementById('hTieneAbono').value = 'false';
+        document.getElementById('abonoAgregado').style.display = 'none';
+    }
+}
+
+// ─── Abono a cuenta ───────────────────────────────────────────────────────────
+function agregarAbono() {
+    const ticket  = document.getElementById('abonoTicket').value;
+    const idComp  = document.getElementById('abonoComp').value;
+    const idCli   = document.getElementById('abonoCli').value;
+    const monto   = parseFloat(document.getElementById('abonoMonto').value) || 0;
+
+    if (!idComp || !idCli) { alert('Seleccione compañía y cliente para el abono a cuenta.'); return; }
+    if (monto <= 0)         { alert('El monto del abono debe ser mayor a cero.'); return; }
+
+    document.getElementById('hTieneAbono').value  = 'true';
+    document.getElementById('hAbonoTicket').value = ticket;
+    document.getElementById('hAbonoIdComp').value = idComp;
+    document.getElementById('hAbonoIdCli').value  = idCli;
+    document.getElementById('hAbonoMonto').value  = monto.toFixed(2);
+    tieneAbono = true;
+    document.getElementById('abonoAgregado').style.display = '';
+}
+
+// ─── Confirmar y enviar ───────────────────────────────────────────────────────
+function confirmarRecibo() {
+    const instrumento = parseFloat(document.getElementById('inpMontoInstrumento').value) || 0;
+    if (instrumento <= 0) {
+        alert('Ingrese el monto total del instrumento de pago.');
+        document.getElementById('inpMontoInstrumento').focus();
+        return;
+    }
+    if (detalleItems.length === 0 && !tieneAbono) {
+        alert('Debe agregar al menos una factura al recibo (o un abono a cuenta).');
+        return;
+    }
+    // Serializar el detalle en el campo oculto
+    document.getElementById('hDetalleJson').value = JSON.stringify(detalleItems);
+
+    const numTickets = detalleItems.length;
+    const subtotal   = detalleItems.reduce((s, d) => s + d.montoAplicado, 0);
+    const forma      = document.getElementById('selFormaPago').value;
+    const cheque     = document.getElementById('inpNumCheque').value;
+    const chequeStr  = cheque ? ` | ${forma}: ${cheque}` : '';
+
+    if (!confirm(`¿Confirmar recibo?\n\nInstrumento: ${fmt(instrumento)}${chequeStr}\nFacturas: ${numTickets}\nAplicado: ${fmt(subtotal)}\n\nEsta acción no se puede deshacer.`)) return;
+
+    document.getElementById('frmRecibo').submit();
+}
+
+// ─── Toggle campo referencia ─────────────────────────────────────────────────
+function toggleRef() {
+    const forma = document.getElementById('selFormaPago').value;
+    const campo = document.getElementById('campoRef');
+    campo.style.display = (forma === 'Efectivo' || forma === 'Abono') ? 'none' : '';
+}
+
+// ─── Formato de moneda ────────────────────────────────────────────────────────
+function fmt(n) {
+    return 'RD$ ' + (parseFloat(n) || 0).toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+</script>
+}

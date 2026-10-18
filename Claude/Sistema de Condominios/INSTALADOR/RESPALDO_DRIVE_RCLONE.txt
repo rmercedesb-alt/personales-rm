@@ -1,0 +1,52 @@
+================================================================
+  RESPALDO A GOOGLE DRIVE CON RCLONE  (opcional, una sola vez)
+================================================================
+
+El sistema ya hace, cada noche a la 1:00 AM (y cuando pulsas
+"Respaldar ahora" en Procesos):
+  - Respaldo de la base de datos (.backup)
+  - Un Excel consultable con una pestaña por tabla (.xlsx)
+  - Copia local con rotacion (por defecto, ultimos 8 dias)
+
+Para que ADEMAS suba esos archivos a tu Google Drive, configura
+rclone UNA sola vez en la PC donde corre el sistema:
+
+----------------------------------------------------------------
+ 1) INSTALAR RCLONE
+----------------------------------------------------------------
+  - Descarga rclone desde https://rclone.org/downloads/ (Windows).
+  - Descomprime y copia rclone.exe a una carpeta del PATH,
+    por ejemplo  C:\Windows  (o agrega su carpeta al PATH).
+  - Verifica en una consola:   rclone version
+
+----------------------------------------------------------------
+ 2) CONECTAR TU GOOGLE DRIVE
+----------------------------------------------------------------
+  - Ejecuta:   rclone config
+  - n) New remote
+  - name>  gdrive        (el nombre que quieras)
+  - Storage>  drive       (Google Drive)
+  - client_id / client_secret: deja en blanco (Enter)
+  - scope>  1  (acceso completo) o 2 (solo archivos creados por rclone)
+  - Deja las opciones por defecto; cuando pregunte por el
+    navegador, autoriza con tu cuenta de Google.
+  - Confirma (y) y luego q) para salir.
+
+----------------------------------------------------------------
+ 3) ACTIVARLO EN EL SISTEMA
+----------------------------------------------------------------
+  - Entra al sistema (V6) como ADMINISTRADOR.
+  - Ve a  Mantenimiento > Configuracion > Respaldo automatico:
+      Destino en Drive (rclone):  gdrive:Respaldos/NombreDelCliente
+      Marca la casilla "Subir el respaldo a Google Drive"
+      Guardar.
+  - Prueba de inmediato en  Mantenimiento > Procesos >
+    "Respaldar ahora".  Debe listar "Subido a Drive: ...".
+
+Notas:
+  - La rotacion tambien se aplica en Drive (borra los mas viejos
+    que los dias configurados).
+  - Si usas una carpeta por cliente (ej. gdrive:Respaldos/Cliente1,
+    gdrive:Respaldos/Cliente2) tendras todos centralizados en tu
+    cuenta.
+================================================================

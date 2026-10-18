@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>AMCO-GT — Cómo se mide tu día</title>
+<style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --navy:#1c2f6e; --green:#2f7d3f; --green2:#4f9a5c; --amber:#e8a200; --ink:#1b2430; --muted:#5b6675;
+    --line:#dfe5ec; --bg:#f5f7fa; --solida:#1f8b4c; --acept:#2563eb; --irreg:#c98a00; --defic:#c0392b;
+  }
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:#fff; color:var(--ink); font-family:"Segoe UI",Arial,sans-serif; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  .page{ width:210mm; height:297mm; position:relative; overflow:hidden; page-break-after:always; background:#fff; }
+  .page:last-child{ page-break-after:auto; }
+
+  /* ── Banda superior ── */
+  .band{ background:linear-gradient(115deg,var(--navy) 0%,var(--green) 62%,var(--green2) 100%); color:#fff; padding:13mm 14mm 10mm; position:relative; }
+  .band .kicker{ font-size:9.5pt; letter-spacing:.14em; text-transform:uppercase; opacity:.85; font-weight:600; }
+  .band h1{ font-size:38pt; line-height:1; margin:2mm 0 2mm; font-weight:800; letter-spacing:-.01em; }
+  .band h1 span{ color:#ffd76a; }
+  .band .sub{ font-size:12.5pt; opacity:.95; max-width:150mm; line-height:1.3; }
+  .band .badge{ position:absolute; right:14mm; top:13mm; width:30mm; height:30mm; border-radius:50%; background:rgba(255,255,255,.14);
+    border:2px solid rgba(255,255,255,.55); display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+  .band .badge b{ font-size:22pt; line-height:1; }
+  .band .badge small{ font-size:7.5pt; letter-spacing:.06em; text-transform:uppercase; opacity:.9; margin-top:1mm; }
+
+  .wrap{ padding:0 14mm; }
+  h2{ font-size:14pt; color:var(--navy); margin:6mm 0 2.5mm; display:flex; align-items:center; gap:2.5mm; }
+  h2 .tag{ font-size:9pt; font-weight:700; color:#fff; background:var(--green); border-radius:20px; padding:1mm 3.2mm; }
+  p.lead{ font-size:11pt; line-height:1.42; color:#2c3745; }
+
+  /* ── Barra de pesos ── */
+  .pesos{ display:flex; height:11mm; border-radius:3mm; overflow:hidden; margin-top:3mm; font-size:8.6pt; font-weight:700; color:#fff; }
+  .pesos div{ display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.05; border-right:1.2px solid #fff; }
+  .pesos div:last-child{ border-right:0; }
+  .g1{ background:#1c2f6e; } .g2{ background:#2a4a9a; } .g3{ background:#4468b8; }
+  .c1{ background:#2f7d3f; } .c2{ background:#3f9450; } .c3{ background:#56a866; } .c4{ background:#74bb82; color:#143d1d; }
+  .pesos-lbl{ display:flex; font-size:8.5pt; color:var(--muted); margin-top:1.2mm; font-weight:600; }
+  .pesos-lbl div{ text-align:center; }
+
+  /* ── Bandas ── */
+  .bandas{ display:grid; grid-template-columns:repeat(4,1fr); gap:3mm; margin-top:2mm; }
+  .bd{ border-radius:3mm; padding:2.6mm 2mm; text-align:center; color:#fff; }
+  .bd b{ display:block; font-size:12pt; } .bd span{ font-size:9.5pt; opacity:.95; }
+  .bd.s{ background:var(--solida); } .bd.a{ background:var(--acept); } .bd.i{ background:var(--irreg); } .bd.d{ background:var(--defic); }
+
+  /* ── Tarjetas de indicador ── */
+  .card{ border:1px solid var(--line); border-left:5px solid var(--green); border-radius:3mm; background:var(--bg); padding:3.4mm 4mm 3mm; margin-bottom:3.2mm; break-inside:avoid; }
+  .card.time{ border-left-color:var(--navy); }
+  .card .top{ display:flex; align-items:center; gap:3mm; margin-bottom:1.6mm; }
+  .card .num{ width:8mm; height:8mm; border-radius:50%; background:var(--navy); color:#fff; font-weight:800; font-size:11pt; display:flex; align-items:center; justify-content:center; flex:none; }
+  .card:not(.time) .num{ background:var(--green); }
+  .card .ttl{ font-size:12.6pt; font-weight:800; color:var(--ink); flex:1; }
+  .card .pts{ font-size:15pt; font-weight:800; color:var(--navy); } .card:not(.time) .pts{ color:var(--green); }
+  .card .pts small{ font-size:8pt; font-weight:700; color:var(--muted); margin-left:.5mm; }
+  .row{ display:grid; grid-template-columns:27mm 1fr; gap:2mm; font-size:9.6pt; line-height:1.34; margin-top:1mm; }
+  .row b.k{ color:var(--muted); font-weight:700; font-size:8.6pt; text-transform:uppercase; letter-spacing:.04em; padding-top:.4mm; }
+  .scale{ display:flex; gap:1.6mm; flex-wrap:wrap; margin-top:1.4mm; }
+  .scale span{ background:#fff; border:1px solid var(--line); border-radius:20px; padding:.7mm 2.6mm; font-size:8.7pt; font-weight:700; color:#2c3745; }
+  .scale span.ok{ background:#e6f4ea; border-color:#b9dec2; color:#14532d; }
+  .scale span.bad{ background:#fdeaea; border-color:#f3c3be; color:#8a1f12; }
+
+  .note{ border:1.5px dashed var(--amber); background:#fff8e4; border-radius:3mm; padding:3mm 4mm; font-size:9.6pt; line-height:1.38; margin:1mm 0 3.4mm; }
+  .note b{ color:#8a5a00; }
+
+  .tips{ display:grid; grid-template-columns:1fr 1fr; gap:2.2mm 4mm; margin-top:2mm; }
+  .tip{ display:flex; gap:2.4mm; align-items:flex-start; font-size:10pt; line-height:1.3; }
+  .tip i{ font-style:normal; width:6mm; height:6mm; border-radius:50%; background:var(--green); color:#fff; font-weight:800; font-size:9pt; display:flex; align-items:center; justify-content:center; flex:none; margin-top:.3mm; }
+  .power{ background:var(--navy); color:#fff; border-radius:3mm; padding:3.4mm 5mm; margin-top:4mm; font-size:11pt; line-height:1.35; }
+  .power b{ color:#ffd76a; }
+
+  .foot{ position:absolute; left:0; right:0; bottom:0; padding:3.5mm 14mm; font-size:8.3pt; color:var(--muted); border-top:1px solid var(--line); background:#fff; display:flex; justify-content:space-between; }
+</style>
+</head>
+<body>
+
+<!-- ════════════ PÁGINA 1 ════════════ -->
+<section class="page">
+  <div class="band">
+    <div class="kicker">AM Comercial · Equipo de Ventas</div>
+    <h1>AMCO<span>-</span>GT</h1>
+    <div class="sub">Así se mide tu día de trabajo: qué cuenta, cuánto vale cada cosa y cuándo tu nota sube o baja.</div>
+    <div class="badge"><b>0–100</b><small>tu nota</small></div>
+  </div>
+
+  <div class="wrap">
+    <h2>¿Qué es el AMCO-GT?</h2>
+    <p class="lead">Es el <b>Índice de Eficiencia de la Gestión del Tiempo</b>: una nota de <b>0 a 100</b> que resume cómo aprovechas tu jornada. Se calcula con lo que tú mismo registras en MovilBusiness —visitas, pedidos, horas y ubicación— y sale de <b>7 indicadores</b>. Cada uno vale una parte de los 100 puntos.</p>
+
+    <div class="pesos">
+      <div class="g1" style="width:30%">Cumplimiento<br>de ruta · 30</div>
+      <div class="g2" style="width:20%">Inicio temprano<br>(1er pedido) · 20</div>
+      <div class="g3" style="width:10%">Cierre<br>(últ. pedido) · 10</div>
+      <div class="c1" style="width:10%">Efect.<br>ventas · 10</div>
+      <div class="c2" style="width:10%">Disc.<br>ruta · 10</div>
+      <div class="c3" style="width:10%">Cons.<br>PDV · 10</div>
+      <div class="c4" style="width:10%">Ritmo · 10</div>
+    </div>
+    <div class="pesos-lbl">
+      <div style="width:60%;color:var(--navy)">◀ GESTIÓN DEL TIEMPO · 60 puntos ▶</div>
+      <div style="width:40%;color:var(--green)">◀ CALIDAD DE EJECUCIÓN · 40 puntos ▶</div>
+    </div>
+
+    <h2>¿En qué banda estás?</h2>
+    <div class="bandas">
+      <div class="bd s"><b>Sólida</b><span>85 a 100</span></div>
+      <div class="bd a"><b>Aceptable</b><span>70 a 84</span></div>
+      <div class="bd i"><b>Irregular</b><span>55 a 69</span></div>
+      <div class="bd d"><b>Deficiente</b><span>menos de 55</span></div>
+    </div>
+
+    <h2>Gestión del tiempo <span class="tag">60 puntos</span></h2>
+
+    <div class="card time">
+      <div class="top"><div class="num">1</div><div class="ttl">Cumplimiento de ruta</div><div class="pts">30<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>De los clientes que te tocaba visitar ese día, a cuántos llegaste realmente (visitados ÷ clientes a visitar).</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Cada cliente de tu ruta que dejas sin visitar te baja la nota. Es el indicador que más pesa.</div></div>
+      <div class="scale"><span class="ok">98% o más = 100 pts</span><span>95% = 75</span><span>88% = 50</span><span class="bad">74% o menos = 0</span></div>
+    </div>
+
+    <div class="card time">
+      <div class="top"><div class="num">2</div><div class="ttl">Inicio temprano <span style="font-weight:700;color:var(--navy)">(Primer Pedido)</span></div><div class="pts">20<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>La hora de tu <b>primer pedido</b> del día (promedio de los días en que vendiste).</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Por cada minuto que tardas en tomar tu primer pedido después de las 8:15 a.m. pierdes puntos de forma pareja.</div></div>
+      <div class="scale"><span class="ok">8:15 a.m. o antes = 100 pts</span><span>8:30 a.m. = 50</span><span class="bad">8:45 a.m. o después = 0</span></div>
+    </div>
+
+    <div class="card time">
+      <div class="top"><div class="num">3</div><div class="ttl">Cierre no prematuro <span style="font-weight:700;color:var(--navy)">(Último Pedido)</span></div><div class="pts">10<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>La hora de tu <b>último pedido</b> del día: que no termines tu jornada de venta antes de tiempo.</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Baja cuando tu último pedido sale más temprano de las 3:30 p.m.</div></div>
+      <div class="scale"><span class="ok">3:30 p.m. o después = 100 pts</span><span>3:00 p.m. = 50</span><span class="bad">2:30 p.m. o antes = 0</span></div>
+    </div>
+  </div>
+
+  <div class="foot"><span>AMCO-GT · Material informativo para vendedores</span><span>Página 1 de 2</span></div>
+</section>
+
+<!-- ════════════ PÁGINA 2 ════════════ -->
+<section class="page">
+  <div class="band" style="padding:9mm 14mm 7mm">
+    <div class="kicker">AMCO-GT · continuación</div>
+    <div style="font-size:21pt;font-weight:800;line-height:1.1;margin-top:1.5mm">Calidad de tu ejecución <span style="color:#ffd76a">· 40 puntos</span></div>
+  </div>
+
+  <div class="wrap" style="padding-top:4.5mm">
+
+    <div class="card">
+      <div class="top"><div class="num">4</div><div class="ttl">Efectividad de ventas</div><div class="pts">10<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>De los clientes que visitaste, en cuántos tomaste pedido (pedidos ÷ visitados).</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>La nota es máxima dentro de la banda ideal de <b>55% a 65%</b>. Fuera de ella baja, tanto si vendes menos como si te pasas de esa banda.</div></div>
+      <div class="scale"><span class="ok">55% a 65% = 100 pts</span><span>50% ó 70% = 60</span><span class="bad">42% o menos / 78% o más = 0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="top"><div class="num">5</div><div class="ttl">Disciplina de ruta</div><div class="pts">10<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>Cuántas veces tomaste pedido a un cliente que <b>no te tocaba ese día</b>.</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Cada cliente de otro día —o que no está en tu ruta— te resta puntos. Mientras menos salidas de ruta, mejor.</div></div>
+      <div class="scale"><span class="ok">0 fuera de ruta = 100 pts</span><span>1 = 80</span><span>2 = 50</span><span>3 = 20</span><span class="bad">4 o más = 0</span></div>
+    </div>
+    <div class="note"><b>Regla importante:</b> si el cliente es de tu ruta y de <b>ese mismo día de la semana</b> (por ejemplo, un cliente de los martes que visitas un martes), <b>no cuenta como fuera de ruta</b> aunque esa semana no te tocara. Solo cuenta cuando el cliente es de <b>otro día</b> o no pertenece a tu ruta.</div>
+
+    <div class="card">
+      <div class="top"><div class="num">6</div><div class="ttl">Consistencia en el punto de venta (PDV)</div><div class="pts">10<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>Cuántas visitas registraste con tu ubicación (GPS) a <b>más de 200 metros</b> del negocio del cliente.</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Cada visita marcada lejos del cliente baja la nota. Registra tu visita desde el propio negocio.</div></div>
+      <div class="scale"><span class="ok">0 a 2 visitas lejos = 100 pts</span><span>5 = 70</span><span>10 = 40</span><span class="bad">17 o más = 0</span></div>
+    </div>
+
+    <div class="card">
+      <div class="top"><div class="num">7</div><div class="ttl">Ritmo de visita</div><div class="pts">10<small>pts</small></div></div>
+      <div class="row"><b class="k">Qué mide</b><div>El tiempo promedio que dedicas a cada visita (entre las 8:00 a.m. y las 3:00 p.m.), comparado con el tiempo típico de tu grupo.</div></div>
+      <div class="row"><b class="k">Cuándo varía</b><div>Baja si tus visitas son mucho más rápidas o mucho más largas que lo normal del equipo.</div></div>
+      <div class="scale"><span class="ok">Hasta ±25% del tiempo típico = 100 pts</span><span>±50% = 60</span><span class="bad">±88% o más = 0</span></div>
+    </div>
+
+    <h2 style="margin-top:4mm">Cómo sumar más puntos</h2>
+    <div class="tips">
+      <div class="tip"><i>1</i><div><b>Completa tu ruta del día.</b> Es el 30% de tu nota.</div></div>
+      <div class="tip"><i>2</i><div><b>Primer pedido antes de las 8:15 a.m.</b></div></div>
+      <div class="tip"><i>3</i><div><b>Sigue vendiendo hasta las 3:30 p.m.</b> o más.</div></div>
+      <div class="tip"><i>4</i><div><b>Visita a los clientes de tu día</b> y evita los de otros días.</div></div>
+      <div class="tip"><i>5</i><div><b>Marca la visita en el negocio,</b> no desde lejos.</div></div>
+      <div class="tip"><i>6</i><div><b>Ni con prisa ni de más:</b> mantén el ritmo del grupo.</div></div>
+    </div>
+
+    <div class="power">Con <b>ruta completa</b> y <b>primer pedido temprano</b> ya aseguras <b>50 de los 100 puntos</b>. Los otros cinco indicadores se ganan cuidando los detalles de cada visita.</div>
+  </div>
+
+  <div class="foot"><span>Fuera de ruta y PDV se acumulan en el período evaluado (día o semana lun–sáb) · Divisiones 10, 11 y 12.</span><span style="white-space:nowrap">Página 2 de 2</span></div>
+</section>
+
+</body>
+</html>

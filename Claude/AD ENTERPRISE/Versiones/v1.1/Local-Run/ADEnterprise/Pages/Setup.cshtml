@@ -1,0 +1,157 @@
+@page
+@model ADEnterprise.Pages.SetupModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Configuración Inicial — AD ALL DIGITAL ENTERPRISE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <style>
+        body { background: linear-gradient(135deg, #0a2463 0%, #1e4db7 100%); min-height: 100vh; }
+        .setup-card { max-width: 560px; border: none; border-radius: 16px; box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
+        .setup-header { background: #0a2463; border-radius: 16px 16px 0 0; padding: 28px; text-align: center; }
+        .step-badge { background: #1e4db7; color: white; border-radius: 50%; width: 28px; height: 28px;
+                      display: inline-flex; align-items: center; justify-content: center;
+                      font-weight: bold; font-size: 0.85rem; margin-right: 8px; }
+    </style>
+</head>
+<body class="d-flex align-items-center justify-content-center py-5">
+<div class="card setup-card w-100 mx-3">
+
+    <!-- Header -->
+    <div class="setup-header">
+        <div style="color:#4d94ff;font-size:3rem;"><i class="bi bi-building-gear"></i></div>
+        <h4 class="text-white fw-bold mt-2 mb-1">AD ALL DIGITAL ENTERPRISE</h4>
+        <p style="color:#a8c4ff;font-size:0.85rem;margin:0;">Configuración inicial del sistema</p>
+    </div>
+
+    <div class="card-body p-4">
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger"><i class="bi bi-exclamation-triangle-fill"></i> @Model.ErrorMessage</div>
+        }
+
+        <div class="alert alert-info mb-4" style="font-size:0.88rem;">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>Primera instalación detectada.</strong><br/>
+            Complete los datos para configurar el sistema para su empresa.
+            Se creará automáticamente un archivo en su Google Drive.
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+
+            <!-- Paso 1: Empresa -->
+            <h6 class="fw-bold mb-3" style="color:#0a2463;">
+                <span class="step-badge">1</span> Datos de la Empresa
+            </h6>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre de la Empresa <span class="text-danger">*</span></label>
+                <input asp-for="Input.NombreEmpresa" class="form-control"
+                       placeholder="Ej: Fanny Mercedes & Asoc." autofocus/>
+                <small class="text-muted">
+                    Se creará un archivo llamado:
+                    <strong id="preview-nombre">AD Enterprise.[Nombre de la Empresa]</strong>
+                </small>
+                <span asp-validation-for="Input.NombreEmpresa" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Logo de la Empresa</label>
+                <input type="file" asp-for="Input.LogoFile" class="form-control" accept="image/*"/>
+                <small class="text-muted">Formatos: PNG, JPG. Recomendado: fondo transparente (PNG).</small>
+            </div>
+
+            <hr/>
+
+            <!-- Paso 2: Administrador -->
+            <h6 class="fw-bold mb-3" style="color:#0a2463;">
+                <span class="step-badge">2</span> Usuario Administrador
+            </h6>
+
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre Completo <span class="text-danger">*</span></label>
+                <input asp-for="Input.AdminNombre" class="form-control" placeholder="Nombre del administrador"/>
+                <span asp-validation-for="Input.AdminNombre" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Usuario <span class="text-danger">*</span></label>
+                    <input asp-for="Input.AdminUsuario" class="form-control" placeholder="admin"/>
+                    <span asp-validation-for="Input.AdminUsuario" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Correo</label>
+                    <input asp-for="Input.AdminCorreo" type="email" class="form-control" placeholder="correo@empresa.com"/>
+                </div>
+            </div>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Contraseña <span class="text-danger">*</span></label>
+                    <input asp-for="Input.AdminPassword" type="password" class="form-control"/>
+                    <span asp-validation-for="Input.AdminPassword" class="text-danger small"></span>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Confirmar Contraseña <span class="text-danger">*</span></label>
+                    <input asp-for="Input.AdminPasswordConfirm" type="password" class="form-control"/>
+                    <span asp-validation-for="Input.AdminPasswordConfirm" class="text-danger small"></span>
+                </div>
+            </div>
+
+            <hr/>
+
+            <!-- Paso 3: Google Sheets -->
+            <h6 class="fw-bold mb-3" style="color:#0a2463;">
+                <span class="step-badge">3</span> Conexión con Google Sheets
+            </h6>
+
+            <div class="alert alert-info" style="font-size:0.85rem;">
+                <i class="bi bi-info-circle-fill"></i>
+                <strong>Cree su archivo de datos:</strong><br/>
+                <ol class="mb-1 mt-1 ps-3">
+                    <li>Abra <a href="https://sheets.google.com" target="_blank">Google Sheets</a></li>
+                    <li>Cree una hoja nueva en blanco</li>
+                    <li>Nómbrela: <strong id="nombre-sheets">AD Enterprise.[Nombre de la Empresa]</strong></li>
+                    <li>Compártala con: <code style="font-size:0.78rem;">ad-enterprise-app@ad-enterprise-498621.iam.gserviceaccount.com</code> (Editor)</li>
+                    <li>Copie el <strong>ID</strong> de la URL y péguelo abajo</li>
+                </ol>
+                <small class="text-muted">La URL tiene este formato:<br/>
+                <code>https://docs.google.com/spreadsheets/d/<strong>[ESTE ES EL ID]</strong>/edit</code></small>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-semibold">ID del Google Sheets <span class="text-danger">*</span></label>
+                <input asp-for="Input.SpreadsheetId" class="form-control font-monospace"
+                       placeholder="Ej: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"/>
+                <small class="text-muted">Se encuentra en la URL del archivo de Google Sheets</small>
+                <span asp-validation-for="Input.SpreadsheetId" class="text-danger small"></span>
+            </div>
+
+            <button type="submit" class="btn w-100 py-2 fw-bold text-white mt-2"
+                    style="background:#0a2463;"
+                    onclick="this.disabled=true; this.innerHTML='<i class=\'bi bi-hourglass-split\'></i> Configurando...'; this.form.submit();">
+                <i class="bi bi-rocket-takeoff"></i> Iniciar Sistema
+            </button>
+
+        </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.getElementById('Input_NombreEmpresa')?.addEventListener('input', function() {
+    var val = this.value || '[Nombre de la Empresa]';
+    var preview = document.getElementById('preview-nombre');
+    var sheets  = document.getElementById('nombre-sheets');
+    if (preview) preview.textContent = 'AD Enterprise.' + val;
+    if (sheets)  sheets.textContent  = 'AD Enterprise.' + val;
+});
+</script>
+</body>
+</html>

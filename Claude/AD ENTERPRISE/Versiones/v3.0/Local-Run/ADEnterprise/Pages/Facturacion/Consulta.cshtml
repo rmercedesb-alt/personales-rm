@@ -1,0 +1,342 @@
+@page
+@model ADEnterprise.Pages.Facturacion.ConsultaModel
+@{ ViewData["Title"] = "Consulta de Pagos Factoring"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-file-earmark-arrow-up"></i> Consulta de Pagos Factoring</div>
+        <div class="page-subtitle">Consulte, filtre y gestione todos los pagos factoring del sistema</div>
+    </div>
+    <a href="/Facturacion/Nueva" class="btn btn-primary-app">
+        <i class="bi bi-plus-circle"></i> Nueva Factura
+    </a>
+</div>
+
+<!-- ── FILTROS ──────────────────────────────────────────────────────────── -->
+<div class="card shadow-sm mb-2">
+    <div class="card-body py-2">
+        <div class="row g-2 align-items-center">
+
+            <!-- Búsqueda texto -->
+            <div class="col-md-3">
+                <input type="text" id="buscar" class="form-control form-control-sm"
+                       placeholder="🔍 Ticket, empresa, cliente..."/>
+            </div>
+
+            <!-- Rango de fechas -->
+            <div class="col-6 col-md-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-calendar-event"></i></span>
+                    <input type="date" id="fechaDesde" class="form-control form-control-sm" title="Desde"/>
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-white"><i class="bi bi-calendar-check"></i></span>
+                    <input type="date" id="fechaHasta" class="form-control form-control-sm" title="Hasta"/>
+                </div>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-6 col-md-2">
+                <select id="filtroEstado" class="form-select form-select-sm">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="PagadoParcial">Pago Parcial</option>
+                    <option value="Pagada">Pagada</option>
+                    <option value="Vencida">Vencida</option>
+                </select>
+            </div>
+
+            <!-- Compañía -->
+            <div class="col-6 col-md-2">
+                <select id="filtroEmpresa" class="form-select form-select-sm">
+                    <option value="">Todas las compañías</option>
+                    @foreach (var emp in Model.Empresas)
+                    { <option value="@emp">@emp</option> }
+                </select>
+            </div>
+
+            <!-- Cliente -->
+            <div class="col-6 col-md-2">
+                <select id="filtroCliente" class="form-select form-select-sm">
+                    <option value="">Todos los clientes</option>
+                    @foreach (var cli in Model.Clientes)
+                    { <option value="@cli">@cli</option> }
+                </select>
+            </div>
+
+            <!-- Contador + limpiar -->
+            <div class="col-auto d-flex align-items-center gap-2">
+                <span class="text-muted small" id="contadorVisible">@Model.Facturas.Count</span>
+                <span class="text-muted small">facturas</span>
+                <button id="btnLimpiar" class="btn btn-sm btn-outline-secondary py-0 px-2" title="Limpiar filtros">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ── TABLA CON STICKY HEADER ───────────────────────────────────────────── -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+
+        @if (!Model.Facturas.Any())
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted opacity-50"></i>
+                <h5 class="mt-3 text-muted">No hay facturas registradas</h5>
+                <p class="text-muted">Comience creando una factura o importe datos históricos.</p>
+                <div class="d-flex gap-2 justify-content-center mt-3">
+                    <a href="/Facturacion/Nueva" class="btn btn-primary-app">
+                        <i class="bi bi-plus-circle"></i> Nueva Factura
+                    </a>
+                    <a href="/Mantenimiento/Importar" class="btn btn-outline-secondary">
+                        <i class="bi bi-upload"></i> Importar Datos
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- contenedor con scroll vertical — el thead es sticky -->
+            <div style="max-height: calc(100vh - 280px); overflow-y: auto;" id="tablaContainer">
+            <table class="table table-sm table-hover mb-0" id="tablaFacturas" style="min-width:900px">
+                <thead id="theadFacturas" style="position:sticky; top:0; z-index:2; background:var(--azul-marino); color:white;">
+                    <tr>
+                        <th class="sort-col" data-col="0" style="cursor:pointer; white-space:nowrap; user-select:none">
+                            N° TICKET <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col" data-col="1" style="cursor:pointer; user-select:none">
+                            COMPAÑÍA <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col" data-col="2" style="cursor:pointer; user-select:none">
+                            CLIENTE <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col" data-col="3" style="cursor:pointer; white-space:nowrap; user-select:none">
+                            FECHA <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col text-end" data-col="4" style="cursor:pointer; user-select:none">
+                            MONTO <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col text-end" data-col="5" style="cursor:pointer; user-select:none">
+                            PAGADO <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col text-end" data-col="6" style="cursor:pointer; user-select:none">
+                            SALDO <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="sort-col text-center" data-col="7" style="cursor:pointer; user-select:none">
+                            ESTADO <span class="sort-icon">⇅</span>
+                        </th>
+                        <th class="text-center" style="white-space:nowrap">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var f in Model.Facturas.OrderByDescending(x => x.NumTicket))
+                {
+                    <tr data-estado="@f.Estado"
+                        data-empresa="@f.EmpresaNombre"
+                        data-cliente="@f.ClienteNombre"
+                        data-fecha="@f.FechaFactura.ToString("yyyy-MM-dd")"
+                        data-ticket="@f.NumTicket"
+                        data-monto="@f.Monto.ToString("F2")"
+                        data-pagado="@f.PagadoALaFecha.ToString("F2")"
+                        data-saldo="@f.SaldoPendiente.ToString("F2")">
+                        <td>
+                            <strong>#@f.NumTicket</strong>
+                            <br/><small class="text-muted font-monospace" style="font-size:0.7rem">@f.NumTransaccion</small>
+                        </td>
+                        <td>@f.EmpresaNombre</td>
+                        <td>@f.ClienteNombre</td>
+                        <td style="white-space:nowrap">@f.FechaFactura.ToString("dd/MM/yyyy")</td>
+                        <td class="text-end fw-semibold">@f.Monto.ToString("N2")</td>
+                        <td class="text-end text-success">@f.PagadoALaFecha.ToString("N2")</td>
+                        <td class="text-end @(f.SaldoPendiente > 0 ? "text-warning fw-bold" : "text-muted")">
+                            @f.SaldoPendiente.ToString("N2")
+                        </td>
+                        <td class="text-center">
+                            <span class="badge
+                                @(f.Estado == ADEnterprise.Models.EstadoFactura.Pendiente     ? "bg-secondary" :
+                                  f.Estado == ADEnterprise.Models.EstadoFactura.PagadoParcial ? "bg-warning text-dark" :
+                                  f.Estado == ADEnterprise.Models.EstadoFactura.Pagada        ? "bg-success"   : "bg-danger")"
+                                  style="font-size:0.7rem">
+                                @f.Estado
+                            </span>
+                        </td>
+                        <td class="text-center" style="white-space:nowrap">
+                            @if (f.Estado != ADEnterprise.Models.EstadoFactura.Pagada)
+                            {
+                                <a href="/Pagos/Registrar?ticket=@f.NumTicket"
+                                   class="btn btn-sm btn-outline-success py-0 px-1" title="Registrar pago">
+                                    <i class="bi bi-cash-coin"></i>
+                                </a>
+                            }
+                            <a href="/Facturacion/Detalle?id=@f.NumTransaccion"
+                               class="btn btn-sm btn-outline-primary py-0 px-1" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+            </div>
+
+            <!-- Barra de totales (sticky abajo) -->
+            <div class="d-flex flex-wrap gap-4 px-3 py-2 border-top" style="background:#f0f4ff; font-size:.82rem" id="barTotales">
+                <span><strong>Mostrando:</strong> <span id="contadorTotal">@Model.Facturas.Count</span> facturas</span>
+                <span><strong>Monto:</strong> RD$ <span id="sumMonto">@Model.Facturas.Sum(f => f.Monto).ToString("N2")</span></span>
+                <span class="text-warning"><strong>Saldo pend.:</strong> RD$ <span id="sumSaldo">@Model.Facturas.Where(f => f.TieneSaldo).Sum(f => f.SaldoPendiente).ToString("N2")</span></span>
+                <span class="text-success"><strong>Cobrado:</strong> RD$ <span id="sumPagado">@Model.Facturas.Sum(f => f.PagadoALaFecha).ToString("N2")</span></span>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+<style>
+/* ── Columna sort activa ── */
+.sort-col.asc  .sort-icon::after { content: " ▲"; }
+.sort-col.desc .sort-icon::after { content: " ▼"; }
+.sort-col:hover { background: rgba(255,255,255,0.12) !important; }
+/* ── Sin datos ocultos ── */
+#tablaContainer { scrollbar-width: thin; }
+</style>
+<script>
+(function () {
+    const tabla     = document.getElementById('tablaFacturas');
+    const container = document.getElementById('tablaContainer');
+    if (!tabla) return;
+
+    const buscar     = document.getElementById('buscar');
+    const fEstado    = document.getElementById('filtroEstado');
+    const fEmp       = document.getElementById('filtroEmpresa');
+    const fCli       = document.getElementById('filtroCliente');
+    const fDesde     = document.getElementById('fechaDesde');
+    const fHasta     = document.getElementById('fechaHasta');
+    const btnLimpiar = document.getElementById('btnLimpiar');
+    const contador   = document.getElementById('contadorVisible');
+    const cTotal     = document.getElementById('contadorTotal');
+    const sMonto     = document.getElementById('sumMonto');
+    const sSaldo     = document.getElementById('sumSaldo');
+    const sPagado    = document.getElementById('sumPagado');
+
+    // ── Formato número ─────────────────────────────────
+    const fmt = n => n.toLocaleString('es-DO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    // ── Filtrar ─────────────────────────────────────────
+    function filtrar() {
+        const txt   = (buscar?.value  ?? '').toLowerCase().trim();
+        const est   = (fEstado?.value ?? '').toLowerCase();
+        const emp   = (fEmp?.value    ?? '').toLowerCase();
+        const cli   = (fCli?.value    ?? '').toLowerCase();
+        const desde = fDesde?.value ? new Date(fDesde.value) : null;
+        const hasta = fHasta?.value ? new Date(fHasta.value) : null;
+
+        let vis = 0, totMonto = 0, totSaldo = 0, totPagado = 0;
+
+        tabla.querySelectorAll('tbody tr').forEach(tr => {
+            const fechaStr = tr.dataset.fecha ?? '';
+            const fecha    = fechaStr ? new Date(fechaStr) : null;
+
+            const okTxt    = !txt   || tr.textContent.toLowerCase().includes(txt);
+            const okEst    = !est   || (tr.dataset.estado   ?? '').toLowerCase().includes(est);
+            const okEmp    = !emp   || (tr.dataset.empresa  ?? '').toLowerCase() === emp;
+            const okCli    = !cli   || (tr.dataset.cliente  ?? '').toLowerCase() === cli;
+            const okDesde  = !desde || !fecha || fecha >= desde;
+            const okHasta  = !hasta || !fecha || fecha <= hasta;
+
+            const visible = okTxt && okEst && okEmp && okCli && okDesde && okHasta;
+            tr.style.display = visible ? '' : 'none';
+
+            if (visible) {
+                vis++;
+                totMonto  += parseFloat(tr.dataset.monto  ?? 0);
+                totPagado += parseFloat(tr.dataset.pagado ?? 0);
+                totSaldo  += parseFloat(tr.dataset.saldo  ?? 0);
+            }
+        });
+
+        if (contador) contador.textContent = vis;
+        if (cTotal)   cTotal.textContent   = vis;
+        if (sMonto)   sMonto.textContent   = fmt(totMonto);
+        if (sSaldo)   sSaldo.textContent   = fmt(totSaldo);
+        if (sPagado)  sPagado.textContent  = fmt(totPagado);
+    }
+
+    buscar?.addEventListener('input', filtrar);
+    fEstado?.addEventListener('change', filtrar);
+    fEmp?.addEventListener('change', filtrar);
+    fCli?.addEventListener('change', filtrar);
+    fDesde?.addEventListener('change', filtrar);
+    fHasta?.addEventListener('change', filtrar);
+
+    // ── Limpiar filtros ─────────────────────────────────
+    btnLimpiar?.addEventListener('click', () => {
+        if (buscar)  buscar.value  = '';
+        if (fEstado) fEstado.value = '';
+        if (fEmp)    fEmp.value    = '';
+        if (fCli)    fCli.value    = '';
+        if (fDesde)  fDesde.value  = '';
+        if (fHasta)  fHasta.value  = '';
+        filtrar();
+    });
+
+    // ── Ordenar por columna ─────────────────────────────
+    let sortCol = -1, sortDir = 1;
+    const dataKeys = ['ticket','','','fecha','monto','pagado','saldo','estado'];
+
+    document.querySelectorAll('.sort-col').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = parseInt(th.dataset.col);
+
+            // Quitar clase a todos
+            document.querySelectorAll('.sort-col').forEach(h => h.classList.remove('asc','desc'));
+
+            if (sortCol === col) {
+                sortDir *= -1;
+            } else {
+                sortCol = col;
+                sortDir = 1;
+            }
+            th.classList.add(sortDir === 1 ? 'asc' : 'desc');
+
+            const tbody = tabla.querySelector('tbody');
+            const rows  = Array.from(tbody.querySelectorAll('tr'));
+
+            rows.sort((a, b) => {
+                let va, vb;
+                const key = dataKeys[col];
+
+                if (key === 'ticket') {
+                    va = parseInt(a.dataset.ticket ?? 0);
+                    vb = parseInt(b.dataset.ticket ?? 0);
+                } else if (['monto','pagado','saldo'].includes(key)) {
+                    va = parseFloat(a.dataset[key] ?? 0);
+                    vb = parseFloat(b.dataset[key] ?? 0);
+                } else if (key === 'fecha') {
+                    va = a.dataset.fecha ?? '';
+                    vb = b.dataset.fecha ?? '';
+                } else if (key === 'estado') {
+                    va = (a.dataset.estado ?? '').toLowerCase();
+                    vb = (b.dataset.estado ?? '').toLowerCase();
+                } else {
+                    // columnas sin data-key: usar texto de celda
+                    va = a.cells[col]?.textContent.trim().toLowerCase() ?? '';
+                    vb = b.cells[col]?.textContent.trim().toLowerCase() ?? '';
+                }
+
+                if (va < vb) return -1 * sortDir;
+                if (va > vb) return  1 * sortDir;
+                return 0;
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        });
+    });
+
+})();
+</script>
+}

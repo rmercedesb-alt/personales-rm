@@ -1,0 +1,150 @@
+@page
+@model ADEnterprise.Pages.Reportes.PorCompaniaModel
+@{ ViewData["Title"] = "Reporte Por Compañía"; }
+
+<div class="d-flex justify-content-between align-items-center mb-2 no-print">
+    <div>
+        <div class="page-title mb-0"><i class="bi bi-building"></i> Reporte Por Compañía</div>
+        <div class="page-subtitle mb-0">Facturas agrupadas por compañía</div>
+    </div>
+    <div class="d-flex gap-2">
+        <form method="post" asp-page-handler="ExportarExcel">
+            <input type="hidden" name="desde"  value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="hasta"  value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+            <input type="hidden" name="estado" value="@Model.FiltroEstado"/>
+            <button class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+        </form>
+        <button onclick="window.print()" class="btn btn-secondary btn-sm"><i class="bi bi-printer"></i> Imprimir / PDF</button>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm mb-3 no-print"><div class="card-body py-2">
+<form method="get" class="row g-2 align-items-end">
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Desde</label>
+        <input type="date" name="FechaDesde" class="form-control form-control-sm" value="@Model.FechaDesde.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Hasta</label>
+        <input type="date" name="FechaHasta" class="form-control form-control-sm" value="@Model.FechaHasta.ToString("yyyy-MM-dd")"/>
+    </div>
+    <div class="col-6 col-md-2">
+        <label class="form-label fw-semibold small mb-1">Estado</label>
+        <select name="FiltroEstado" class="form-select form-select-sm">
+            <option value="">— Todos —</option>
+            @foreach (var est in new[]{"Pendiente","PagadoParcial","Pagada","Vencida"})
+            {
+                if (est == Model.FiltroEstado) { <option value="@est" selected>@est</option> }
+                else { <option value="@est">@est</option> }
+            }
+        </select>
+    </div>
+    <div class="col-auto d-flex gap-2">
+        <button type="submit" class="btn btn-sm btn-primary-app"><i class="bi bi-funnel"></i> Filtrar</button>
+        <a href="/Reportes/PorCompania" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-circle"></i></a>
+    </div>
+</form>
+</div></div>
+
+<!-- Encabezado impresión -->
+@inject Microsoft.Extensions.Configuration.IConfiguration _cfg
+@{ var _nomEmp = _cfg["Empresa:Nombre"] ?? "Fanny Mercedes & Asoc."; }
+<div class="print-only mb-3">
+    <h4 class="fw-bold">@_nomEmp — Reporte Por Compañía</h4>
+    <p class="text-muted small">Período: @Model.FechaDesde.ToString("dd/MM/yyyy") al @Model.FechaHasta.ToString("dd/MM/yyyy") | Generado: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+</div>
+
+@if (!Model.Grupos.Any())
+{
+    <div class="text-center text-muted py-5"><i class="bi bi-inbox fs-1 d-block mb-2"></i> Sin datos en el período seleccionado.</div>
+}
+else
+{
+<!-- Resumen de compañías -->
+<div class="row g-3 mb-4 no-print">
+@foreach (var g in Model.Grupos)
+{
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm" style="border-left:4px solid var(--azul-marino)">
+            <div class="card-body py-2">
+                <div class="fw-bold text-truncate">@g.Empresa</div>
+                <div class="row g-1 mt-1 small">
+                    <div class="col-4">Total:<br/><strong>@g.TotalMonto.ToString("N0")</strong></div>
+                    <div class="col-4">Pagado:<br/><strong class="text-success">@g.TotalPagado.ToString("N0")</strong></div>
+                    <div class="col-4">Saldo:<br/><strong class="text-warning">@g.TotalPendiente.ToString("N0")</strong></div>
+                </div>
+                <div class="text-muted small mt-1">@g.Facturas.Count fact. — @g.Pendientes pend.</div>
+            </div>
+        </div>
+    </div>
+}
+</div>
+
+<!-- Tablas por compañía -->
+@foreach (var g in Model.Grupos)
+{
+<div class="card shadow-sm mb-3">
+    <div class="card-header fw-bold d-flex justify-content-between" style="background:var(--azul-marino);color:white">
+        <span><i class="bi bi-building"></i> @g.Empresa</span>
+        <span class="small">@g.Facturas.Count facturas | Saldo: RD$ @g.TotalPendiente.ToString("N2")</span>
+    </div>
+    <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+            <tr><th>Ticket</th><th>Cliente</th><th>Fecha</th><th class="text-end">Monto</th><th class="text-end">Pagado</th><th class="text-end">Saldo</th><th class="text-center">Estado</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var f in g.Facturas)
+        {
+            <tr class="@(f.Estado == EstadoFactura.Vencida ? "table-danger" : f.Estado == EstadoFactura.Pagada ? "table-success" : f.Estado == EstadoFactura.PagadoParcial ? "table-warning" : "")">
+                <td><strong>#@f.NumTicket</strong></td>
+                <td>@f.ClienteNombre</td>
+                <td>@f.FechaFactura.ToString("dd/MM/yyyy")</td>
+                <td class="text-end">@f.Monto.ToString("N2")</td>
+                <td class="text-end text-success">@f.PagadoALaFecha.ToString("N2")</td>
+                <td class="text-end fw-bold">@f.SaldoPendiente.ToString("N2")</td>
+                <td class="text-center">
+                    <span class="badge @(f.Estado == EstadoFactura.Pagada ? "bg-success" : f.Estado == EstadoFactura.Vencida ? "bg-danger" : f.Estado == EstadoFactura.PagadoParcial ? "bg-warning text-dark" : "bg-secondary")">
+                        @f.Estado
+                    </span>
+                </td>
+            </tr>
+        }
+        </tbody>
+        <tfoot style="background:#f0f4ff;font-weight:bold">
+            <tr>
+                <td colspan="3" class="text-end">Subtotal:</td>
+                <td class="text-end">RD$ @g.TotalMonto.ToString("N2")</td>
+                <td class="text-end text-success">RD$ @g.TotalPagado.ToString("N2")</td>
+                <td class="text-end text-warning">RD$ @g.TotalPendiente.ToString("N2")</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    </div>
+</div>
+}
+<!-- Total general -->
+<div class="card" style="background:var(--azul-marino);color:white">
+<div class="card-body py-2 d-flex justify-content-end gap-5">
+    <span><strong>TOTAL GENERAL</strong></span>
+    <span>RD$ @Model.Grupos.Sum(g => g.TotalMonto).ToString("N2")</span>
+    <span class="text-success-emphasis">Pagado: RD$ @Model.Grupos.Sum(g => g.TotalPagado).ToString("N2")</span>
+    <span class="text-warning-emphasis">Saldo: RD$ @Model.Grupos.Sum(g => g.TotalPendiente).ToString("N2")</span>
+</div>
+</div>
+}
+
+@section Scripts {
+<style>
+@@media print {
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+    .app-header, .app-navbar, .app-footer { display: none !important; }
+    .main-content { padding: 0 !important; }
+    .card { border: none !important; box-shadow: none !important; page-break-inside: avoid; }
+}
+.print-only { display: none; }
+</style>
+}

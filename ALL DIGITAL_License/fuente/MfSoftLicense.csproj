@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RollForward>Major</RollForward>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MfSoftLicense</RootNamespace>
+    <AssemblyName>MfSoftLicense</AssemblyName>
+    <Version>1.2.0</Version>
+    <Product>ALL DIGITAL LICENSE</Product>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Plantillas que van dentro del "paquete de licencia" (INSTALAR_LICENCIA.ps1/.bat) -->
+    <Content Include="plantillas\**" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

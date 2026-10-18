@@ -1,0 +1,39 @@
+<svg width="320" height="160" viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo opcional para preview (quitar para uso sobre fondo blanco) -->
+  <!-- <rect width="320" height="160" fill="#ffffff"/> -->
+
+  <!-- Círculo principal azul marino -->
+  <circle cx="72" cy="72" r="62" fill="#0a2463"/>
+  <!-- Círculo interior decorativo -->
+  <circle cx="88" cy="56" r="38" fill="#1e4db7" opacity="0.45"/>
+
+  <!-- Letras AD grandes dentro del círculo -->
+  <text x="20" y="98"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="72" font-weight="900"
+        fill="white">AD</text>
+
+  <!-- Separador vertical -->
+  <line x1="148" y1="18" x2="148" y2="118" stroke="#1e4db7" stroke-width="2"/>
+
+  <!-- ALL -->
+  <text x="162" y="62"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="30" font-weight="900"
+        fill="#0a2463" letter-spacing="3">ALL</text>
+
+  <!-- DIGITAL -->
+  <text x="162" y="98"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="30" font-weight="900"
+        fill="#1e4db7" letter-spacing="1">DIGITAL</text>
+
+  <!-- Línea roja decorativa -->
+  <rect x="162" y="108" width="148" height="4" fill="#e63946" rx="2"/>
+
+  <!-- ENTERPRISE -->
+  <text x="162" y="132"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="12" font-weight="400"
+        fill="#888888" letter-spacing="5">ENTERPRISE</text>
+</svg>

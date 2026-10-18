@@ -1,0 +1,164 @@
+@model PorfiAcademy.Controllers.AdminVideosViewModel
+@{
+    ViewData["Title"] = "Videos y Mux";
+}
+
+<partial name="_ManageNav" />
+
+<section class="card">
+    <h1>Videos y Mux</h1>
+
+    <h2>Conexión con Mux</h2>
+    @if (ViewBag.Configured == true)
+    {
+        <p>Token configurado (<code>@ViewBag.TokenIdHint</code>). Estado:
+            @if (ViewBag.MuxOk == true) { <strong class="ok">conectado</strong> }
+            else { <strong class="error">@ViewBag.MuxMessage</strong> }
+        </p>
+    }
+    else
+    {
+        <p class="error">Mux no está configurado.</p>
+    }
+
+    <h2>Clave de firma (reproducción protegida)</h2>
+    @if (ViewBag.HasSigningKey == true)
+    {
+        <p>Estado: <strong class="ok">configurada</strong>. Puedes reemplazarla pegando otra abajo.</p>
+    }
+    else
+    {
+        <p class="error">Falta la clave de firma: sin ella los videos no se pueden reproducir.</p>
+    }
+    <details @(ViewBag.HasSigningKey == true ? "" : "open")>
+        <summary>@(ViewBag.HasSigningKey == true ? "Reemplazar clave de firma" : "Configurar clave de firma")</summary>
+        <p class="hint">En Mux (environment Desarrollo): Configuración → Claves de firma → Crear. Copia el <strong>ID</strong> y la <strong>clave privada</strong> (se muestra una sola vez).</p>
+        <form asp-action="SigningKey" method="post">
+            <label for="keyId">ID de la clave de firma</label>
+            <input id="keyId" name="keyId" type="text" autocomplete="off" data-lpignore="true" placeholder="Ejemplo: aB3dE5fG7hI9jK1lM3nO5pQ7rS9tU1vW" />
+            <label for="privateKey">Clave privada (texto largo)</label>
+            <textarea id="privateKey" name="privateKey" rows="4" autocomplete="off" data-lpignore="true" spellcheck="false" class="secret" placeholder="Pega aquí la clave privada completa"></textarea>
+            <button class="btn" type="submit">Guardar clave de firma</button>
+        </form>
+    </details>
+
+    <h2>Subir un video</h2>
+    <form id="upform" onsubmit="return false">
+        @Html.AntiForgeryToken()
+        <label for="kind">Tipo de video</label>
+        <select id="kind">
+            <option value="private">Video del curso (protegido: solo suscriptores o gratis con cuenta)</option>
+            <option value="public">Corte promocional (PÚBLICO, para el carrusel de la portada)</option>
+        </select>
+        <p class="hint" id="kindHint" hidden>⚠ Los cortes promocionales los puede ver cualquiera que tenga el enlace. Sube solo un fragmento corto, nunca el video completo de un curso.</p>
+        <label for="title">Título del video</label>
+        <input id="title" name="title" maxlength="120" />
+        <label for="file">Archivo de video</label>
+        <input id="file" type="file" accept="video/*" class="file" />
+        <button id="upbtn" class="btn" type="button">Subir a Mux</button>
+        <p id="upstatus" class="hint"></p>
+        <progress id="upprogress" max="100" value="0" hidden></progress>
+    </form>
+
+    <h2>Videos en Mux (@Model.Assets.Count)</h2>
+    @if (Model.Assets.Count == 0)
+    {
+        <p class="hint">Aún no hay videos.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+        <table>
+            <thead><tr><th>Título</th><th>Estado</th><th>Duración</th><th>Acceso</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var a in Model.Assets)
+            {
+                var isPublic = a.PlaybackPolicy == "public";
+                var isFree = Model.FreeIds.Contains(a.Id);
+                <tr>
+                    <td>@(string.IsNullOrWhiteSpace(a.Title) ? a.Id : a.Title)</td>
+                    <td>@a.Status</td>
+                    <td>@(a.Duration is double d ? TimeSpan.FromSeconds(d).ToString(@"m\:ss") : "-")</td>
+                    <td>
+                        @if (isPublic) { <span class="tag paid">Promo público</span> }
+                        else { <span class="tag @(isFree ? "free" : "paid")">@(isFree ? "Gratis (con cuenta)" : "Solo suscriptores")</span> }
+                    </td>
+                    <td class="actions">
+                        @if (a.Status == "ready" && a.PlaybackPolicy == "signed")
+                        {
+                            <a asp-controller="Members" asp-action="Watch" asp-route-id="@a.Id">Ver</a>
+                            <form asp-action="ToggleFree" method="post" class="inline">
+                                <input type="hidden" name="id" value="@a.Id" />
+                                <button type="submit" class="linkbtn">@(isFree ? "Hacer de pago" : "Hacer gratis")</button>
+                            </form>
+                        }
+                        @if (a.Status == "ready" && isPublic)
+                        {
+                            <form asp-controller="Manage" asp-action="AddClipSlide" method="post" class="inline">
+                                <input type="hidden" name="assetId" value="@a.Id" />
+                                <button type="submit" class="linkbtn">Usar en carrusel</button>
+                            </form>
+                        }
+                        <form asp-action="DeleteAsset" method="post" class="inline" onsubmit="return confirm('¿Eliminar este video de Mux?');">
+                            <input type="hidden" name="id" value="@a.Id" />
+                            <button type="submit" class="linkbtn">Eliminar</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+        </div>
+    }
+</section>
+
+@section Scripts {
+<script>
+(function () {
+    const btn = document.getElementById('upbtn');
+    const status = document.getElementById('upstatus');
+    const bar = document.getElementById('upprogress');
+    const kind = document.getElementById('kind');
+    const hint = document.getElementById('kindHint');
+    const token = document.querySelector('#upform input[name=__RequestVerificationToken]').value;
+
+    kind.addEventListener('change', () => { hint.hidden = kind.value !== 'public'; });
+
+    btn.addEventListener('click', async () => {
+        const file = document.getElementById('file').files[0];
+        if (!file) { status.textContent = 'Elige primero un archivo de video.'; return; }
+        btn.disabled = true;
+        status.textContent = 'Preparando la subida…';
+        try {
+            const res = await fetch('/Admin/CreateUpload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify({ title: document.getElementById('title').value, isPublicClip: kind.value === 'public' })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || 'No se pudo preparar la subida.');
+
+            bar.hidden = false;
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('PUT', data.url);
+                xhr.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        bar.value = Math.round(e.loaded * 100 / e.total);
+                        status.textContent = 'Subiendo… ' + bar.value + '%';
+                    }
+                };
+                xhr.onload = () => (xhr.status >= 200 && xhr.status < 300) ? resolve() : reject(new Error('Mux rechazó la subida (' + xhr.status + ').'));
+                xhr.onerror = () => reject(new Error('Error de red durante la subida.'));
+                xhr.send(file);
+            });
+            status.textContent = 'Subida completa. Mux está procesando el video; recargando…';
+            setTimeout(() => location.reload(), 4000);
+        } catch (err) {
+            status.textContent = err.message;
+            btn.disabled = false;
+        }
+    });
+})();
+</script>
+}

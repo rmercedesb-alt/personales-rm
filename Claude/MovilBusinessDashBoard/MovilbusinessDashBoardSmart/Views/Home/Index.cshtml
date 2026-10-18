@@ -1,0 +1,750 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Visitas &mdash; AM COMERCIAL</title>
+<style>
+/* Vuelto a tema oscuro (2026-09-04) — pedido explícito del usuario: los colores de
+   marca (verdes/azules institucionales) que se ven bien sobre blanco en el resto
+   del sistema, aquí NO se entendían — este dashboard usa mucho color de estado
+   (chips/badges rojo-amarillo-verde) que solo resalta bien sobre fondo oscuro.
+   Se queda igual que Torre de Control (única excepción ya acordada), no como el
+   resto de las vistas. */
+:root{
+  --bg:#0d1117;--panel:#161b22;--panel2:#1c2230;--border:#30363d;--line:#232a33;
+  --text:#e6edf3;--muted:#8b949e;--accent:#1f6feb;--accent2:#58a6ff;
+  --good:#3fb950;--warn:#d29922;--bad:#f85149;--purple:#bc8cff;
+  --good-bg:#0f2417;--warn-bg:#26200a;--bad-bg:#28110f;--purple-bg:#1d1430;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;padding:14px 20px;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.co-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line);flex-shrink:0}
+.co-left{display:flex;align-items:center;gap:14px}
+.co-name{font-size:19px;font-weight:800;color:var(--text);letter-spacing:.4px}
+.co-subtitle{font-size:12px;color:var(--accent2);font-weight:500;margin-top:3px}
+.co-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.co-clock{font-family:monospace;font-size:21px;color:var(--accent);font-weight:700}
+.live{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted)}
+.dot{width:8px;height:8px;background:var(--good);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+@@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+.cards{display:grid;grid-template-columns:repeat(7,1fr);gap:11px;margin-bottom:12px;flex-shrink:0}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:12px 14px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:10px 10px 0 0}
+.c-blue::before{background:var(--accent)}.c-yellow::before{background:var(--warn)}.c-green::before{background:var(--good)}.c-orange::before{background:var(--warn)}.c-red::before{background:var(--bad)}
+.card-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-val{font-size:42px;font-weight:700;line-height:1;margin-bottom:4px;transition:font-size .15s}
+.c-blue .card-val{color:var(--accent)}.c-yellow .card-val{color:var(--warn)}.c-green .card-val{color:var(--good)}.c-orange .card-val{color:var(--warn)}.c-red .card-val{color:var(--bad)}
+.card-hint{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.urgente-list{margin-top:6px}.urgente-item{font-size:11px;padding:4px 0;border-bottom:1px solid var(--line);color:var(--bad);line-height:1.35}.urgente-item:last-child{border-bottom:none}
+.urgente-time{color:var(--muted);font-family:monospace;font-size:10px}.urgente-empty{font-size:12px;color:var(--good);margin-top:6px}
+.top3-list{margin-top:6px}.top3-item{font-size:11px;padding:4px 0;border-bottom:1px solid var(--line);color:var(--text);line-height:1.35}.top3-item:last-child{border-bottom:none}
+.top3-num{color:var(--bad);font-weight:800;font-size:12px;margin-right:5px}
+.tbl-wrap{background:var(--panel);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex:1;display:flex;flex-direction:column;min-height:0}
+.tbl-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.tbl-bar h2{font-size:13px;font-weight:600}
+.cd-badge{background:var(--panel2);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--muted);white-space:nowrap}
+.hist-badge{background:var(--warn-bg);color:var(--warn);border-radius:20px;padding:3px 12px;font-size:11px;white-space:nowrap}
+.filter-bar{display:flex;gap:8px;align-items:center;padding:9px 16px;border-bottom:1px solid var(--border);flex-wrap:wrap;background:var(--bg);flex-shrink:0}
+.f-lbl{font-size:11px;color:var(--muted);white-space:nowrap}
+.filter-bar input[type=date],.filter-bar input[type=text]{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:4px 8px;font-size:12px;outline:none;transition:border .15s;height:29px}
+.filter-bar input[type=date]:focus,.filter-bar input[type=text]:focus{border-color:var(--accent2)}
+.filter-bar input[type=text]{width:185px}.filter-bar input[type=date]{width:138px;color-scheme:dark}
+.f-count{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.f-sep{width:1px;height:18px;background:var(--border);flex-shrink:0}
+.btn-clear{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;height:29px;transition:all .15s}
+.btn-clear:hover{border-color:var(--accent2);color:var(--accent2)}
+.btn-filter{background:none;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:4px 11px;font-size:11px;cursor:pointer;height:29px;transition:all .15s;white-space:nowrap;font-weight:500}
+.btn-filter:hover{border-color:var(--muted);color:var(--text)}
+.btn-filter.fa-yellow{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);font-weight:700}
+.btn-filter.fa-orange{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);font-weight:700}
+.ms-wrap{position:relative;flex-shrink:0}
+.ms-trigger{background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:0 10px;font-size:12px;cursor:pointer;height:29px;display:flex;align-items:center;gap:6px;min-width:195px;transition:border .15s;text-align:left}
+.ms-trigger:hover,.ms-trigger.ms-open{border-color:var(--accent2)}.ms-trigger.ms-active{color:var(--accent2);border-color:var(--accent)}
+#ms-label{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-arrow{color:var(--muted);font-size:10px;flex-shrink:0;transition:transform .15s}.ms-trigger.ms-open .ms-arrow{transform:rotate(180deg)}
+.ms-drop{position:absolute;top:calc(100% + 4px);left:0;background:var(--panel2);border:1px solid var(--border);border-radius:8px;min-width:220px;max-height:230px;overflow-y:auto;z-index:200;display:none;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.ms-drop.ms-open{display:block}.ms-opt{display:flex;align-items:center;gap:9px;padding:6px 12px;font-size:12px;cursor:pointer;user-select:none;transition:background .1s}
+.ms-opt:hover{background:var(--panel2)}.ms-opt input[type=checkbox]{accent-color:var(--accent2);cursor:pointer;flex-shrink:0;width:13px;height:13px}
+.ms-divider{border:none;border-top:1px solid var(--border);margin:2px 0}
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;flex-shrink:0}
+.view-btn{background:transparent;border:none;color:var(--muted);padding:0 14px;font-size:11px;cursor:pointer;font-weight:500;transition:all .15s;height:29px;white-space:nowrap}
+.view-btn.active{background:#1f3b5c;color:var(--accent2);font-weight:700}.view-btn:not(.active):hover{background:var(--panel2);color:var(--text)}
+table{width:100%;border-collapse:collapse}
+thead th{padding:8px 13px;text-align:left;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;background:var(--panel2);border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap;cursor:pointer;user-select:none;transition:background .15s,color .15s;position:sticky;top:0;z-index:10}
+thead th:hover{background:var(--panel2);color:var(--text)}
+thead th .arr{margin-left:4px;opacity:.3;font-style:normal}
+thead th.active-col{color:var(--accent2)}thead th.active-col .arr{opacity:1;color:var(--accent2)}
+thead th.no-sort{cursor:default}thead th.no-sort:hover{background:var(--panel2);color:var(--muted)}
+tbody td{padding:7px 13px;border-bottom:1px solid var(--line);font-size:14px;vertical-align:middle}
+tbody tr:last-child td{border-bottom:none}tbody tr:hover td{background:rgba(255,255,255,.018)}
+.c-cod{font-weight:700;color:var(--muted);white-space:nowrap}.c-nom{font-weight:500}.c-sup{font-size:11px;color:var(--muted)}
+.row-total td{background:var(--panel2);border-top:2px solid var(--border)}.row-total .c-sup{color:var(--accent2);font-weight:800;font-size:12px;letter-spacing:.5px}
+.badge{display:inline-block;padding:3px 9px;border-radius:4px;font-weight:700;font-size:11px;font-family:monospace;min-width:78px;text-align:center;letter-spacing:.3px}
+.vg{background:var(--good-bg);color:var(--good)}.vy{background:var(--warn-bg);color:var(--warn)}.vly{background:var(--warn-bg);color:var(--warn)}
+.vlr{background:var(--bad-bg);color:var(--bad)}.vdr{background:var(--bad);color:#fff}.bneutral{background:var(--panel2);color:var(--muted)}
+.vbl{background:#0d2a4a;color:var(--accent2)}.vpu{background:var(--purple-bg);color:var(--purple)}
+.badge.empty{color:transparent!important;min-width:78px}
+#tbl-cont{flex:1;overflow-y:auto;min-height:0}
+#tbl-cont::-webkit-scrollbar{width:6px}#tbl-cont::-webkit-scrollbar-track{background:transparent}
+#tbl-cont::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}#tbl-cont::-webkit-scrollbar-thumb:hover{background:var(--accent2)}
+.err{background:var(--bad-bg);border:1px solid var(--bad);border-radius:8px;padding:8px 14px;margin-bottom:10px;font-size:12px;display:none;flex-shrink:0}
+.loading{text-align:center;padding:36px;color:var(--muted);font-size:13px}
+.btn-print{background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:0 11px;font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap;height:28px;font-family:inherit;font-weight:500}
+.btn-print:hover{border-color:var(--good);color:var(--good)}
+#print-hdr{display:none;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid var(--text)}
+#print-hdr h2{font-size:15px;font-weight:800;margin-bottom:3px}
+#print-hdr .ph-meta{font-size:11px;margin-top:2px;color:var(--muted)}
+@@media print{
+  body{overflow:visible!important;height:auto!important;background:#fff!important;color:#000!important;padding:8px 12px!important}
+  .co-right a,.btn-print,.cd-badge,.hist-badge,.filter-bar,.err,#err-bar,.cards{display:none!important}
+  .tbl-wrap{border:none!important;overflow:visible!important;flex:none!important}
+  .tbl-bar{border-bottom:1px solid #ccc!important}
+  .tbl-bar h2{color:#000!important}
+  #tbl-cont{overflow:visible!important;height:auto!important}
+  #print-hdr{display:block!important}
+  table{width:100%}
+  thead{display:table-header-group!important}
+  thead th{background:#f0f0f0!important;color:#000!important;border-bottom:1px solid #bbb!important;position:static!important}
+  tbody td{color:#000!important;border-bottom:1px solid #e8e8e8!important}
+  .badge{color:#000!important;background:#ececec!important;border:1px solid #ccc!important}
+  .c-sup,.c-nom,.c-cod{color:#000!important}
+  .row-total td{background:#d6e4ff!important;border-top:2px solid #336!important;color:#000!important}
+  tr{page-break-inside:avoid}
+  @@page{size:landscape;margin:1.2cm 1.5cm}
+}
+</style>
+</head>
+<body>
+
+<header class="co-header">
+  <div class="co-left">
+    <img id="logo-img" src="@(Context.Request.PathBase)/api/logo" alt="Logo"
+         style="height:52px;width:auto;max-width:160px;border-radius:6px;object-fit:contain"
+         onerror="this.style.display='none';document.getElementById('logo-svg').style.display='block'">
+    <svg id="logo-svg" style="display:none" width="70" height="46" viewBox="0 0 70 46" xmlns="http://www.w3.org/2000/svg">
+      <defs><clipPath id="lc"><rect width="70" height="46" rx="6"/></clipPath></defs>
+      <rect width="70" height="46" rx="6" fill="#0f1922"/>
+      <g clip-path="url(#lc)">
+        <polygon points="1,0 15,0 25,46 11,46" fill="#2196F3"/>
+        <polygon points="19,0 28,0 38,46 29,46" fill="#43A047"/>
+        <polygon points="32,0 41,0 51,46 42,46" fill="#43A047"/>
+        <polygon points="45,0 54,0 64,46 55,46" fill="#43A047"/>
+        <polygon points="58,0 67,0 77,46 68,46" fill="#43A047"/>
+      </g>
+    </svg>
+    <div>
+      <div class="co-name">@(string.IsNullOrEmpty(ViewBag.EmpNombre as string) ? "AM COMERCIAL" : ViewBag.EmpNombre)</div>
+      <div class="co-subtitle">Dashboard Visitas en Vivo</div>
+    </div>
+  </div>
+  <div class="co-right">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="text-align:right">
+        <div class="live"><div class="dot"></div><span id="live-txt">Conectando...</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px"><span id="user-nombre"></span></div>
+      </div>
+      <button class="btn-print" onclick="printReport()" title="Imprimir / Exportar PDF">&#128424; Imprimir</button>
+      <button class="btn-print" onclick="exportExcel()" title="Descargar Excel">&#128229; Excel</button>
+      <div style="position:relative;display:inline-block">
+        <button class="btn-print" onclick="toggleUmbCfg()" title="Configurar horarios a tiempo">&#9881; Config</button>
+        <div id="umb-cfg" style="display:none;position:absolute;right:0;top:calc(100% + 6px);z-index:50;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px;width:250px;box-shadow:0 8px 24px rgba(0,0,0,.5);text-align:left">
+          <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:10px">Horarios &ldquo;A Tiempo&rdquo;</div>
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:3px">Primera Visita</label>
+          <input type="time" id="cfg-visita" style="width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;margin-bottom:10px">
+          <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:3px">Primer Pedido</label>
+          <input type="time" id="cfg-pedido" style="width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px;font-size:12px;margin-bottom:12px">
+          <div style="display:flex;gap:8px">
+            <button class="btn-print" style="flex:1" onclick="saveUmbCfg()">Guardar</button>
+            <button class="btn-print" style="flex:1;background:var(--panel2)" onclick="resetUmbCfg()">Restaurar</button>
+          </div>
+        </div>
+      </div>
+      <a href="@(Context.Request.PathBase)/menu" title="Menu principal"
+         style="background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;text-decoration:none;transition:all .15s;white-space:nowrap;display:inline-block;margin-right:6px"
+         onmouseover="this.style.borderColor='#58a6ff';this.style.color='#58a6ff'"
+         onmouseout="this.style.borderColor='#30363d';this.style.color='#8b949e'">
+        &#x2302; Menu
+      </a>
+      <a href="@(Context.Request.PathBase)/account/logout" title="Cerrar sesion"
+         style="background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 10px;font-size:11px;text-decoration:none;transition:all .15s;white-space:nowrap;display:inline-block"
+         onmouseover="this.style.borderColor='#f85149';this.style.color='#f85149'"
+         onmouseout="this.style.borderColor='#30363d';this.style.color='#8b949e'">
+        &#x2192; Salir
+      </a>
+    </div>
+    <div class="co-clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<div class="err" id="err-bar"></div>
+
+<div id="print-hdr">
+  <h2>@(string.IsNullOrEmpty(ViewBag.EmpNombre as string) ? "AM COMERCIAL" : ViewBag.EmpNombre) &mdash; Dashboard Visitas en Vivo</h2>
+  <div class="ph-meta" id="ph-fecha-print"></div>
+  <div class="ph-meta" id="ph-vista-print"></div>
+  <div class="ph-meta" id="ph-filtros-print"></div>
+  <div class="ph-meta" id="ph-kpis-print"></div>
+</div>
+
+<div class="cards">
+  <!-- 1: Total -->
+  <div class="card c-blue">
+    <div class="card-lbl" id="c1-lbl">Total Representantes</div>
+    <div class="card-val" id="c-total">--</div>
+    <div class="card-hint" id="c1-hint">Activos en los ultimos 30 dias</div>
+  </div>
+  <!-- 2: Primera Visita Tardia -->
+  <div class="card c-yellow">
+    <div class="card-lbl" id="c2-lbl">Primera Visita Tardia</div>
+    <div class="card-val" id="c-late">--</div>
+    <div class="card-hint" id="c2-hint">Entrada despues de las 8:00 AM</div>
+  </div>
+  <!-- 3: +30 Min Sin Visitas (movida al 3er lugar) -->
+  <div class="card c-orange">
+    <div class="card-lbl" id="c4-lbl">+30 Min Sin Visitas</div>
+    <div class="card-val" id="c-inact">--</div>
+    <div class="card-hint" id="c4-hint">Sin nueva visita en 30 minutos</div>
+  </div>
+  <!-- 4: Avg Primer Pedido + Avg Ultimo Pedido (combinada) -->
+  <div class="card c-green">
+    <div class="card-lbl">Avg Pedidos</div>
+    <div style="display:flex;gap:6px;margin-top:6px">
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">1er Pedido</div>
+        <div id="c-ped" style="font-size:17px;font-weight:700;color:var(--good);font-family:monospace">--</div>
+      </div>
+      <div style="width:1px;background:var(--border);flex-shrink:0"></div>
+      <div style="flex:1;text-align:center">
+        <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ult. Pedido</div>
+        <div id="c-avgup" style="font-size:17px;font-weight:700;color:var(--good);font-family:monospace">--</div>
+      </div>
+    </div>
+  </div>
+  <!-- 5: Mayor / Menor Productividad (combinada) -->
+  <div class="card c-blue">
+    <div class="card-lbl">Hora de Mayor Productividad</div>
+    <div style="text-align:center;margin-top:10px">
+      <div id="c-mayor-prod" style="font-size:22px;font-weight:700;color:var(--accent2);font-family:monospace">--</div>
+      <div id="c-mayor-prod-cnt" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+    </div>
+  </div>
+  <!-- 6: Tiempo entre Visitas -->
+  <div class="card c-blue">
+    <div class="card-lbl">Tiempo entre Visitas</div>
+    <div class="card-val" id="c-tprom" style="font-size:22px">--</div>
+    <div class="card-hint">Prom. duracion visita 9AM-3PM</div>
+  </div>
+  <!-- 7: Llamar Urgente (al final) -->
+  <div class="card c-red">
+    <div class="card-lbl" id="c5-lbl">Llamar Urgente - Top 3</div>
+    <div class="urgente-list" id="c-urgent"><span style="color:var(--muted);font-size:11px">Cargando...</span></div>
+  </div>
+</div>
+
+<div class="tbl-wrap">
+  <div class="tbl-bar">
+    <h2 id="tbl-title">Detalle por Representante &mdash; <span id="lbl-fecha">Hoy</span></h2>
+    <div class="cd-badge" id="cd-badge">Actualizacion en <span id="cd">60</span>s</div>
+  </div>
+  <div class="filter-bar">
+    <span class="f-lbl" id="f-date-lbl">Fecha:</span>
+    <input type="date" id="f-date">
+    <span class="f-lbl" id="f-date-fin-lbl" style="display:none">Hasta:</span>
+    <input type="date" id="f-date-fin" style="display:none">
+    <div class="f-sep"></div>
+    <span class="f-lbl">Representante:</span>
+    <div class="ms-wrap" id="rp-wrap">
+      <button class="ms-trigger" id="rp-trigger" onclick="toggleRpDrop(event)">
+        <span id="rp-label">Todos los representantes</span>
+        <span class="ms-arrow">&#9660;</span>
+      </button>
+      <div class="ms-drop" id="rp-drop">
+        <input type="text" id="rp-search" placeholder="Buscar representante..." oninput="filterRpOptions(this.value)" onclick="event.stopPropagation()"
+               style="width:100%;margin-bottom:6px;padding:5px 8px;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;font-size:12px;outline:none">
+        <div class="ms-opt" id="rp-opt-all" onclick="toggleAllReps()">
+          <input type="checkbox" id="rp-chk-all" checked onclick="event.stopPropagation()">
+          <span>Todos los representantes</span>
+        </div>
+        <hr class="ms-divider">
+        <div id="rp-options" style="max-height:260px;overflow:auto"></div>
+      </div>
+    </div>
+    <div class="f-sep"></div>
+    <span class="f-lbl">Centro:</span>
+    <div class="ms-wrap" id="ct-wrap">
+      <button class="ms-trigger" id="ct-trigger" onclick="toggleCtDrop(event)">
+        <span id="ct-label">Todos los centros</span>
+        <span class="ms-arrow">&#9660;</span>
+      </button>
+      <div class="ms-drop" id="ct-drop">
+        <div class="ms-opt" id="ct-opt-all" onclick="toggleAllCentros()">
+          <input type="checkbox" id="ct-chk-all" checked onclick="event.stopPropagation()">
+          <span>Todos los centros</span>
+        </div>
+        <hr class="ms-divider">
+        <div id="ct-options"></div>
+      </div>
+    </div>
+    <div class="f-sep"></div>
+    <span class="f-lbl">Supervisor:</span>
+    <div class="ms-wrap" id="ms-wrap">
+      <button class="ms-trigger" id="ms-trigger" onclick="toggleMsDrop(event)">
+        <span id="ms-label">Todos los supervisores</span>
+        <span class="ms-arrow">&#9660;</span>
+      </button>
+      <div class="ms-drop" id="ms-drop">
+        <div class="ms-opt" id="ms-opt-all" onclick="toggleAllSups()">
+          <input type="checkbox" id="ms-chk-all" checked onclick="event.stopPropagation()">
+          <span>Todos los supervisores</span>
+        </div>
+        <hr class="ms-divider">
+        <div id="ms-options"></div>
+      </div>
+    </div>
+    <div class="f-sep"></div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-det" onclick="setView('detallado')">Detallado</button>
+      <button class="view-btn"        id="btn-res" onclick="setView('resumido')">Resumido</button>
+      <button class="view-btn"        id="btn-fec" onclick="setView('porfecha')">Por Fecha</button>
+    </div>
+    <div class="f-sep"></div>
+    <span class="f-lbl">Tipo:</span>
+    <select id="f-tipo" onchange="onTipoChange()">
+      <option value="">Todos</option>
+      <option value="presencial">Presencial</option>
+      <option value="virtual">Virtual</option>
+    </select>
+    <button class="btn-filter" id="btn-finact" onclick="toggleFilterInact()">&#9679; +30 Min Sin Visita</button>
+    <button class="btn-clear" onclick="clearFilters()">Limpiar filtros</button>
+    <span class="f-count" id="f-count"></span>
+  </div>
+  <div id="tbl-cont"><div class="loading">Cargando datos...</div></div>
+</div>
+
+<script src="@(Context.Request.PathBase)/lib/xlsx.full.min.js"></script>
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+const REFRESH = 60;
+let reps = [], horaStats = [], countdown = REFRESH, selectedDate = '';
+let sortCol = 'SupervisorNombre', sortDir = 'asc', viewMode = 'detallado';
+let porFechaRows = [];
+let selectedSups = new Set(), selectedCentros = new Set(), filterLate = false, filterInact = false, selTipo = '';
+function onTipoChange(){selTipo=document.getElementById('f-tipo').value;if(viewMode==='porfecha'){fetchPorFecha();}else{countdown=REFRESH;fetchData();}}
+
+function pad(n) { return String(n).padStart(2, '0'); }
+// OJO: NUNCA usar Date.toISOString() para esto — convierte a UTC antes de
+// formatear, y RD es UTC-4 sin horario de verano, así que después de las 8:00 PM
+// ya "es mañana" en UTC (bug real encontrado 2026-09-03: el sistema saltaba al
+// día siguiente por la noche). getFullYear/getMonth/getDate son locales.
+function ymdLocal(d) { return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function todayStr() { return ymdLocal(new Date()); }
+function isSelectedToday() { return selectedDate === todayStr(); }
+function referenceTime() { return isSelectedToday() ? Date.now() : new Date(selectedDate + 'T23:59:59').getTime(); }
+function hadVisitOnDate(r) { return r.UltimaEntrada != null && r.UltimaEntrada.startsWith(selectedDate); }
+function secsSinVisita(r) { if (!hadVisitOnDate(r)) return Infinity; return (referenceTime() - new Date(r.UltimaEntrada).getTime()) / 1000; }
+
+// Umbrales "a tiempo" configurables (minutos desde medianoche). Default: 1ra visita 08:00, 1er pedido 08:20.
+const UMB_DEF = { visita: 8*60, pedido: 8*60+20 };
+let UMB = (function(){ try{ const s=JSON.parse(localStorage.getItem('visUmbral')); if(s&&s.visita!=null&&s.pedido!=null) return {visita:+s.visita, pedido:+s.pedido}; }catch(e){} return {...UMB_DEF}; })();
+function saveUmb(){ try{ localStorage.setItem('visUmbral', JSON.stringify(UMB)); }catch(e){} }
+function fmtUmb(min){ const h=Math.floor(min/60), m=min%60, ap=h<12?'AM':'PM', h12=(h%12)||12; return h12+':'+String(m).padStart(2,'0')+' '+ap; }
+function minToTimeInput(min){ return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0'); }
+function timeInputToMin(v){ const p=(v||'').split(':'); if(p.length<2)return null; const m=(+p[0])*60+(+p[1]); return isFinite(m)?m:null; }
+function toggleUmbCfg(){ const el=document.getElementById('umb-cfg'); if(el.style.display==='none'){ document.getElementById('cfg-visita').value=minToTimeInput(UMB.visita); document.getElementById('cfg-pedido').value=minToTimeInput(UMB.pedido); el.style.display='block'; } else { el.style.display='none'; } }
+function saveUmbCfg(){ const v=timeInputToMin(document.getElementById('cfg-visita').value), p=timeInputToMin(document.getElementById('cfg-pedido').value); if(v!=null)UMB.visita=v; if(p!=null)UMB.pedido=p; saveUmb(); document.getElementById('umb-cfg').style.display='none'; buildTable(); }
+function resetUmbCfg(){ UMB={...UMB_DEF}; saveUmb(); document.getElementById('cfg-visita').value=minToTimeInput(UMB.visita); document.getElementById('cfg-pedido').value=minToTimeInput(UMB.pedido); buildTable(); }
+document.addEventListener('click',function(e){ const el=document.getElementById('umb-cfg'); if(el&&el.style.display!=='none'&&!el.contains(e.target)&&!(e.target.closest&&e.target.closest('button')&&e.target.closest('button').getAttribute('onclick')==='toggleUmbCfg()')) el.style.display='none'; });
+function clsBySecs(s, cutoff) { const m = s/60; if(m<cutoff)return'vg'; if(m<cutoff+25)return'vy'; if(m<cutoff+40)return'vly'; if(m<=cutoff+55)return'vlr'; return'vdr'; }
+function clsVisita(iso) { if(!iso)return'vdr'; const d=new Date(iso); return clsBySecs(d.getHours()*3600+d.getMinutes()*60+d.getSeconds(), UMB.visita); }
+function clsPedido(iso) { if(!iso)return'vdr'; const d=new Date(iso); return clsBySecs(d.getHours()*3600+d.getMinutes()*60+d.getSeconds(), UMB.pedido); }
+
+// Color para "Desde Ultima Visita" segun minutos transcurridos y ultimo pedido
+function clsDesdeUltimaVisita(secsElapsed, ultimoPedidoIso) {
+  const now = new Date();
+  const nowMins = now.getHours()*60 + now.getMinutes();
+  // Si ya pasan de las 3:30 PM y el ultimo pedido fue despues de las 3:20 PM -> verde siempre
+  if(nowMins >= 15*60+30 && ultimoPedidoIso) {
+    const up = new Date(ultimoPedidoIso);
+    const upMins = up.getHours()*60 + up.getMinutes();
+    if(upMins >= 15*60+20) return 'vg';
+  }
+  const m = secsElapsed / 60;
+  if(m <= 15) return 'vg';
+  if(m <= 30) return 'vy';
+  return 'vdr';
+}
+
+// Color para "Ultimo Pedido"
+// isHoy=true  -> regla por tiempo transcurrido si aun no son las 3 PM
+// isHoy=false -> historico: siempre evaluar por la hora del pedido
+function clsUltimoPedido(ultimoPedidoIso, isHoy) {
+  if(!ultimoPedidoIso) return 'vdr';
+  const up     = new Date(ultimoPedidoIso);
+  const upMins = up.getHours()*60 + up.getMinutes();
+  if(!isHoy) {
+    // Historico: regla por hora absoluta del pedido
+    if(upMins >= 15*60) return 'vg';    // >= 15:00 -> Verde
+    if(upMins >= 14*60) return 'vy';    // >= 14:00 -> Amarillo
+    return 'vdr';                        //  < 14:00 -> Rojo
+  }
+  const now     = new Date();
+  const nowMins = now.getHours()*60 + now.getMinutes();
+  if(nowMins >= 15*60) {
+    // Hoy y ya son >= 15:00 PM: regla por hora absoluta del pedido
+    if(upMins >= 15*60) return 'vg';
+    if(upMins >= 14*60) return 'vy';
+    return 'vdr';
+  } else {
+    // Hoy y aun no son las 15:00: regla por tiempo transcurrido
+    const minsDiff = (now - up) / 60000;
+    if(minsDiff < 30) return 'vg';      // < 30 min  -> Verde
+    if(minsDiff < 60) return 'vy';      // 30-59 min -> Amarillo
+    return 'vdr';                        // 60+ min   -> Rojo
+  }
+}
+
+// Color para "Tiempo Prom. en Visitas" (en segundos)
+function clsPromVisita(seg) {
+  if(seg == null) return 'bneutral';
+  const m = seg / 60;
+  if(m < 2)  return 'vdr';
+  if(m <= 4) return 'vy';
+  if(m <= 8) return 'vg';
+  if(m <= 15) return 'vbl';
+  return 'vpu';
+}
+
+function hms(sec) { if(sec==null||isNaN(sec)||sec<0)return'--:--:--'; sec=Math.floor(sec); return `${pad(Math.floor(sec/3600))}:${pad(Math.floor((sec%3600)/60))}:${pad(sec%60)}`; }
+function fmtHora(iso) { if(!iso)return''; const d=new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; }
+function isToday(iso) { if(!iso)return false; return new Date(iso).toDateString()===new Date().toDateString(); }
+function safeId(code) { return 'el_'+String(code).replace(/\W/g,'_'); }
+function fmtFechaLabel(str) { if(!str||str===todayStr())return'Hoy'; const[y,m,d]=str.split('-'); return `${parseInt(d)} ${['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'][parseInt(m)-1]} ${y}`; }
+
+function avgSecsOfDay(list,field) { const v=list.filter(r=>r[field]&&r[field].startsWith(selectedDate)).map(r=>{const d=new Date(r[field]);return d.getHours()*3600+d.getMinutes()*60+d.getSeconds()}); return v.length?v.reduce((a,b)=>a+b,0)/v.length:null; }
+function secsToTimeStr(s) { return s==null||isNaN(s)?'--:--:--':hms(Math.round(s)); }
+
+function setCardNum(id,v) { const el=document.getElementById(id); el.textContent=v; el.style.fontSize='42px'; }
+function setCardTime(id,s) { const el=document.getElementById(id); if(s!=null){el.textContent=secsToTimeStr(s);el.style.fontSize='22px';}else{el.textContent='--';el.style.fontSize='42px';} }
+
+const COLS=[{key:'SupervisorNombre',type:'str'},{key:'RepNombre',type:'str'},{key:'CentroNombre',type:'str'},{key:'PrimeraEntrada',type:'date'},{key:'PrimerPedidoHora',type:'date'},{key:'UltimoPedidoHora',type:'date'},{key:'UltimaEntrada',type:'date'},{key:'HrEntrePed',type:'num'},{key:'UltimaSalida',type:'date'},{key:'PromDurSeg',type:'num'},{key:'CuadreEstatus',type:'num'},{key:'TotalTpoSeg',type:'num'}];
+function cuadreCell(est){if(est==2)return'<span class="badge vg">Cerrado</span>';if(est==1)return'<span class="badge vy">Abierto</span>';return'<span class="badge vdr">Sin cuadre</span>';}
+
+function cmpVal(av,bv,type,dir){if(av==null&&bv==null)return 0;if(av==null)return dir==='desc'?-1:1;if(bv==null)return dir==='desc'?1:-1;if(type==='date'){av=new Date(av).getTime();bv=new Date(bv).getTime();}else if(type==='num'){av=parseFloat(av);bv=parseFloat(bv);}else{av=String(av).toLowerCase();bv=String(bv).toLowerCase();}if(av<bv)return dir==='asc'?-1:1;if(av>bv)return dir==='asc'?1:-1;return 0;}
+function sortedReps(list){const col=COLS.find(c=>c.key===sortCol)||COLS[0];return[...list].sort((a,b)=>{const r1=cmpVal(a[sortCol],b[sortCol],col.type,sortDir);if(r1!==0)return r1;if(sortCol!=='SupervisorNombre'){const rs=cmpVal(a.SupervisorNombre,b.SupervisorNombre,'str','asc');if(rs!==0)return rs;}return cmpVal(a.RepCodigo,b.RepCodigo,'str','asc');});}
+function setSort(key){if(sortCol===key){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=key;sortDir=(COLS.find(c=>c.key===key)||{}).type==='str'?'asc':'desc';}buildTable();}
+
+function filteredReps(){const HALF=30*60;return reps.filter(r=>{if(selectedReps.size>0&&!selectedReps.has(r.RepCodigo))return false;if(selectedSups.size>0&&!selectedSups.has(r.RepSupervisor))return false;if(selectedCentros.size>0&&!selectedCentros.has(r.CedCodigo))return false;if(filterLate){if(!r.PrimeraEntrada)return false;const d=new Date(r.PrimeraEntrada);if(d.getHours()*60+d.getMinutes()<UMB.visita)return false;}if(filterInact&&secsSinVisita(r)<=HALF)return false;return true;});}
+function toggleFilterInact(){filterInact=!filterInact;document.getElementById('btn-finact').classList.toggle('fa-orange',filterInact);buildTable();}
+function clearFilters(){selectedReps.clear();syncRpCheckboxes();updateRpLabel();const rs=document.getElementById('rp-search');if(rs)rs.value='',filterRpOptions('');selectedSups.clear();syncMsCheckboxes();updateMsLabel();selectedCentros.clear();syncCtCheckboxes();updateCtLabel();populateSupervisores();populateReps();filterInact=false;document.getElementById('btn-finact').classList.remove('fa-orange');const ft=document.getElementById('f-tipo');if(ft&&ft.value){ft.value='';selTipo='';countdown=REFRESH;fetchData();return;}buildTable();}
+
+// ── Filtro Centro ─────────────────────────────────────────────────────────────
+function syncCtCheckboxes(){document.querySelectorAll('.ct-opt-ind').forEach(c=>{c.checked=selectedCentros.has(c.dataset.cod);});const all=document.getElementById('ct-chk-all');if(!all)return;if(selectedCentros.size===0){all.checked=true;all.indeterminate=false;}else{all.checked=false;all.indeterminate=true;}}
+function updateCtLabel(){const lbl=document.getElementById('ct-label'),tr=document.getElementById('ct-trigger');if(selectedCentros.size===0){lbl.textContent='Todos los centros';tr.classList.remove('ms-active');}else{lbl.textContent=selectedCentros.size===1?buildCtMap()[selectedCentros.values().next().value]||'1 centro':`${selectedCentros.size} centros`;tr.classList.add('ms-active');}}
+function buildCtMap(){const map={};reps.forEach(r=>{if(r.CedCodigo)map[r.CedCodigo]=r.CentroNombre||r.CedCodigo;});return map;}
+function toggleCtDrop(e){e.stopPropagation();const d=document.getElementById('ct-drop'),t=document.getElementById('ct-trigger');const o=d.classList.toggle('ms-open');t.classList.toggle('ms-open',o);}
+function toggleAllCentros(){selectedCentros.clear();syncCtCheckboxes();updateCtLabel();populateSupervisores();populateReps();buildTable();}
+function toggleCentro(cod){if(selectedCentros.has(cod))selectedCentros.delete(cod);else selectedCentros.add(cod);syncCtCheckboxes();updateCtLabel();populateSupervisores();populateReps();buildTable();}
+function populateCentros(){const map=buildCtMap(),keys=new Set(Object.keys(map));selectedCentros.forEach(s=>{if(!keys.has(s))selectedCentros.delete(s);});const opts=Object.entries(map).sort((a,b)=>a[1].localeCompare(b[1]));document.getElementById('ct-options').innerHTML=opts.map(([cod,nom])=>`<div class="ms-opt" onclick="toggleCentro('${cod}')"><input type="checkbox" class="ct-opt-ind" data-cod="${cod}" ${selectedCentros.has(cod)?'checked':''} onclick="event.stopPropagation()"><span>${nom}</span></div>`).join('');updateCtLabel();}
+
+// ── Filtro Representante (multiselección) ─────────────────────────────────────
+let selectedReps=new Set();
+function buildRepMap(){const map={};reps.forEach(r=>{if(selectedCentros.size>0&&!selectedCentros.has(r.CedCodigo))return;if(selectedSups.size>0&&!selectedSups.has(r.RepSupervisor))return;map[r.RepCodigo]=(r.RepNombre||r.RepCodigo);});return map;}   // P1 (2026-10-17): los representantes dependen del Supervisor y el Centro elegidos
+function syncRpCheckboxes(){document.querySelectorAll('.rp-opt-ind').forEach(c=>{c.checked=selectedReps.has(c.dataset.cod);});const all=document.getElementById('rp-chk-all');if(!all)return;if(selectedReps.size===0){all.checked=true;all.indeterminate=false;}else{all.checked=false;all.indeterminate=true;}}
+function updateRpLabel(){const lbl=document.getElementById('rp-label'),tr=document.getElementById('rp-trigger');if(!lbl)return;if(selectedReps.size===0){lbl.textContent='Todos los representantes';tr.classList.remove('ms-active');}else{lbl.textContent=selectedReps.size===1?(buildRepMap()[selectedReps.values().next().value]||'1 representante'):`${selectedReps.size} representantes`;tr.classList.add('ms-active');}}
+function toggleRpDrop(e){e.stopPropagation();const d=document.getElementById('rp-drop'),t=document.getElementById('rp-trigger');const o=d.classList.toggle('ms-open');t.classList.toggle('ms-open',o);if(o){const s=document.getElementById('rp-search');if(s){s.value='';filterRpOptions('');setTimeout(()=>s.focus(),30);}}}
+function repFilterChanged(){if(viewMode==='porfecha'){fetchPorFecha();}else{buildTable();}}
+function toggleAllReps(){selectedReps.clear();syncRpCheckboxes();updateRpLabel();repFilterChanged();}
+function toggleRep(cod){if(selectedReps.has(cod))selectedReps.delete(cod);else selectedReps.add(cod);syncRpCheckboxes();updateRpLabel();repFilterChanged();}
+function filterRpOptions(q){q=(q||'').toLowerCase().trim();document.querySelectorAll('#rp-options .ms-opt').forEach(el=>{const t=(el.dataset.q||'');el.style.display=(!q||t.includes(q))?'':'none';});}
+function populateReps(){const map=buildRepMap(),keys=new Set(Object.keys(map));selectedReps.forEach(s=>{if(!keys.has(s))selectedReps.delete(s);});const opts=Object.entries(map).sort((a,b)=>a[1].localeCompare(b[1]));document.getElementById('rp-options').innerHTML=opts.map(([cod,nom])=>`<div class="ms-opt" data-q="${(nom+' '+cod).toLowerCase().replace(/"/g,'')}" onclick="toggleRep('${cod}')"><input type="checkbox" class="rp-opt-ind" data-cod="${cod}" ${selectedReps.has(cod)?'checked':''} onclick="event.stopPropagation()"><span>${nom} · ${cod}</span></div>`).join('');const s=document.getElementById('rp-search');if(s&&s.value)filterRpOptions(s.value);updateRpLabel();}
+
+function buildSupMap(){const map={};reps.forEach(r=>{if(selectedCentros.size>0&&!selectedCentros.has(r.CedCodigo))return;if(r.RepSupervisor)map[r.RepSupervisor]=r.SupervisorNombre||r.RepSupervisor;});return map;}   // P1: los supervisores dependen del Centro elegido
+function syncMsCheckboxes(){document.querySelectorAll('.ms-opt-ind').forEach(c=>{c.checked=selectedSups.has(c.dataset.cod);});const all=document.getElementById('ms-chk-all');if(!all)return;if(selectedSups.size===0){all.checked=true;all.indeterminate=false;}else{all.checked=false;all.indeterminate=true;}}
+function updateMsLabel(){const lbl=document.getElementById('ms-label'),tr=document.getElementById('ms-trigger');if(selectedSups.size===0){lbl.textContent='Todos los supervisores';tr.classList.remove('ms-active');}else{lbl.textContent=selectedSups.size===1?buildSupMap()[selectedSups.values().next().value]||'1 supervisor':`${selectedSups.size} supervisores`;tr.classList.add('ms-active');}}
+function toggleMsDrop(e){e.stopPropagation();const d=document.getElementById('ms-drop'),t=document.getElementById('ms-trigger');const o=d.classList.toggle('ms-open');t.classList.toggle('ms-open',o);}
+function toggleAllSups(){selectedSups.clear();syncMsCheckboxes();updateMsLabel();populateReps();buildTable();}
+function toggleSup(cod){if(selectedSups.has(cod))selectedSups.delete(cod);else selectedSups.add(cod);syncMsCheckboxes();updateMsLabel();populateReps();buildTable();}
+function populateSupervisores(){const map=buildSupMap(),keys=new Set(Object.keys(map));selectedSups.forEach(s=>{if(!keys.has(s))selectedSups.delete(s);});const opts=Object.entries(map).sort((a,b)=>a[1].localeCompare(b[1]));document.getElementById('ms-options').innerHTML=opts.map(([cod,nom])=>`<div class="ms-opt" onclick="toggleSup('${cod}')"><input type="checkbox" class="ms-opt-ind" data-cod="${cod}" ${selectedSups.has(cod)?'checked':''} onclick="event.stopPropagation()"><span>${nom}</span></div>`).join('');updateMsLabel();}
+
+function setView(mode){viewMode=mode;
+  document.getElementById('btn-det').classList.toggle('active',mode==='detallado');
+  document.getElementById('btn-res').classList.toggle('active',mode==='resumido');
+  document.getElementById('btn-fec').classList.toggle('active',mode==='porfecha');
+  const pf=mode==='porfecha';
+  // Mostrar "Hasta" y ajustar etiqueta de la fecha inicial en modo Por Fecha
+  document.getElementById('f-date-fin-lbl').style.display=pf?'':'none';
+  document.getElementById('f-date-fin').style.display=pf?'':'none';
+  document.getElementById('f-date-lbl').textContent=pf?'Desde:':'Fecha:';
+  // Por defecto, "Hasta" = fecha seleccionada si esta vacio
+  const dFin=document.getElementById('f-date-fin');
+  if(pf && !dFin.value){dFin.value=selectedDate; dFin.max=todayStr(); dFin.min=document.getElementById('f-date').min;}
+  if(pf){fetchPorFecha();}else{buildTable();}
+}
+
+function pfParams(){
+  const desde=document.getElementById('f-date').value||selectedDate;
+  let hasta=document.getElementById('f-date-fin').value||desde;
+  if(hasta<desde)hasta=desde;
+  const p=new URLSearchParams({fechaIni:desde,fechaFin:hasta,umbral:UMB.visita});
+  if(selectedSups.size>0)p.set('sups',[...selectedSups].join(','));
+  if(selectedCentros.size>0)p.set('centros',[...selectedCentros].join(','));
+  if(selTipo)p.set('tipo',selTipo);
+  if(selectedReps.size>0)p.set('reps',[...selectedReps].join(','));
+  return p;
+}
+
+async function fetchPorFecha(){
+  try{
+    document.getElementById('tbl-cont').innerHTML='<div class="loading">Cargando desglose por fecha...</div>';
+    const resp=await fetch(BASE+'/api/data-fecha?'+pfParams());
+    if(resp.status===401){location.href=BASE+'/account/login';return;}
+    const json=await resp.json();
+    if(!json.ok)throw new Error(json.error||'Error del servidor');
+    porFechaRows=json.rows||[];
+    buildPorFecha();
+  }catch(e){document.getElementById('tbl-cont').innerHTML='<div class="loading">Error: '+e.message+'</div>';}
+}
+
+function buildPorFecha(){
+  const dias=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const fechaLbl=iso=>{if(!iso)return'';const d=new Date(iso+'T00:00:00');return dias[d.getDay()]+' '+iso.slice(8,10)+'/'+iso.slice(5,7)+'/'+iso.slice(0,4);};
+  const desde=document.getElementById('f-date').value||selectedDate;
+  const hasta=document.getElementById('f-date-fin').value||desde;
+  document.getElementById('tbl-title').innerHTML=`Desglose por Fecha &mdash; <span id="lbl-fecha">${fmtFechaLabel(desde)} al ${fmtFechaLabel(hasta)}</span>`;
+  document.getElementById('f-count').textContent=porFechaRows.length+' d'+(porFechaRows.length!==1?'ías':'ía');
+  if(!porFechaRows.length){document.getElementById('tbl-cont').innerHTML='<div class="loading">Sin datos para el rango seleccionado.</div>';return;}
+  const thHtml=['Fecha','Reps','Visitas','Pedidos','% Pedidos','Prom 1a Visita','Prom Últ. Visita','% A Tiempo','Prom Duracion','Prom Tpo. Vis.'].map(h=>`<th class="no-sort">${h}</th>`).join('');
+  // Acumuladores para el promedio compañía (por día)
+  let sReps=0,sVis=0,sPed=0,sPctPed=0,sPctAT=0,sPrim=0,nPrim=0,sUlt=0,nUlt=0,sDur=0,nDur=0,sTpo=0,nTpo=0;
+  const nDays=porFechaRows.length;
+  const rows=porFechaRows.map(r=>{
+    const pctPed=r.Visitas>0?Math.round(r.Pedidos/r.Visitas*100):0;
+    const pctAT=r.RepsActivos>0?Math.round(r.ATiempo/r.RepsActivos*100):0;
+    sReps+=r.RepsActivos; sVis+=r.Visitas; sPed+=r.Pedidos; sPctPed+=pctPed; sPctAT+=pctAT;
+    if(r.PromPrimVisSec>0){sPrim+=r.PromPrimVisSec;nPrim++;}
+    if(r.PromUltVisSec>0){sUlt+=r.PromUltVisSec;nUlt++;}
+    if(r.PromDurSeg>0){sDur+=r.PromDurSeg;nDur++;}
+    if(r.PromTotalTpoSeg>0){sTpo+=r.PromTotalTpoSeg;nTpo++;}
+    let atC=pctAT>=80?'var(--good)':pctAT>=50?'var(--warn)':'var(--bad)';
+    const pvB=r.PromPrimVisSec>0?`<span class="badge ${clsBySecs(r.PromPrimVisSec,UMB.visita)}">${secsToTimeStr(r.PromPrimVisSec)}</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+    const uvB=r.PromUltVisSec>0?`<span class="badge bneutral">${secsToTimeStr(r.PromUltVisSec)}</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+    const durB=r.PromDurSeg>0?`<span class="badge bneutral">${hms(r.PromDurSeg)}</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+    const ttB=r.PromTotalTpoSeg>0?`<span class="badge bneutral">${hms(r.PromTotalTpoSeg)}</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+    return`<tr>
+      <td class="c-sup"><b>${fechaLbl(r.Fecha)}</b></td>
+      <td style="text-align:center">${r.RepsActivos}</td>
+      <td style="text-align:center">${r.Visitas.toLocaleString()}</td>
+      <td style="text-align:center">${r.Pedidos.toLocaleString()}</td>
+      <td style="text-align:center;font-weight:700">${pctPed}%</td>
+      <td>${pvB}</td>
+      <td>${uvB}</td>
+      <td style="text-align:center;font-weight:700;color:${atC}">${pctAT}%</td>
+      <td>${durB}</td>
+      <td>${ttB}</td>
+    </tr>`;}).join('');
+  const d=nDays||1;
+  const aReps=Math.round(sReps/d), aVis=Math.round(sVis/d), aPed=Math.round(sPed/d);
+  const aPctPed=Math.round(sPctPed/d), aPctAT=Math.round(sPctAT/d);
+  const aPrim=nPrim?Math.round(sPrim/nPrim):null, aUlt=nUlt?Math.round(sUlt/nUlt):null, aDur=nDur?Math.round(sDur/nDur):null, aTpo=nTpo?Math.round(sTpo/nTpo):null;
+  let aatC=aPctAT>=80?'var(--good)':aPctAT>=50?'var(--warn)':'var(--bad)';
+  const totalRow=`<tr class="row-total">
+    <td class="c-sup"><b>PROMEDIO / DÍA (Compañía)</b></td>
+    <td style="text-align:center"><b>${aReps.toLocaleString()}</b></td>
+    <td style="text-align:center"><b>${aVis.toLocaleString()}</b></td>
+    <td style="text-align:center"><b>${aPed.toLocaleString()}</b></td>
+    <td style="text-align:center;font-weight:700"><b>${aPctPed}%</b></td>
+    <td>${aPrim!=null?`<span class="badge ${clsBySecs(aPrim,UMB.visita)}">${secsToTimeStr(aPrim)}</span>`:'<span style="color:var(--muted)">&#8212;</span>'}</td>
+    <td>${aUlt!=null?`<span class="badge bneutral">${secsToTimeStr(aUlt)}</span>`:'<span style="color:var(--muted)">&#8212;</span>'}</td>
+    <td style="text-align:center;font-weight:700;color:${aatC}"><b>${aPctAT}%</b></td>
+    <td>${aDur!=null?`<span class="badge bneutral">${hms(aDur)}</span>`:'<span style="color:var(--muted)">&#8212;</span>'}</td>
+    <td>${aTpo!=null?`<span class="badge bneutral">${hms(aTpo)}</span>`:'<span style="color:var(--muted)">&#8212;</span>'}</td>
+  </tr>`;
+  document.getElementById('tbl-cont').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rows}${totalRow}</tbody></table>`;
+}
+
+function updateCards(){const visible=filteredReps(),HALF=30*60;
+  if(viewMode==='resumido'){
+    const sups=new Set(visible.map(r=>r.RepSupervisor).filter(Boolean));
+    setCardNum('c-total',sups.size);
+    document.getElementById('c1-lbl').textContent='Total Supervisores';
+    document.getElementById('c1-hint').textContent='Supervisores en el filtro activo';
+    setCardTime('c-late',avgSecsOfDay(visible,'PrimeraEntrada'));
+    document.getElementById('c2-lbl').textContent='Avg Primera Visita';
+    document.getElementById('c2-hint').textContent='Hora promedio de 1a entrada';
+    const inact=visible.filter(r=>secsSinVisita(r)>HALF).length,pct=visible.length>0?Math.round(inact/visible.length*100):0;
+    setCardNum('c-inact',pct+'%');
+    document.getElementById('c4-lbl').textContent='% +30 Min Sin Visitas';
+    document.getElementById('c4-hint').textContent=isSelectedToday()?'Del total de representantes':'Al cierre del dia';
+  }else{
+    setCardNum('c-total',visible.length);
+    document.getElementById('c1-lbl').textContent='Total Representantes';
+    document.getElementById('c1-hint').textContent='Activos en los ultimos 30 dias';
+    const late=visible.filter(r=>{if(!r.PrimeraEntrada)return false;const d=new Date(r.PrimeraEntrada);return d.getHours()*60+d.getMinutes()>=UMB.visita;}).length;
+    setCardNum('c-late',late);
+    document.getElementById('c2-lbl').textContent='Primera Visita Tardia';
+    document.getElementById('c2-hint').textContent='Entrada despues de las '+fmtUmb(UMB.visita);
+    const inact=visible.filter(r=>secsSinVisita(r)>HALF).length;
+    setCardNum('c-inact',inact);
+    document.getElementById('c4-lbl').textContent='+30 Min Sin Visitas';
+    document.getElementById('c4-hint').textContent=isSelectedToday()?'Sin nueva visita en 30 minutos':'Al cierre del dia';
+  }
+  const urg=[...visible].sort((a,b)=>secsSinVisita(b)-secsSinVisita(a)).slice(0,3);const noVL=isSelectedToday()?'Sin visita hoy':'Sin visita ese dia';const empty='<div class="urgente-empty">Todo al dia</div>';
+  document.getElementById('c5-lbl').textContent=isSelectedToday()?'Llamar Urgente - Top 3':'Mayor Tiempo Sin Visita';
+  document.getElementById('c-urgent').innerHTML=urg.map(r=>{const s=secsSinVisita(r),t=isFinite(s)?hms(s):noVL;return`<div class="urgente-item"><strong>${r.RepCodigo}</strong> &middot; ${r.RepNombre||'&mdash;'} <span class="urgente-time">(${t})</span></div>`;}).join('')||empty;
+  // Tiempo entre Visitas: promedio global de PromDurSeg
+  const promList=visible.filter(r=>r.PromDurSeg!=null).map(r=>r.PromDurSeg);
+  const promGlobal=promList.length?promList.reduce((a,b)=>a+b,0)/promList.length:null;
+  const elTprom=document.getElementById('c-tprom');
+  if(promGlobal!=null){elTprom.textContent=hms(promGlobal);elTprom.style.fontSize='22px';}else{elTprom.textContent='--';elTprom.style.fontSize='42px';}
+  // Avg Primer Pedido y Avg Ultimo Pedido
+  const avgPP=avgSecsOfDay(visible,'PrimerPedidoHora');
+  const avgUP=avgSecsOfDay(visible,'UltimoPedidoHora');
+  document.getElementById('c-ped').textContent=avgPP!=null?secsToTimeStr(avgPP):'--';
+  document.getElementById('c-avgup').textContent=avgUP!=null?secsToTimeStr(avgUP):'--';
+  // Mayor / Menor productividad global (de horaStats)
+  if(horaStats&&horaStats.length>0){
+    const sorted=[...horaStats].sort((a,b)=>b.total-a.total);
+    const mayor=sorted[0];
+    document.getElementById('c-mayor-prod').textContent=`${mayor.hora}:00-${mayor.hora+1}:00`;
+    document.getElementById('c-mayor-prod-cnt').textContent=`${mayor.total} vis. efectivas`;
+  }else{
+    document.getElementById('c-mayor-prod').textContent='--';
+    document.getElementById('c-mayor-prod-cnt').textContent='';
+  }
+}
+
+function fmtHrRng(h){return h!=null?`${h}:00-${h+1}:00`:'';}
+function buildDetallado(visible){const isHoy=isSelectedToday();const headers=[{label:'Supervisor',key:'SupervisorNombre'},{label:'Nombre',key:'RepNombre'},{label:'Primera Visita',key:'PrimeraEntrada'},{label:'Primer Pedido',key:'PrimerPedidoHora'},{label:'Ultimo Pedido',key:'UltimoPedidoHora'},{label:'Ultima Visita',key:'UltimaEntrada'},{label:'Max Hrs Entre Ped',key:'HrEntrePed'},{label:'Desde Ultima Visita',key:'UltimaSalida'},{label:'Tpo Prom Visita',key:'PromDurSeg'},{label:'Cuadre',key:'CuadreEstatus'},{label:'Total Tpo. Vis.',key:'TotalTpoSeg'}];
+const thHtml=headers.map(h=>{const a=sortCol===h.key?'active-col':'';const ar=sortCol===h.key?(sortDir==='asc'?'&#9650;':'&#9660;'):'&#8693;';return`<th class="${a}" onclick="setSort('${h.key}')">${h.label}<span class="arr">${ar}</span></th>`;}).join('');
+let rows='';sortedReps(visible).forEach(r=>{
+  const c=clsVisita(r.PrimeraEntrada),cP=clsPedido(r.PrimerPedidoHora);
+  const pv=r.PrimeraEntrada?fmtHora(r.PrimeraEntrada):'';
+  const pp=r.PrimerPedidoHora?fmtHora(r.PrimerPedidoHora):'';
+  const up=r.UltimoPedidoHora?fmtHora(r.UltimoPedidoHora):'';
+  const cUp=clsUltimoPedido(r.UltimoPedidoHora, isHoy);
+  // Mayor lapso entre pedidos consecutivos (viene del API via MaxGap CTE)
+  const hepSecs=r.MaxGapSeg!=null?r.MaxGapSeg:null;
+  const hepLabel=(r.MaxGapInicio&&r.MaxGapFin)?`${fmtHora(r.MaxGapInicio)} &#x2192; ${fmtHora(r.MaxGapFin)}`:'';
+  const clsHep=hepSecs==null?'':hepSecs<30*60?'vg':hepSecs<60*60?'vy':'vdr';
+  const showEl=isHoy&&r.UltimaSalida&&isToday(r.UltimaSalida);
+  const eid=safeId(r.RepCodigo);
+  const sn=r.SupervisorNombre||r.RepSupervisor||'&mdash;';
+  const secsUltima=secsSinVisita(r);
+  const cEl=clsDesdeUltimaVisita(isFinite(secsUltima)?secsUltima:9999,isHoy?r.UltimoPedidoHora:null);
+  const prom=r.PromDurSeg!=null?hms(parseInt(r.PromDurSeg)):'';
+  const cProm=clsPromVisita(r.PromDurSeg);
+  const uv=r.UltimaEntrada?fmtHora(r.UltimaEntrada):'';
+  const tt=r.TotalTpoSeg!=null?hms(r.TotalTpoSeg):'';
+  rows+=`<tr>
+    <td class="c-sup">${sn}</td>
+    <td class="c-nom">${r.RepNombre||''}</td>
+    <td>${pv?`<span class="badge ${c}">${pv}</span>`:`<span class="badge vdr empty">&nbsp;</span>`}</td>
+    <td>${pp?`<span class="badge ${cP}">${pp}</span>`:''}</td>
+    <td>${up?`<span class="badge ${cUp}">${up}</span>`:''}</td>
+    <td>${uv?`<span class="badge bneutral">${uv}</span>`:''}</td>
+    <td>${hepLabel?`<span class="badge ${clsHep}">${hepLabel}</span>`:''}</td>
+    <td id="${eid}">${showEl?`<span class="badge ${cEl}">--:--:--</span>`:''}</td>
+    <td>${prom?`<span class="badge ${cProm}">${prom}</span>`:''}</td>
+    <td>${cuadreCell(r.CuadreEstatus)}</td>
+    <td>${tt?`<span class="badge bneutral">${tt}</span>`:''}</td>
+  </tr>`;});
+document.getElementById('tbl-cont').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rows}</tbody></table>`;}
+
+function buildResumido(visible){const HALF=30*60,supMap={};visible.forEach(r=>{const k=r.RepSupervisor||'__none__';if(!supMap[k])supMap[k]={nombre:r.SupervisorNombre||r.RepSupervisor||'(Sin supervisor)',reps:[]};supMap[k].reps.push(r);});
+function buildResRow(list,nombre,isTotal){if(!list.length)return'';const n=list.length,avgPV=avgSecsOfDay(list,'PrimeraEntrada'),conE=list.filter(r=>r.PrimeraEntrada&&r.PrimeraEntrada.startsWith(selectedDate)),aT=conE.filter(r=>{const d=new Date(r.PrimeraEntrada);return d.getHours()*60+d.getMinutes()<UMB.visita;}).length,pctAt=conE.length>0?Math.round(aT/conE.length*100):null,avgPP=avgSecsOfDay(list,'PrimerPedidoHora'),durV=list.filter(r=>r.DuracionSeg!=null).map(r=>parseInt(r.DuracionSeg)),avgDur=durV.length?durV.reduce((a,b)=>a+b,0)/durV.length:null,sinV=list.filter(r=>isFinite(secsSinVisita(r))).map(r=>secsSinVisita(r)),avgSin=sinV.length?sinV.reduce((a,b)=>a+b,0)/sinV.length:null,ttV=list.filter(r=>r.TotalTpoSeg!=null).map(r=>r.TotalTpoSeg),avgTT=ttV.length?ttV.reduce((a,b)=>a+b,0)/ttV.length:null;
+const pvB=avgPV!=null?`<span class="badge ${clsBySecs(avgPV,UMB.visita)}">${secsToTimeStr(avgPV)}</span>`:'<span style="color:var(--muted)">&#8212;</span>',ppB=avgPP!=null?`<span class="badge ${clsBySecs(avgPP,UMB.pedido)}">${secsToTimeStr(avgPP)}</span>`:'<span style="color:var(--muted)">&#8212;</span>',durC=avgDur!=null?`<span class="badge bneutral">${hms(avgDur)}</span>`:'<span style="color:var(--muted)">&#8212;</span>',sinC=avgSin!=null?`<span class="badge ${avgSin>HALF?'vdr':'vg'}">${hms(avgSin)}</span>`:'<span style="color:var(--muted)">&#8212;</span>',ttC=avgTT!=null?`<span class="badge bneutral">${hms(avgTT)}</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+let pc='var(--muted)';if(pctAt!=null)pc=pctAt>=80?'var(--good)':pctAt>=50?'var(--warn)':'var(--bad)';const pctC=pctAt!=null?`<span style="font-weight:700;color:${pc}">${pctAt}%</span>`:'<span style="color:var(--muted)">&#8212;</span>';
+return`<tr class="${isTotal?'row-total':''}"><td class="c-sup">${nombre}</td><td class="c-cod" style="text-align:center">${n}</td><td>${pvB}</td><td style="text-align:center">${pctC}</td><td>${ppB}</td><td>${durC}</td><td>${sinC}</td><td>${ttC}</td></tr>`;}
+const thHtml=['Supervisor','# Reps','Avg 1a Visita','% A Tiempo','Avg 1er Pedido','Avg Duracion','Avg Ult. Visita','Prom Tpo Gestion'].map(h=>`<th class="no-sort">${h}</th>`).join('');
+const sorted=Object.values(supMap).sort((a,b)=>a.nombre.localeCompare(b.nombre)),rows=sorted.map(s=>buildResRow(s.reps,s.nombre,false)).join(''),totalRow=buildResRow(visible,'COMPANIA',true);
+document.getElementById('tbl-cont').innerHTML=`<table><thead><tr>${thHtml}</tr></thead><tbody>${rows}${totalRow}</tbody></table>`;}
+
+function buildTable(){if(viewMode==='porfecha'){fetchPorFecha();return;}const visible=filteredReps(),total=reps.length;document.getElementById('f-count').textContent=visible.length<total?`Mostrando ${visible.length} de ${total} representantes`:`${total} representantes`;const ml=viewMode==='resumido'?'Resumen por Supervisor':'Detalle por Representante';document.getElementById('tbl-title').innerHTML=`${ml} &mdash; <span id="lbl-fecha">${fmtFechaLabel(selectedDate)}</span>`;if(!visible.length){document.getElementById('tbl-cont').innerHTML='<div class="loading">Sin resultados para los filtros aplicados.</div>';updateCards();return;}viewMode==='resumido'?buildResumido(visible):buildDetallado(visible);updateCards();}
+
+function updateLive(){const now=Date.now(),isHoy=isSelectedToday(),n=new Date();document.getElementById('clock').textContent=`${pad(n.getHours())}:${pad(n.getMinutes())}:${pad(n.getSeconds())}`;if(!isHoy)return;if(viewMode==='detallado')reps.forEach(r=>{const cell=document.getElementById(safeId(r.RepCodigo));if(!cell)return;const span=cell.querySelector('.badge');if(!span||!r.UltimaSalida||!isToday(r.UltimaSalida))return;const secs=(now-new Date(r.UltimaSalida).getTime())/1000;span.textContent=hms(secs);const nc=clsDesdeUltimaVisita(secs,r.UltimoPedidoHora);span.className='badge '+nc;});updateCards();countdown--;const cdEl=document.getElementById('cd');if(cdEl)cdEl.textContent=Math.max(0,countdown);if(countdown<=0){countdown=REFRESH;fetchData();}}
+
+async function fetchData(){
+  try{
+    const resp=await fetch(BASE+'/api/data?fecha='+selectedDate+(selTipo?'&tipo='+selTipo:''));
+    if(resp.status===401){location.href=BASE+'/account/login';return;}
+    if(!resp.ok){let msg='HTTP '+resp.status;try{const e=await resp.json();if(e.error)msg=e.error;}catch{}throw new Error(msg);}
+    const json=await resp.json();
+    if(!json.ok)throw new Error(json.error||'Error del servidor');
+    horaStats=json.horaStats||[];
+    // Mapear HrEntrePed = MaxGapSeg para que la columna sea ordenable
+    reps=json.reps.map(r=>({...r,HrEntrePed:r.MaxGapSeg??null,TotalTpoSeg:(r.PrimeraEntrada&&r.UltimaEntrada)?Math.max(0,Math.round((new Date(r.UltimaEntrada)-new Date(r.PrimeraEntrada))/1000)):null}));selectedDate=json.fecha;
+    populateSupervisores();populateCentros();populateReps();buildTable();
+    const cdB=document.getElementById('cd-badge');
+    if(isSelectedToday()){cdB.className='cd-badge';cdB.innerHTML=`Actualizacion en <span id="cd">${countdown}</span>s`;}else{cdB.className='hist-badge';cdB.textContent='Vista historica';}
+    document.getElementById('err-bar').style.display='none';
+    document.getElementById('live-txt').textContent='Actualizado a las '+new Date().toLocaleTimeString('es-DO');
+    if(isSelectedToday())countdown=REFRESH;
+  }catch(e){const bar=document.getElementById('err-bar');bar.textContent='Error de conexion: '+e.message;bar.style.display='block';document.getElementById('live-txt').textContent='Sin conexion';}}
+
+function init(){const dp=document.getElementById('f-date'),hoy=todayStr(),min=ymdLocal(new Date(Date.now()-30*24*60*60*1000));dp.value=hoy;dp.max=hoy;dp.min=min;selectedDate=hoy;
+dp.addEventListener('change',()=>{selectedDate=dp.value||hoy;if(viewMode==='porfecha'){fetchPorFecha();}else{countdown=REFRESH;fetchData();}});
+document.getElementById('f-date-fin').addEventListener('change',()=>{if(viewMode==='porfecha')fetchPorFecha();});
+document.addEventListener('click',e=>{const w=document.getElementById('ms-wrap');if(w&&!w.contains(e.target)){document.getElementById('ms-drop').classList.remove('ms-open');document.getElementById('ms-trigger').classList.remove('ms-open');}const wc=document.getElementById('ct-wrap');if(wc&&!wc.contains(e.target)){document.getElementById('ct-drop').classList.remove('ms-open');document.getElementById('ct-trigger').classList.remove('ms-open');}const wr=document.getElementById('rp-wrap');if(wr&&!wr.contains(e.target)){document.getElementById('rp-drop').classList.remove('ms-open');document.getElementById('rp-trigger').classList.remove('ms-open');}});
+fetch(BASE+'/api/me').then(r=>{if(r.status===401){location.href=BASE+'/account/login';return null;}return r.json();}).then(j=>{if(j&&j.ok)document.getElementById('user-nombre').textContent=j.nombre||j.login;}).catch(()=>{});
+fetchData();setInterval(updateLive,1000);}
+
+function exportExcel(){
+  const t=document.querySelector('#tbl-cont table');
+  if(!t||typeof XLSX==='undefined'){alert('No hay datos para exportar.');return;}
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,XLSX.utils.table_to_sheet(t),'Visitas');
+  XLSX.writeFile(wb,'Visitas_'+(selectedDate||'')+'.xlsx');
+}
+function printReport() {
+  const visible = filteredReps();
+  const total = reps.length;
+  // Fecha
+  document.getElementById('ph-fecha-print').innerHTML =
+    '<strong>Fecha:</strong> ' + (fmtFechaLabel(selectedDate) || selectedDate);
+  // Vista
+  const vistaTxt = viewMode === 'resumido' ? 'Resumido (por Supervisor)' : viewMode === 'porfecha' ? 'Desglose por Fecha' : 'Detallado (por Representante)';
+  document.getElementById('ph-vista-print').innerHTML =
+    '<strong>Vista:</strong> ' + vistaTxt;
+  // Filtros activos
+  const partes = [];
+  if (selectedReps.size > 0) {
+    const repMap = buildRepMap();
+    const noms = [...selectedReps].map(c => repMap[c] || c);
+    partes.push('<strong>Representante:</strong> ' + noms.join(', '));
+  }
+  if (selectedSups.size > 0) {
+    const supMap = buildSupMap();
+    const noms = [...selectedSups].map(c => supMap[c] || c);
+    partes.push('<strong>Supervisor:</strong> ' + noms.join(', '));
+  }
+  if (selectedCentros.size > 0) {
+    const ctMap = buildCtMap();
+    const noms = [...selectedCentros].map(c => ctMap[c] || c);
+    partes.push('<strong>Centro:</strong> ' + noms.join(', '));
+  }
+  if (selTipo)     partes.push('<strong>Tipo:</strong> ' + (selTipo === 'presencial' ? 'Presencial' : 'Virtual'));
+  if (filterInact) partes.push('<strong>Filtro:</strong> +30 Min Sin Visita');
+  document.getElementById('ph-filtros-print').innerHTML =
+    partes.length ? partes.join(' &nbsp;|&nbsp; ') : '';
+  // KPIs resumen
+  const HALF = 30 * 60;
+  const late = visible.filter(r => {
+    if (!r.PrimeraEntrada) return false;
+    const d = new Date(r.PrimeraEntrada);
+    return d.getHours() * 60 + d.getMinutes() >= 8 * 60 + 20;
+  }).length;
+  const inact = visible.filter(r => secsSinVisita(r) > HALF).length;
+  let kpis = '<strong>Mostrando:</strong> ' + visible.length + ' de ' + total + ' representantes';
+  if (viewMode === 'detallado') {
+    kpis += ' &nbsp;|&nbsp; <strong>Tardíos:</strong> ' + late;
+    kpis += ' &nbsp;|&nbsp; <strong>+30 min sin visita:</strong> ' + inact;
+  }
+  document.getElementById('ph-kpis-print').innerHTML = kpis;
+  window.print();
+}
+
+init();
+</script>
+</body>
+</html>

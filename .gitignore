@@ -1,0 +1,134 @@
+# ===== Respaldo en GitHub: SOLO código y documentos livianos =====
+# Lo demás (credenciales, licencias, datos, instalables) va únicamente al respaldo de Drive.
+
+# --- Regenerables ---
+node_modules/
+bin/
+obj/
+publish/
+__pycache__/
+*.pyc
+.wwebjs_cache/
+.wwebjs_auth/
+wa-session/
+.vs/
+.idea/
+~BROMIUM/
+
+# --- Credenciales / secretos ---
+.env
+.env.*
+appsettings.json
+appsettings.*.json
+*.lic
+*.pfx
+*.pem
+*.key
+*.snk
+*.pdb
+*private*.xml
+dashsmart_private.xml
+**/license*/**/*.xml
+ALL DIGITAL_License/datos/
+
+# --- Instalables y paquetes ---
+Instalables/
+instalables/
+Dash Instalables/
+DEPLOY_*/
+*.zip
+*.7z
+*.rar
+*.exe
+*.msi
+*.nupkg
+
+# --- Datos pesados / temporales ---
+*.pkl
+*.parquet
+*.bak
+*.mdf
+*.ldf
+*.log
+*.tmp
+~$*
+Thumbs.db
+_Respaldo/logs/
+_Respaldo/estado.json
+
+# --- Archivos pesados en general (el respaldo completo va a Drive) ---
+*.mp4
+*.mov
+*.iso
+
+# --- Archivos con contraseñas/llaves incrustadas (solo van al respaldo de Drive) ---
+/Claude/.claude/settings.local.json
+/Claude/AD ENTERPRISE/Versiones/v1.0/Local-Run/ADEnterprise/credentials.json
+/Claude/AD ENTERPRISE/Versiones/v1.1/Local-Run/ADEnterprise/credentials.json
+/Claude/AD ENTERPRISE/Versiones/v2.0/Local-Run/ADEnterprise/credentials.json
+/Claude/AD ENTERPRISE/Versiones/v3.0/Local-Run/ADEnterprise/credentials.json
+/Claude/Dash IIS/inc/config.asp
+/Claude/MovilBusinessDashBoard/.claude/settings.local.json
+/Claude/MovilBusinessDashBoard/MovilbusinessDashBoardSmart/wwwroot/lib/jspdf.umd.min.js
+/Claude/MovilBusinessDashBoard/PROGRESS.md
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js.map
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.min.js.map
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js.map
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.min.js.map
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.js
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.js.map
+/Claude/MovilBusinessDashBoard/Porfi Academy/src/PorfiAcademy/wwwroot/lib/bootstrap/dist/js/bootstrap.min.js.map
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/PROGRESS.md
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/client/src/api.ts
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/client/src/routeEditor/ModificarRutaEditor.tsx
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/client/src/routeEditor/RutaEditor.tsx
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/server/_tmp_diag_correcto.mjs
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/server/_tmp_dispersion.mjs
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/server/_tmp_top_overlap.mjs
+/Claude/MovilBusinessDashBoard/RutaVisitasSmart/server/src/db.ts
+/Claude/Optimizador de Ruta/Version001/optimizador_rutas.py
+/Claude/Optimizador de Ruta/optimizador_rutas.py
+/Claude/Optimizador de Ruta/ruta91_actual.html
+/Claude/Optimizador de Ruta/ruta91_analisis.py
+/Claude/Optimizador de Ruta/ruta91_recomendado.html
+/Claude/Reportes/config.py
+/Claude/Reunion_Cristiano_scripts/extract.py
+/Claude/Reunion_Supervisores_Sep2026/extract.py
+/Claude/Sistema de Condominios/INSTALADOR/ACTUALIZAR.bat
+/Claude/Sistema de Condominios/INSTALADOR/ACTUALIZAR_V6.bat
+/Claude/Sistema de Condominios/INSTALADOR/APLICAR_ESQUEMA_V6.bat
+/Claude/Sistema de Condominios/INSTALADOR/CREAR_RESPALDO.bat
+/Claude/Sistema de Condominios/INSTALADOR/INSTALAR.bat
+/Claude/Sistema de Condominios/INSTALADOR/PREPARAR_PAQUETE.bat
+/Claude/Sistema de Condominios/en-linea-con-mis-clientes/db.js
+/Claude/Sistema de Condominios/web-app-v4/InmueblesAPI/Data/AppDbContextFactory.cs
+/Claude/Sistema de Condominios/web-app-v4/InmueblesAPI/credentials.json
+/Claude/Sistema de Condominios/web-app-v4/migrar_sheets_a_postgres.py
+/Claude/Sistema de Condominios/web-app-v5/InmueblesAPI/Data/AppDbContextFactory.cs
+/Claude/Sistema de Condominios/web-app-v5/InmueblesAPI/credentials.json
+/Claude/Sistema de Condominios/web-app-v5/migrar_sheets_a_postgres.py
+/Claude/Sistema de Condominios/web-app-v6/InmueblesAPI/Data/AppDbContextFactory.cs
+/Claude/Sistema de Condominios/web-app-v6/InmueblesAPI/credentials.json
+/Claude/Sistema de Condominios/web-app-v6/migrar_sheets_a_postgres.py
+/Claude/Sistema de Condominios/web-app/InmueblesAPI/credentials.json
+/Claude/analisis_vendedores.py
+/Claude/build_nosotras_volumen.py
+/Claude/build_ofertas_pptx.py
+/Claude/build_ruta_minimarkets.py
+/Claude/check2.py
+/Claude/check3.py
+/Claude/check4.py
+/Claude/check5.py
+/Claude/check6.py
+/Claude/check7.py
+/Claude/check_fields.py
+/Claude/dashboard_server.py
+/Claude/db_query.py
+/Claude/generar_analisis_500.py
+/Claude/query_all_data.py
+/Claude/query_clientes_ruta.py
+/Claude/query_grupo10.py
+/Claude/query_presupuesto.py

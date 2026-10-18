@@ -1,0 +1,16 @@
+{
+  "name": "whatsapp-sender",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sidecar local para MovilBusiness Dashboard Smart: recibe {telefono,html,caption} por HTTP, renderiza el HTML a imagen con Puppeteer y lo envia por WhatsApp Web (Baileys, no oficial). No conoce nada de presupuestos/ventas -- ese dominio vive en el .NET (ReportesProgramadosSchedulerService.cs).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.9",
+    "express": "^4.19.2",
+    "puppeteer": "^23.6.0",
+    "qrcode": "^1.5.4"
+  }
+}

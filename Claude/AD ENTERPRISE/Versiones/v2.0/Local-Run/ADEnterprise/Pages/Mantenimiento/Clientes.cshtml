@@ -1,0 +1,183 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.ClientesModel
+@{ ViewData["Title"] = "Clientes"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-people"></i> Clientes</div>
+        <div class="page-subtitle">Catálogo de clientes del sistema</div>
+    </div>
+    <button class="btn btn-primary-app" data-bs-toggle="modal" data-bs-target="#modalNuevo">
+        <i class="bi bi-person-plus"></i> Nuevo Cliente
+    </button>
+    </div>
+</div>
+
+<!-- Búsqueda -->
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <input type="text" id="buscar" class="form-control" placeholder="🔍 Buscar por nombre o cédula..."/>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-app table-hover mb-0" id="tablaClientes">
+            <thead>
+                <tr>
+                    <th style="width:110px">ID Cliente</th>
+                    <th>Nombre Completo</th><th>Cédula</th><th>Teléfono</th><th>Correo</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Clientes)
+                {
+                <tr>
+                    <td>
+                        @if (c.Id.StartsWith("ADCTE"))
+                        {
+                            <span class="badge bg-success font-monospace">@c.Id</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary font-monospace" title="Sin ID estándar">—</span>
+                        }
+                    </td>
+                    <td><i class="bi bi-person text-primary me-1"></i><strong>@c.NombreCompleto</strong></td>
+                    <td>@c.Cedula</td>
+                    <td>@c.Telefono</td>
+                    <td>@c.Correo</td>
+                    <td class="text-center">
+                        <span class="badge @(c.Activo ? "bg-success" : "bg-secondary")">
+                            @(c.Activo ? "Activo" : "Inactivo")
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary"
+                                onclick="editar('@c.Id','@c.NombreCompleto','@c.Cedula','@c.Telefono','@c.Correo')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="post" asp-page-handler="Toggle" class="d-inline">
+                            <input type="hidden" name="id" value="@c.Id"/>
+                            <button type="submit" class="btn btn-sm @(c.Activo ? "btn-outline-warning" : "btn-outline-success")"
+                                    onclick="return confirmarAccion('¿Cambiar estado de @c.NombreCompleto?')">
+                                <i class="bi @(c.Activo ? "bi-slash-circle" : "bi-check-circle")"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                }
+                @if (!Model.Clientes.Any())
+                {
+                <tr><td colspan="7" class="text-center text-muted py-4">No hay clientes registrados</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nuevo -->
+<div class="modal fade" id="modalNuevo" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Crear">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Nombre Completo *</label>
+                            <input name="NombreCompleto" class="form-control" required placeholder="Nombre y apellidos"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cédula *</label>
+                            <input name="Cedula" class="form-control" required placeholder="000-0000000-0"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input name="Telefono" class="form-control" placeholder="(809) 000-0000"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input name="Correo" type="email" class="form-control" placeholder="cliente@correo.com"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditar" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Editar">
+                <div class="modal-body">
+                    <input type="hidden" id="e-Id" name="Id"/>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold text-muted small">ID Cliente</label>
+                            <input id="e-IdShow" class="form-control form-control-sm bg-light font-monospace" readonly
+                                   placeholder="Se asigna automáticamente"/>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-semibold">Nombre Completo *</label>
+                            <input id="e-Nombre" name="NombreCompleto" class="form-control" required/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Cédula</label>
+                            <input id="e-Cedula" name="Cedula" class="form-control"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Teléfono</label>
+                            <input id="e-Tel" name="Telefono" class="form-control"/>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input id="e-Correo" name="Correo" type="email" class="form-control"/>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function editar(id, nombre, cedula, tel, correo) {
+    document.getElementById('e-Id').value = id;
+    document.getElementById('e-IdShow').value = id || '(Sin ID — usar Asignar IDs Masivos)';
+    document.getElementById('e-Nombre').value = nombre;
+    document.getElementById('e-Cedula').value = cedula;
+    document.getElementById('e-Tel').value = tel;
+    document.getElementById('e-Correo').value = correo;
+    new bootstrap.Modal(document.getElementById('modalEditar')).show();
+}
+
+// Búsqueda en tiempo real
+document.getElementById('buscar').addEventListener('input', function() {
+    var txt = this.value.toLowerCase();
+    document.querySelectorAll('#tablaClientes tbody tr').forEach(function(tr) {
+        tr.style.display = tr.textContent.toLowerCase().includes(txt) ? '' : 'none';
+    });
+});
+</script>
+}

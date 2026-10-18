@@ -1,0 +1,32 @@
+RESPALDO AUTOMÁTICO DE  C:\Personales RM  AL DISCO EXTERNO
+===========================================================
+
+QUÉ HACE
+  - Cuando conectas el disco de respaldo, en máximo 5 minutos copia todo lo nuevo o modificado de C:\Personales RM
+    a  <disco>:\Respaldo Personales RM\Personales RM\
+  - Mientras el disco siga conectado, repite el respaldo 1 vez cada 24 horas.
+  - Si desconectas y vuelves a conectar el disco, respalda de nuevo en cuanto lo detecta.
+  - NO borra nada del disco: lo que elimines en la PC se conserva en el respaldo.
+  - Omite carpetas que se regeneran solas (node_modules, bin, obj, __pycache__, .wwebjs_cache).
+  - Al terminar muestra un aviso de Windows y deja el registro en C:\Personales RM\_Respaldo\logs
+
+ARCHIVOS
+  RESPALDAR.ps1            el programa que copia (lo llama la tarea programada)
+  RESPALDAR_OCULTO.vbs     lo lanza sin ventana
+  RESPALDAR_AHORA.bat      doble clic = respaldar YA (con el disco conectado)
+  CONFIGURAR_RESPALDO.ps1  se corre una sola vez: marca el disco y crea la tarea programada «Respaldo Personales RM»
+  estado.json              último respaldo (fecha, archivos copiados, código)
+
+POR QUÉ NO ES UN «AUTORUN»
+  Windows ya no permite que un disco USB ejecute programas al conectarlo (autorun.inf está bloqueado por seguridad).
+  Por eso la tarea revisa cada 5 minutos si el disco está conectado; para el usuario funciona igual (conectas y se respalda).
+
+CAMBIAR DE DISCO
+  Conecta el disco nuevo y corre de nuevo CONFIGURAR_RESPALDO.ps1 -Letra X  (X = letra del disco nuevo).
+
+RESTAURAR
+  Copia desde  <disco>:\Respaldo Personales RM\Personales RM\  a  C:\Personales RM\  (con robocopy o el Explorador).
+  Si necesitas node_modules: npm install dentro de cada proyecto.
+
+DESACTIVAR
+  Programador de tareas de Windows → «Respaldo Personales RM» → Deshabilitar.

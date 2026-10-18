@@ -1,0 +1,702 @@
+@{ Layout = null; var showMenu = ViewBag.ShowMenu == null || (bool)ViewBag.ShowMenu; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torre de Control &mdash; AM COMERCIAL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:'Segoe UI',Tahoma,sans-serif;font-size:13px}
+a{color:#58a6ff;text-decoration:none;cursor:pointer}
+.top{display:flex;align-items:center;gap:14px;padding:12px 18px;background:#161b22;border-bottom:1px solid #30363d;position:sticky;top:0;z-index:20}
+.top h1{font-size:17px;font-weight:800}
+.top .sub{font-size:11px;color:#8b949e}
+.spacer{flex:1}
+.btn{background:#21262d;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:7px 12px;font-size:12px;cursor:pointer;font-weight:600}
+.btn:hover{border-color:#58a6ff}
+.btn-go{background:#1f6feb;border-color:#1f6feb;color:#fff}
+.btn-go:hover{background:#388bfd}
+.tabs{display:flex;gap:4px;padding:10px 18px 0;background:#0d1117;border-bottom:1px solid #30363d}
+.tab{padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-weight:600;color:#8b949e;font-size:12px}
+.tab.on{background:#161b22;color:#e6edf3;border:1px solid #30363d;border-bottom:none}
+.wrap{padding:16px 18px}
+.filtros{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-bottom:14px}
+.ms{position:relative;min-width:150px}
+.ms-btn{background:#161b22;border:1px solid #30363d;border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center}
+.ms-btn .cnt{background:#1f6feb;border-radius:10px;padding:0 7px;font-size:11px}
+.ms-pop{display:none;position:absolute;top:105%;left:0;z-index:30;background:#161b22;border:1px solid #30363d;border-radius:8px;width:240px;max-height:280px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.5);padding:6px}
+.ms-pop.open{display:block}
+.ms-search{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px;font-size:12px;margin-bottom:5px}
+.ms-head{display:flex;justify-content:space-between;padding:2px 4px 6px}
+.ms-link{font-size:11px;color:#58a6ff;cursor:pointer}
+.ms-opt{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer}
+.ms-opt:hover{background:#21262d}
+.lbl{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;display:block}
+.cards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.card{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:12px 16px;min-width:120px}
+.card .cl{font-size:11px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px}
+.card .cv{font-size:22px;font-weight:800;margin-top:3px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{padding:7px 9px;text-align:center;border-bottom:1px solid #21262d;white-space:nowrap}
+th{position:sticky;top:0;background:#161b22;color:#8b949e;font-size:10px;text-transform:uppercase;letter-spacing:.4px;z-index:5}
+td.l,th.l{text-align:left}
+tbody tr:hover{background:#161b22;cursor:pointer}
+.cell-al{background:rgba(248,81,73,.16);color:#ff9d95;font-weight:700;border-radius:5px}
+.cell-ok{color:#3fb950}
+.cell-na{color:#484f58}
+.cell-at{background:rgba(163,113,247,.14);color:#a371f7;font-weight:600;border-radius:5px;font-size:11px}
+.badge{padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;color:#fff}
+.pill{display:inline-block;background:#21262d;border:1px solid #30363d;border-radius:10px;padding:1px 8px;font-size:11px;margin:1px}
+.mini{font-size:11px;color:#8b949e}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;align-items:center;justify-content:center;padding:16px}
+.modal.open{display:flex}
+.modal-box{background:#161b22;border:1px solid #30363d;border-radius:14px;padding:22px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.modal-box h2{font-size:16px;margin-bottom:4px}
+.frow{margin-bottom:12px}
+.frow label{display:block;font-size:11px;color:#8b949e;font-weight:600;margin-bottom:4px}
+.frow input,.frow select,.frow textarea{width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:8px;font-size:13px;font-family:inherit}
+.frow textarea{min-height:60px;resize:vertical}
+.frow2{display:flex;gap:10px}.frow2>div{flex:1}
+.overlay{display:none;position:fixed;inset:0;background:rgba(13,17,23,.6);z-index:60;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.spin{width:34px;height:34px;border:3px solid #30363d;border-top-color:#1f6feb;border-radius:50%;animation:sp 1s linear infinite}
+@@keyframes sp{to{transform:rotate(360deg)}}
+.hide{display:none}
+.hint{font-size:11px;color:#8b949e;margin:6px 0 12px}
+.rh-title{font-size:16px;font-weight:800;margin-bottom:2px}
+@@page{margin:12mm 12.7mm}
+@@media print{
+  body{background:#fff;color:#000}
+  .top,.tabs,.no-print,#overlay,.btn{display:none!important}
+  #rep-head{display:block!important;color:#000;margin-bottom:10px}
+  .card{border:1px solid #ccc}
+  .wrap{padding:0}
+  table{font-size:10px} th{background:#eee;color:#000;position:static}
+}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>🗼 Torre de Control</h1><div class="sub" id="emp">@ViewBag.EmpNombre</div></div>
+  <div class="spacer"></div>
+  <span class="mini" id="reloj"></span>
+  <label class="mini" style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="auto" checked> Auto 3 min</label>
+  @if (showMenu) { <a class="btn" href="@(Context.Request.PathBase)/menu">← Menú</a> }
+</div>
+
+<div class="tabs">
+  <div class="tab on" data-t="monitor" onclick="tab('monitor')">Monitor en vivo</div>
+  <div class="tab" data-t="bitacora" onclick="tab('bitacora')">Bitácora de contactos</div>
+  <div class="tab" data-t="monitores" onclick="tab('monitores')">Monitores</div>
+  <div class="tab" data-t="historico" onclick="tab('historico')">Histórico (snapshots)</div>
+  <div class="tab" data-t="reportes" onclick="tab('reportes')">📊 Reportes</div>
+</div>
+
+<!-- ═══ MONITOR ═══ -->
+<div class="wrap" id="t-monitor">
+  <div class="filtros">
+    <div><span class="lbl">Centro</span><div id="ms-centro"></div></div>
+    <div><span class="lbl">Supervisor</span><div id="ms-sup"></div></div>
+    <div><span class="lbl">Vendedor</span><div id="ms-ven"></div></div>
+    <div><span class="lbl">División</span><div id="ms-div"></div></div>
+    <button class="btn btn-go" id="btn-go">Actualizar ahora</button>
+  </div>
+  <div class="cards" id="cards"></div>
+  <div style="overflow:auto;max-height:64vh"><div id="tabla"></div></div>
+</div>
+
+<!-- ═══ BITACORA ═══ -->
+<div class="wrap hide" id="t-bitacora">
+  <div class="hint">Registro de todas las llamadas de la Torre. Cada fila documenta la alerta y el compromiso acordado.</div>
+  <div id="bitacora"></div>
+</div>
+
+<!-- ═══ MONITORES ═══ -->
+<div class="wrap hide" id="t-monitores">
+  <div class="hint">Activa/desactiva monitores y ajusta sus umbrales. La ventana horaria controla cuándo se guardan los snapshots automáticos.</div>
+  <div class="cards"><div class="card" style="min-width:320px">
+    <div class="cl">Ventana de vigilancia (snapshots cada 30 min)</div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+      <input type="time" id="v-desde" value="08:20" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px">
+      <span class="mini">a</span>
+      <input type="time" id="v-hasta" value="16:00" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px">
+      <button class="btn btn-go" onclick="guardarVentana()">Guardar</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px">
+      <span class="mini">Mute tras contacto:</span>
+      <input type="number" id="v-mute" value="60" min="1" style="width:70px;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px">
+      <span class="mini">min → al reactivarse se reinician los contadores de alertas</span>
+    </div>
+  </div>
+  <div class="card" style="min-width:340px">
+    <div class="cl">Representantes SIN alerta (no se miden)</div>
+    <div class="mini" style="margin:4px 0 6px">Marca los que NO quieres que generen alertas (ej. no hacen visitas).</div>
+    <input id="ro-search" placeholder="Buscar vendedor..." oninput="renderRepsOff()" style="width:100%;background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:6px;padding:6px;font-size:12px">
+    <div id="ro-list" style="max-height:200px;overflow:auto;margin:6px 0"></div>
+    <button class="btn btn-go" onclick="guardarRepsOff()">Guardar</button> <span class="mini" id="ro-count"></span>
+  </div></div>
+  <div id="monitores"></div>
+
+  <div class="card" style="margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div class="cl">Monitores personalizados (metas de venta por grupo)</div>
+      <button class="btn btn-go" onclick="nuevoPers()">+ Nuevo</button>
+    </div>
+    <div class="mini" style="margin:4px 0 8px">Mide <b>por día</b> y por vendedor una meta de venta (clientes distintos / unidades / monto / impactos) de un <b>producto, línea/categoría o suplidor</b>, para un <b>grupo</b> (RepTipe/División, supervisor o reps). Vigencia por rango de fechas; la estadística se ve por día o acumulada.</div>
+    <div id="pers-list"></div>
+  </div>
+</div>
+
+<!-- ═══ HISTORICO ═══ -->
+<div class="wrap hide" id="t-historico">
+  <div class="filtros">
+    <div><span class="lbl">Fecha</span><input type="date" id="h-fecha" style="background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:7px"></div>
+    <button class="btn btn-go" onclick="cargarHistorico()">Ver</button>
+  </div>
+  <div id="historico"></div>
+</div>
+
+<!-- ═══ REPORTES ═══ -->
+<div class="wrap hide" id="t-reportes">
+  <div class="filtros no-print">
+    <div class="fld"><span class="lbl">Desde</span><input type="date" id="r-desde" style="background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:7px"></div>
+    <div class="fld"><span class="lbl">Hasta</span><input type="date" id="r-hasta" style="background:#161b22;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:7px"></div>
+    <div><span class="lbl">Supervisor</span><div id="msr-sup"></div></div>
+    <div><span class="lbl">Vendedor</span><div id="msr-ven"></div></div>
+    <div><span class="lbl">Alerta</span><div id="msr-ale"></div></div>
+    <button class="btn btn-go" onclick="cargarReporte()">Generar</button>
+    <button class="btn" onclick="window.print()">🖨 Imprimir</button>
+    <button class="btn" onclick="reporteExcel()">⬇ Excel</button>
+  </div>
+  <div id="rep-head" style="display:none"></div>
+  <div class="cards" id="r-cards"></div>
+  <div id="r-charts" style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px"></div>
+  <div id="r-tablas"></div>
+</div>
+
+<!-- ═══ MODAL CONTACTO ═══ -->
+<div class="modal" id="modal-con">
+  <div class="modal-box">
+    <h2>Registrar contacto</h2>
+    <div class="mini" id="con-rep" style="margin-bottom:14px"></div>
+    <div class="frow"><label>Alertas que motivan el contacto</label><div id="con-alertas"></div></div>
+    <div class="frow2">
+      <div class="frow"><label>Canal</label><select id="con-canal"><option>Llamada</option><option>WhatsApp</option><option>Presencial</option></select></div>
+      <div class="frow"><label>Habló con</label><select id="con-quien"><option>Vendedor</option><option>Supervisor</option><option>Ambos</option></select></div>
+    </div>
+    <div class="frow"><label>Puntos tratados</label><textarea id="con-resumen" placeholder="Qué se conversó..."></textarea></div>
+    <div class="frow"><label>Compromiso acordado</label><textarea id="con-compromiso" placeholder="A qué se comprometió el recurso..."></textarea></div>
+    <div class="frow2">
+      <div class="frow"><label>Fecha de seguimiento</label><input type="date" id="con-seg"></div>
+      <div class="frow"><label>Estado</label><select id="con-estado"><option>Abierto</option><option>Seguimiento</option><option>Resuelto</option></select></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="cerrarContacto()">Cancelar</button>
+      <button class="btn btn-go" onclick="guardarContacto()">Guardar contacto</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: crear/editar monitor personalizado ═══ -->
+<div class="modal" id="modal-pers">
+  <div class="modal-box" style="max-width:600px">
+    <h2 id="pers-title">Nuevo monitor personalizado</h2>
+    <div class="frow"><label>Nombre del monitor</label><input id="p-nom" placeholder="Ej. Cat. 136 · 5 clientes/día (RepTipe 10)"></div>
+    <div class="frow2">
+      <div class="frow"><label>Dimensión</label><select id="p-dim" onchange="persItems=[];persRenderItems();$('#p-buscar').value=''"><option value="linea">Línea / Categoría</option><option value="producto">Producto</option><option value="suplidor">Suplidor</option></select></div>
+      <div class="frow"><label>Métrica</label><select id="p-met" onchange="persMetChange()"><option value="clientes">Clientes distintos</option><option value="unidades">Unidades vendidas</option><option value="monto">Monto (RD$)</option><option value="impactos">Impactos (pedidos)</option></select></div>
+    </div>
+    <div class="frow"><label>Ítems a medir (busca y agrega)</label>
+      <div style="display:flex;gap:6px"><input id="p-buscar" placeholder="Buscar..." oninput="persBuscarDeb()" style="flex:1"><button class="btn" onclick="persBuscar()">Buscar</button></div>
+      <div id="p-busres" style="max-height:120px;overflow:auto;margin-top:4px"></div>
+      <div id="p-items" style="margin-top:6px"></div>
+    </div>
+    <div class="frow2">
+      <div class="frow" id="p-minu-row"><label>Unidades mín. por cliente</label><input type="number" id="p-minu" value="1" min="0" step="0.01"></div>
+      <div class="frow"><label>Contar solo hasta la hora (opcional)</label><input type="time" id="p-hh"><div class="mini">ej. 11:00 → solo ventas antes de las 11 AM</div></div>
+    </div>
+    <div class="frow2">
+      <div class="frow"><label>Condición</label><div style="display:flex;gap:6px;align-items:center"><select id="p-comp" onchange="persCompChange()"><option value="mayorIgual">Al menos (≥)</option><option value="menor">Menos de (&lt;)</option><option value="ritmo">Ritmo (regla de 3 hasta una hora)</option></select><input type="number" id="p-obj" value="5" step="0.01" style="width:90px"><span class="mini">objetivo / día</span></div></div>
+      <div class="frow"><label>Severidad</label><input type="number" id="p-sev" value="2" min="1" max="3"></div>
+    </div>
+    <div class="frow2" id="p-ritmo-row" style="display:none">
+      <div class="frow"><label>Ritmo — hora de inicio</label><input type="time" id="p-ri" value="08:20"><div class="mini">desde esta hora empieza a exigirse el ritmo</div></div>
+      <div class="frow"><label>Ritmo — hora límite (objetivo completo)</label><input type="time" id="p-rl" value="15:00"><div class="mini">a esta hora ya debe llevar el objetivo completo</div></div>
+    </div>
+    <div class="frow2">
+      <div class="frow"><label>Grupo de vendedores</label><select id="p-gtipo" onchange="persGrupoTipo()"><option value="reptipe">RepTipe / División</option><option value="supervisor">Supervisor</option><option value="reps">Reps específicos</option></select></div>
+      <div class="frow"><label>&nbsp;</label><select id="p-gsel" onchange="persAddGrupo()"><option value="">— agregar —</option></select></div>
+    </div>
+    <div id="p-grupo" style="margin:-4px 0 8px"></div>
+    <div class="frow2">
+      <div class="frow"><label>Vigencia desde</label><input type="date" id="p-vd"></div>
+      <div class="frow"><label>Vigencia hasta</label><input type="date" id="p-vh"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:6px">
+      <button class="btn" onclick="cerrarPers()">Cancelar</button>
+      <button class="btn btn-go" onclick="guardarPers()">Guardar monitor</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: estadística de monitor personalizado ═══ -->
+<div class="modal" id="modal-pstats">
+  <div class="modal-box" style="max-width:920px">
+    <h2 id="ps-title">Estadística</h2>
+    <div class="filtros" style="margin:6px 0">
+      <div><span class="lbl">Desde</span><input type="date" id="ps-d0" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:6px"></div>
+      <div><span class="lbl">Hasta</span><input type="date" id="ps-d1" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:6px"></div>
+      <div><span class="lbl">&nbsp;</span><select id="ps-modo" style="background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:7px;padding:6px"><option value="dia">Por día</option><option value="acum">Acumulado</option></select></div>
+      <div><span class="lbl">&nbsp;</span><button class="btn btn-go" onclick="verStatsPers()">Ver</button> <button class="btn" onclick="cerrarPStats()">Cerrar</button></div>
+    </div>
+    <div id="ps-cards" class="cards" style="margin:6px 0"></div>
+    <div id="ps-body" style="overflow:auto;max-height:60vh"></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay"><div class="spin"></div></div>
+
+<script>
+const BASE='@Context.Request.PathBase.Value';
+const EMP='@ViewBag.EmpNombre';
+const $=s=>document.querySelector(s);
+// OJO: NUNCA usar Date.toISOString() para "hoy" — convierte a UTC antes de
+// formatear, y RD es UTC-4 sin horario de verano, así que después de las 8:00
+// PM ya "es mañana" en UTC (bug real encontrado 2026-09-03: el sistema saltaba
+// al día siguiente por la noche en varias pantallas). getFullYear/getMonth/
+// getDate son locales, no UTC.
+const dateF=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+let REPS=[], MONS=[], VEND=[], MS={}, conRep=null, autoTimer=null;
+
+function overlay(b){ $('#overlay').classList.toggle('show',b); }
+setInterval(()=>{ $('#reloj').textContent=new Date().toLocaleTimeString('es-DO'); },1000);
+
+/* ── Tabs ── */
+function tab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
+  ['monitor','bitacora','monitores','historico','reportes'].forEach(x=>$('#t-'+x).classList.toggle('hide',x!==t));
+  if(t==='bitacora') cargarBitacora();
+  if(t==='monitores'){ cargarMonitores(); cargarPersonalizados(); }
+  if(t==='historico'){ if(!$('#h-fecha').value) $('#h-fecha').value=dateF(new Date()); cargarHistorico(); }
+  if(t==='reportes'){ const hoy=dateF(new Date()); if(!$('#r-hasta').value){ $('#r-hasta').value=hoy; const d=new Date();d.setDate(d.getDate()-6); $('#r-desde').value=dateF(d);}
+    if(!MSR.sup && REPS.length){ const sups=[...new Map(REPS.filter(r=>r.SupervisorCod).map(r=>[r.SupervisorCod,r.SupervisorNombre])).entries()].map(([v,t])=>({v,t}));
+      MSR.sup=multiselect($('#msr-sup'),'Todos',sups); MSR.ven=multiselect($('#msr-ven'),'Todos',REPS.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre}))); }
+    if(!MSR.ale){ fetch(BASE+'/apitorre/monitores').then(r=>r.json()).then(k=>{ const ms=((k&&k.monitores)||[]).filter(x=>x.Tipo==='nucleo'||x.Tipo==='personalizado');
+      MSR.ale=multiselect($('#msr-ale'),'Todas',ms.map(x=>({v:x.Codigo,t:ntipo(x.Codigo,x.Nombre)}))); }); }
+    cargarReporte(); }
+}
+let REP=null, MSR={};
+function cargarReporte(){
+  overlay(true);
+  let u=BASE+'/apitorre/reporte?desde='+$('#r-desde').value+'&hasta='+$('#r-hasta').value;
+  if(MSR.sup&&MSR.sup.values().length) u+='&supervisores='+MSR.sup.values().join(',');
+  if(MSR.ven&&MSR.ven.values().length) u+='&reps='+MSR.ven.values().join(',');
+  if(MSR.ale&&MSR.ale.values().length) u+='&codigos='+encodeURIComponent(MSR.ale.values().join(','));
+  fetch(u).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'?')); return; }
+    REP=j; renderReporte(j);
+  }).catch(e=>{ overlay(false); alert('Error: '+e); });
+}
+const NOMTIPO={PRIMERA_VISITA_PEDIDO:'1er pedido ≤8:20',CUMPLIMIENTO:'Cumplimiento',TIEMPO_VISITA:'Tiempo visita',EFECTIVIDAD_VISITA:'Efectividad',MUCHO_SIN_SYNC:'Sin sync',FUERA_ENTORNO:'Fuera ruta',PEDIDO_FUERA_DIA:'Ped. fuera día',CUADRE_CERRADO:'Cuadre',ULTIMO_PEDIDO_TEMPRANO:'Últ. pedido temprano'};
+function ntipo(c,n){ return NOMTIPO[c]||n||c; }
+function renderReporte(j){
+  const r=j.resumen;
+  $('#rep-head').innerHTML='<div class="rh-title">'+EMP+' — Torre de Control · Resumen ejecutivo</div><div class="mini">Del <b>'+j.desde+'</b> al <b>'+j.hasta+'</b> · generado '+new Date().toLocaleString('es-DO')+'</div>';
+  const pAl=r.pctAlertasAtendidas||0;
+  $('#r-cards').innerHTML=
+    card('Alertas generadas',r.alertasTotal,'#f0883e')+
+    card('Reps en alarma',r.repsEnAlarma,'#f85149')+
+    card('Reps atendidos',r.repsAtendidos+' / '+r.repsEnAlarma,r.pctAtendido>=70?'#3fb950':'#e3b341')+
+    card('Alertas atendidas',(r.alertasAtendidas||0)+' / '+(r.alertasGeneradas||0),pAl>=70?'#3fb950':'#e3b341')+
+    card('% Alertas atendidas',pAl+'%',pAl>=70?'#3fb950':'#e3b341')+
+    card('Contactos (bitácora)',r.contactosTotal,'#58a6ff');
+  // Grafica por dia (alertas vs contactos)
+  const dias=j.porDia||[]; const maxD=Math.max(1,...dias.map(d=>Math.max(d.alertas,d.contactos)));
+  let g1='<div class="card" style="min-width:420px"><div class="cl">Alertas y contactos por día</div><svg viewBox="0 0 '+(Math.max(300,dias.length*70))+' 180" style="width:100%;height:180px">';
+  dias.forEach((d,i)=>{ const x=20+i*70; const ha=140*d.alertas/maxD, hc=140*d.contactos/maxD;
+    g1+='<rect x="'+x+'" y="'+(150-ha)+'" width="22" height="'+ha+'" fill="#f0883e"><title>'+d.alertas+' alertas</title></rect>';
+    g1+='<rect x="'+(x+24)+'" y="'+(150-hc)+'" width="22" height="'+hc+'" fill="#58a6ff"><title>'+d.contactos+' contactos</title></rect>';
+    g1+='<text x="'+(x+22)+'" y="165" fill="#8b949e" font-size="9" text-anchor="middle">'+d.dia.slice(5)+'</text>'; });
+  g1+='</svg><div class="mini"><span style="color:#f0883e">■</span> alertas · <span style="color:#58a6ff">■</span> contactos</div></div>';
+  // Grafica por tipo (barras horizontales)
+  const tipos=j.porTipo||[]; const maxT=Math.max(1,...tipos.map(t=>t.alertas));
+  let g2='<div class="card" style="min-width:360px"><div class="cl">Alertas por tipo</div><div style="margin-top:6px">';
+  tipos.forEach(t=>{ g2+='<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="width:110px;font-size:11px" class="mini">'+ntipo(t.codigo,t.nombre)+'</span><div style="flex:1;background:#0d1117;border-radius:4px"><div style="width:'+Math.round(t.alertas*100/maxT)+'%;background:#f85149;height:16px;border-radius:4px"></div></div><b style="width:36px;text-align:right">'+t.alertas+'</b></div>'; });
+  g2+='</div></div>';
+  $('#r-charts').innerHTML=g1+g2;
+  // Tabla por supervisor
+  let h='<h3 style="margin:8px 0;font-size:14px">Por Supervisor</h3><table><thead><tr><th class="l">Supervisor</th><th>Alertas</th><th>Reps en alarma</th><th>Reps atendidos</th><th>% Atend.</th></tr></thead><tbody>';
+  (j.supervisores||[]).forEach(s=>{ const p=s.repsAlarma?Math.round(s.repsAtendidos*100/s.repsAlarma):0; h+='<tr><td class="l">'+s.supervisor+'</td><td>'+s.alertas+'</td><td>'+s.repsAlarma+'</td><td>'+s.repsAtendidos+'</td><td style="color:'+(p>=70?'#3fb950':'#e3b341')+'">'+p+'%</td></tr>'; });
+  h+='</tbody></table>';
+  // Tabla por vendedor (resumen ejecutivo)
+  h+='<h3 style="margin:14px 0 8px;font-size:14px">Por Vendedor (resumen para hablar con cada uno)</h3><table><thead><tr><th class="l">Vendedor</th><th class="l">Supervisor</th><th>Alertas</th><th class="l">Tipos</th><th>Atendidas</th><th class="l">Compromiso</th></tr></thead><tbody>';
+  (j.vendedores||[]).forEach(v=>{ const tipos=Object.entries(v.tipos||{}).map(([c,n])=>ntipo(c)+' ('+n+')').join(', ');
+    const g=v.alertasGeneradas||0, a=v.alertasAtendidas||0; const full=g>0&&a>=g; const col=g===0?'#8b949e':(full?'#3fb950':(a>0?'#e3b341':'#f85149'));
+    const atxt=v.atendido?(a+'/'+g+(full?' ✓':'')):'—';
+    h+='<tr><td class="l">'+v.nombre+' <span class="mini">('+v.rep+')</span></td><td class="l">'+v.supervisor+'</td><td>'+v.alertas+'</td><td class="l" style="white-space:normal;max-width:260px">'+tipos+'</td><td style="color:'+col+'">'+atxt+'</td><td class="l" style="white-space:normal;max-width:240px">'+(v.compromiso||'')+'</td></tr>'; });
+  h+='</tbody></table>';
+  $('#r-tablas').innerHTML=h;
+}
+function reporteExcel(){
+  if(!REP){ alert('Genera el reporte primero.'); return; }
+  ensureXLSX(()=>{
+    const j=REP; const head=[[EMP+' — Torre de Control · Resumen ejecutivo'],['Rango',j.desde+' a '+j.hasta],['Generado',new Date().toLocaleString('es-DO')],[]];
+    const wb=XLSX.utils.book_new();
+    // Hoja resumen + por tipo + por dia
+    const resu=head.concat([['Alertas generadas',j.resumen.alertasTotal],['Reps en alarma',j.resumen.repsEnAlarma],['Reps atendidos',j.resumen.repsAtendidos],['% Reps atendidos',j.resumen.pctAtendido],['Alertas atendidas',(j.resumen.alertasAtendidas||0)+' / '+(j.resumen.alertasGeneradas||0)],['% Alertas atendidas',j.resumen.pctAlertasAtendidas||0],['Contactos',j.resumen.contactosTotal],[],['Alertas por tipo']]).concat((j.porTipo||[]).map(t=>[ntipo(t.codigo,t.nombre),t.alertas])).concat([[],['Por día','Alertas','Contactos']]).concat((j.porDia||[]).map(d=>[d.dia,d.alertas,d.contactos]));
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(resu),'Resumen');
+    // Hoja vendedores
+    const HV=['Vendedor','Código','Supervisor','Alertas','Tipos','Alertas atendidas','Alertas generadas','Contactos','Compromiso'];
+    const rowsV=(j.vendedores||[]).map(v=>[v.nombre,v.rep,v.supervisor,v.alertas,Object.entries(v.tipos||{}).map(([c,n])=>ntipo(c)+' ('+n+')').join(', '),v.alertasAtendidas||0,v.alertasGeneradas||0,v.contactos,v.compromiso||'']);
+    const wsV=XLSX.utils.aoa_to_sheet([HV].concat(rowsV)); wsV['!cols']=HV.map((h,i)=>({wch:i===0||i===4||i===7?26:14}));
+    XLSX.utils.book_append_sheet(wb,wsV,'Vendedores');
+    XLSX.writeFile(wb,'torre_reporte_'+j.desde+'_'+j.hasta+'.xlsx');
+  });
+}
+function ensureXLSX(cb){ if(typeof XLSX!=='undefined'){cb();return;} const s=document.createElement('script'); s.src=BASE+'/lib/xlsx.full.min.js'; s.onload=()=>cb(); s.onerror=()=>alert('No se pudo cargar el generador de Excel.'); document.head.appendChild(s); }
+
+/* ── Multiselect ── */
+function multiselect(host,label,opts,onChange){
+  const wrap=document.createElement('div');wrap.className='ms';const btn=document.createElement('div');btn.className='ms-btn';
+  const txt=document.createElement('span');txt.textContent=label;const cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';
+  btn.append(txt,cnt);const pop=document.createElement('div');pop.className='ms-pop';
+  const search=document.createElement('input');search.className='ms-search';search.placeholder='Buscar...';
+  const head=document.createElement('div');head.className='ms-head';const all=document.createElement('span');all.className='ms-link';all.textContent='✓ Todos';const non=document.createElement('span');non.className='ms-link';non.textContent='✕ Ninguno';head.append(all,non);
+  const list=document.createElement('div');pop.append(search,head,list);wrap.append(btn,pop);host.appendChild(wrap);
+  let options=opts.slice(),selected=new Set();
+  const vis=()=>{const q=(search.value||'').toLowerCase();return options.filter(o=>o.t.toLowerCase().includes(q));};
+  all.onclick=e=>{e.stopPropagation();vis().forEach(o=>selected.add(o.v));render();sync();onChange&&onChange();};
+  non.onclick=e=>{e.stopPropagation();vis().forEach(o=>selected.delete(o.v));render();sync();onChange&&onChange();};
+  function render(){list.innerHTML='';vis().forEach(o=>{const row=document.createElement('label');row.className='ms-opt';const cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(o.v);cb.onchange=()=>{cb.checked?selected.add(o.v):selected.delete(o.v);sync();onChange&&onChange();};const sp=document.createElement('span');sp.textContent=o.t;row.append(cb,sp);list.appendChild(row);});}
+  function sync(){const n=selected.size;cnt.style.display=n?'inline-block':'none';cnt.textContent=n;}
+  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.ms-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open');});pop.classList.toggle('open');if(pop.classList.contains('open')){search.value='';render();search.focus();}};
+  search.oninput=render;pop.onclick=e=>e.stopPropagation();render();sync();
+  return {values:()=>[...selected],setOptions:(n)=>{options=n.slice();selected=new Set([...selected].filter(v=>options.some(o=>o.v===v)));render();sync();}};
+}
+document.addEventListener('click',()=>document.querySelectorAll('.ms-pop.open').forEach(p=>p.classList.remove('open')));
+
+/* ── Init ── */
+fetch(BASE+'/apitorre/filtros').then(r=>r.json()).then(j=>{
+  REPS=(j&&j.representantes)||[];
+  const centros=[...new Map(REPS.filter(r=>r.CedCodigo).map(r=>[r.CedCodigo,r.CentroNombre])).entries()].map(([v,t])=>({v,t}));
+  const divis=[...new Set(REPS.map(r=>r.Division).filter(Boolean))].sort().map(v=>({v,t:'División '+v}));
+  MS.centro=multiselect($('#ms-centro'),'Centro',centros,depend);
+  MS.sup=multiselect($('#ms-sup'),'Supervisor',[],depend);
+  MS.ven=multiselect($('#ms-ven'),'Vendedor',[]);
+  MS.div=multiselect($('#ms-div'),'División',divis);
+  depend(); cargar();
+});
+function depend(){
+  const cen=new Set(MS.centro.values());
+  const rc=cen.size?REPS.filter(r=>cen.has(r.CedCodigo)):REPS;
+  MS.sup.setOptions([...new Map(rc.filter(r=>r.SupervisorCod).map(r=>[r.SupervisorCod,r.SupervisorNombre])).entries()].map(([v,t])=>({v,t})));
+  const sup=new Set(MS.sup.values());
+  const rs=sup.size?rc.filter(r=>sup.has(r.SupervisorCod)):rc;
+  MS.ven.setOptions(rs.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre})));
+}
+
+/* ── Cargar monitor en vivo ── */
+$('#btn-go').onclick=cargar;
+function cargar(){
+  overlay(true);
+  const p=new URLSearchParams();
+  if(MS.centro.values().length)p.set('centros',MS.centro.values().join(','));
+  if(MS.sup.values().length)p.set('supervisores',MS.sup.values().join(','));
+  if(MS.ven.values().length)p.set('reps',MS.ven.values().join(','));
+  if(MS.div.values().length)p.set('divisiones',MS.div.values().join(','));
+  fetch(BASE+'/apitorre/monitor?'+p.toString()).then(r=>r.json()).then(j=>{
+    overlay(false);
+    if(!j||!j.ok){ alert('Error: '+(j&&j.error||'?')); return; }
+    MONS=(j.monitores||[]).filter(m=>m.Tipo==='nucleo'||m.Tipo==='personalizado'); VEND=j.vendedores||[];
+    render();
+  }).catch(e=>{overlay(false);alert('Error de conexión: '+e);});
+}
+function setAuto(){ if(autoTimer)clearInterval(autoTimer); if($('#auto').checked) autoTimer=setInterval(()=>{ if($('#t-monitor').classList.contains('hide'))return; cargar(); },180000); }
+$('#auto').onchange=setAuto; setAuto();
+
+function render(){
+  const pend=VEND.filter(v=>!v.contactado), cont=VEND.filter(v=>v.contactado);
+  const enAl=pend.filter(v=>v.alarmas>0).length;
+  const totAl=pend.reduce((a,b)=>a+(b.alarmas||0),0);
+  const porMon={}; MONS.forEach(m=>porMon[m.Codigo]=0);
+  pend.forEach(v=>MONS.forEach(m=>{ if(v.celdas[m.Codigo]&&v.celdas[m.Codigo].Alarma)porMon[m.Codigo]++; }));
+  $('#cards').innerHTML=
+    card('Vendedores hoy',VEND.length,'#58a6ff')+
+    card('En alarma (pend.)',enAl,enAl?'#f85149':'#3fb950')+
+    card('Contactados (30m)',cont.length,'#a371f7')+
+    MONS.map(m=>card(abbr(m.Nombre),porMon[m.Codigo],porMon[m.Codigo]?'#f85149':'#3fb950')).join('');
+  let h='<table><thead><tr><th class="l">Vendedor</th><th class="l">Centro</th><th class="l">Supervisor</th>';
+  MONS.forEach(m=>h+='<th title="'+m.Nombre+'">'+abbr(m.Nombre)+'</th>');
+  h+='<th>Alarmas</th></tr></thead><tbody>';
+  // pendientes ordenados por severidad; contactados al final, opacados
+  pend.sort((a,b)=>b.severidad-a.severidad||b.alarmas-a.alarmas);
+  const filas=pend.concat(cont);
+  filas.forEach(v=>{
+    const op=(v.contactado||v.sinAlerta||v.terminado)?' style="opacity:.4"':'';
+    h+='<tr'+op+' onclick="abrirContacto(\''+v.RepCodigo+'\')"><td class="l">'+v.RepNombre+' <span class="mini">('+v.RepCodigo+')</span>'+(v.reiniciado?' <span title="Contadores reiniciados tras contacto" style="color:#a371f7">↻</span>':'')+'</td><td class="l">'+v.Centro+'</td><td class="l">'+v.Supervisor+'</td>';
+    MONS.forEach(m=>{ const c=v.celdas[m.Codigo]||{}; const cls=c.Atendida?'cell-at':(c.Alarma?'cell-al':(c.Texto&&c.Texto!=='—'?'cell-ok':'cell-na'));
+      const tit=(c.Atendida?'Atendida — no vuelve a alertar hoy. ':'')+(c.Detalle||'');
+      h+='<td class="'+cls+'" title="'+tit+'">'+(c.Atendida?'✓ atendida':(c.Texto||'—'))+'</td>'; });
+    h+= v.sinAlerta
+      ? '<td><span class="badge" style="background:#484f58" title="Sin alerta (no se mide)">⊘ sin alerta</span></td>'
+      : v.terminado && !v.alarmas
+      ? '<td><span class="badge" style="background:#1f6feb" title="Terminó sus clientes asignados; ya no se mide">🏁 terminó</span></td>'
+      : v.contactado
+      ? '<td><span class="badge" style="background:#a371f7" title="Contactado; fuera de prioridad">✓ '+v.contactadoHora+'</span></td>'
+      : '<td><b style="color:'+(v.alarmas?'#f85149':'#3fb950')+'">'+v.alarmas+'</b></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table>';
+  if(!VEND.length) h='<div class="hint">Sin vendedores con ruta o visita hoy (o filtros muy restrictivos).</div>';
+  $('#tabla').innerHTML=h;
+}
+function card(l,v,col){ return '<div class="card"><div class="cl">'+l+'</div><div class="cv" style="color:'+(col||'#e6edf3')+'">'+v+'</div></div>'; }
+function abbr(n){ const map={'1ra visita y 1er pedido antes de 8:20':'1er ped ≤8:20','Cumplimiento de visitas':'Cumplim.','Tiempo promedio de visita':'T. visita','Efectividad de la visita':'Efect.','Tiempo sin sincronizar':'Sin sync','Mucho tiempo sin sincronizar':'Sync alto','Fuera de su entorno de trabajo':'Fuera ruta','Pedidos fuera de su dia de visita':'Ped. fuera','Cuadre sin cerrar':'Cuadre','Ultimo pedido muy temprano':'Últ. ped. temp.'}; return map[n]||n.slice(0,12); }
+
+/* ── Contacto ── */
+function abrirContacto(rep){
+  const v=VEND.find(x=>x.RepCodigo===rep); if(!v)return; conRep=v;
+  $('#con-rep').innerHTML='<b>'+v.RepNombre+'</b> ('+v.RepCodigo+') · '+v.Supervisor+' · '+v.Centro;
+  const als=MONS.filter(m=>v.celdas[m.Codigo]&&v.celdas[m.Codigo].Alarma);
+  $('#con-alertas').innerHTML=als.length
+    ? '<div class="mini" style="margin-bottom:6px">Marca las alertas que atiendes con este contacto:</div>'
+      + als.map(m=>'<label class="pill" style="cursor:pointer;display:inline-flex;gap:6px;align-items:center"><input type="checkbox" class="con-al" data-cod="'+m.Codigo+'" data-nom="'+m.Nombre.replace(/"/g,'&quot;')+'" checked onchange="contAlCount()">'+m.Nombre+': '+(v.celdas[m.Codigo].Detalle||'')+'</label>').join('')
+      + '<div id="con-alcount" class="mini" style="margin-top:6px;color:#3fb950"></div>'
+    : '<span class="mini">Sin alarmas activas (contacto preventivo).</span>';
+  $('#con-resumen').value='';$('#con-compromiso').value='';$('#con-seg').value='';$('#con-canal').value='Llamada';$('#con-quien').value='Vendedor';$('#con-estado').value='Abierto';
+  contAlCount();
+  $('#modal-con').classList.add('open');
+}
+function cerrarContacto(){ $('#modal-con').classList.remove('open'); }
+$('#modal-con').onclick=e=>{ if(e.target.id==='modal-con')cerrarContacto(); };
+function contAlCount(){
+  const boxes=[...document.querySelectorAll('.con-al')];
+  const n=boxes.filter(b=>b.checked).length, t=boxes.length;
+  const el=$('#con-alcount'); if(el) el.textContent=t?('Atendiendo '+n+' de '+t+' alerta'+(t>1?'s':'')+(n<t?' — '+(t-n)+' quedan pendientes':'')):'';
+}
+function guardarContacto(){
+  if(!conRep)return; const v=conRep;
+  const boxes=[...document.querySelectorAll('.con-al')];
+  const marcadas=boxes.filter(b=>b.checked);
+  const als=marcadas.map(b=>b.getAttribute('data-nom')).join('; ');
+  const atendidas=marcadas.map(b=>b.getAttribute('data-cod'));
+  const indic=JSON.stringify({ atendidas:atendidas, total:boxes.length });
+  const body={ RepCodigo:v.RepCodigo, RepNombre:v.RepNombre, SupCod:v.SupCod, SupervisorNombre:v.Supervisor, Centro:v.Centro,
+    Alertas:als, Canal:$('#con-canal').value, ContactoCon:$('#con-quien').value,
+    Resumen:$('#con-resumen').value, Compromiso:$('#con-compromiso').value,
+    FechaSeguimiento:$('#con-seg').value, Estado:$('#con-estado').value, Indicadores:indic };
+  overlay(true);
+  fetch(BASE+'/apitorre/contactos',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(j=>{ overlay(false); if(j&&j.ok){ cerrarContacto(); cargar(); } else alert('Error: '+(j&&j.error||'?')); })
+    .catch(e=>{overlay(false);alert('Error: '+e);});
+}
+
+/* ── Bitácora ── */
+function cargarBitacora(){
+  fetch(BASE+'/apitorre/contactos').then(r=>r.json()).then(j=>{
+    const c=(j&&j.contactos)||[];
+    let h='<table><thead><tr><th class="l">Fecha</th><th class="l">Vendedor</th><th class="l">Supervisor</th><th class="l">Alertas</th><th class="l">Canal</th><th class="l">Compromiso</th><th>Seguim.</th><th>Estado</th><th class="l">Torre</th></tr></thead><tbody>';
+    c.forEach(x=>h+='<tr><td class="l">'+x.Fecha+'</td><td class="l">'+x.RepNombre+' <span class="mini">('+x.RepCodigo+')</span></td><td class="l">'+x.Supervisor+'</td><td class="l" style="white-space:normal;max-width:220px">'+x.Alertas+'</td><td class="l">'+x.Canal+'</td><td class="l" style="white-space:normal;max-width:240px">'+x.Compromiso+'</td><td>'+x.FechaSeguimiento+'</td><td>'+x.Estado+'</td><td class="l">'+x.Usuario+'</td></tr>');
+    h+='</tbody></table>'; if(!c.length)h='<div class="hint">Aún no hay contactos registrados.</div>';
+    $('#bitacora').innerHTML=h;
+  });
+}
+
+/* ── Monitores ── */
+const UNIDAD={PRIMERA_VISITA_PEDIDO:'min desde 00:00 · 500 = 8:20',EFECTIVIDAD_VISITA:'% (alarma si es menor)',MUCHO_SIN_SYNC:'minutos',FUERA_ENTORNO:'kilómetros',PEDIDO_FUERA_DIA:'pedidos (≥)',ULTIMO_PEDIDO_TEMPRANO:'min desde 00:00 · 780 = 1:00 PM (alarma si menor)',CUMPLIMIENTO:'% (alarma si es menor)'};
+const inp='background:#0d1117;border:1px solid #30363d;color:#e6edf3;border-radius:5px;padding:4px';
+function cargarMonitores(){
+  fetch(BASE+'/apitorre/monitores').then(r=>r.json()).then(j=>{
+    const m=(j&&j.monitores)||[];
+    const ven=m.find(x=>x.Codigo==='_VENTANA_');
+    if(ven&&ven.Parametros){ try{ const p=JSON.parse(ven.Parametros); if(p.desde)$('#v-desde').value=p.desde; if(p.hasta)$('#v-hasta').value=p.hasta; if(p.muteMin)$('#v-mute').value=p.muteMin; }catch(e){} }
+    const ro=m.find(x=>x.Codigo==='_REPS_OFF_'); REPSOFF=new Set(); if(ro&&ro.Parametros){ try{ (JSON.parse(ro.Parametros).reps||[]).forEach(x=>REPSOFF.add(x)); }catch(e){} } renderRepsOff();
+    let h='<table><thead><tr><th class="l">Orden</th><th class="l">Monitor</th><th class="l">Umbral / Rango</th><th>Severidad</th><th>Activo</th><th></th></tr></thead><tbody>';
+    m.filter(x=>x.Codigo!=='_VENTANA_').forEach(x=>{
+      let umbCell;
+      if(x.Codigo==='TIEMPO_VISITA'){
+        let mn=3,mx=40; try{ if(x.Parametros){const p=JSON.parse(x.Parametros); if(p.minMin!=null)mn=p.minMin; if(p.maxMin!=null)mx=p.maxMin;} }catch(e){}
+        umbCell='<div style="display:flex;gap:5px;align-items:center;justify-content:center"><input type="number" value="'+mn+'" id="min'+x.MonID+'" style="width:56px;'+inp+'"><span class="mini">a</span><input type="number" value="'+mx+'" id="max'+x.MonID+'" style="width:56px;'+inp+'"><span class="mini">min</span></div>';
+      } else {
+        umbCell='<input type="number" step="0.1" value="'+(x.Umbral==null?'':x.Umbral)+'" id="u'+x.MonID+'" style="width:80px;'+inp+'"> <span class="mini">'+(UNIDAD[x.Codigo]||'')+'</span>';
+      }
+      h+='<tr><td class="l">'+x.Orden+'</td><td class="l"><b>'+x.Nombre+'</b></td><td>'+umbCell+'</td>'+
+        '<td><input type="number" value="'+x.Severidad+'" id="s'+x.MonID+'" style="width:52px;'+inp+'"></td>'+
+        '<td><input type="checkbox" id="a'+x.MonID+'" '+(x.Activo?'checked':'')+'></td>'+
+        '<td><button class="btn" onclick="guardarMon('+x.MonID+',\''+x.Codigo+'\')">Guardar</button></td></tr>';
+    });
+    h+='</tbody></table>'; $('#monitores').innerHTML=h;
+  });
+}
+function guardarMon(id,cod){
+  const body={ MonID:id, Severidad:parseInt($('#s'+id).value)||1, Activo:$('#a'+id).checked };
+  if(cod==='TIEMPO_VISITA'){ body.ParametrosJSON=JSON.stringify({minMin:parseFloat($('#min'+id).value)||0,maxMin:parseFloat($('#max'+id).value)||0}); }
+  else { body.Umbral=parseFloat($('#u'+id).value); }
+  fetch(BASE+'/apitorre/monitores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(j=>{ if(j&&j.ok){ const b=event&&event.target; if(b){b.textContent='✓';setTimeout(()=>b.textContent='Guardar',900);} } else alert('Error: '+(j&&j.error||'?')); });
+}
+let REPSOFF=new Set();
+function renderRepsOff(){
+  const q=($('#ro-search').value||'').toLowerCase();
+  const list=REPS.filter(r=>(r.RepCodigo+' '+r.RepNombre).toLowerCase().includes(q));
+  $('#ro-list').innerHTML=list.map(r=>'<label style="display:flex;gap:7px;padding:3px 4px;cursor:pointer;border-radius:5px" onmouseover="this.style.background=\'#21262d\'" onmouseout="this.style.background=\'\'"><input type="checkbox" data-rep="'+r.RepCodigo+'" '+(REPSOFF.has(r.RepCodigo)?'checked':'')+' onchange="toggleRepOff(this)"><span>'+r.RepCodigo+' - '+r.RepNombre+'</span></label>').join('');
+  $('#ro-count').textContent=REPSOFF.size+' sin alerta';
+}
+function toggleRepOff(cb){ const r=cb.getAttribute('data-rep'); if(cb.checked)REPSOFF.add(r);else REPSOFF.delete(r); $('#ro-count').textContent=REPSOFF.size+' sin alerta'; }
+function guardarRepsOff(){
+  fetch(BASE+'/apitorre/monitores').then(r=>r.json()).then(j=>{
+    const ex=((j&&j.monitores)||[]).find(x=>x.Codigo==='_REPS_OFF_');
+    const body={ MonID:ex?ex.MonID:null, Codigo:'_REPS_OFF_', Tipo:'config', Nombre:'Representantes sin alerta', Activo:false, ParametrosJSON:JSON.stringify({reps:[...REPSOFF]}) };
+    fetch(BASE+'/apitorre/monitores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).then(r=>r.json()).then(k=>{ alert(k&&k.ok?('Guardado. '+REPSOFF.size+' sin alerta.'):'Error: '+(k&&k.error||'?')); });
+  });
+}
+function guardarVentana(){
+  const body={ MonID:null, Codigo:'_VENTANA_', Tipo:'config', Nombre:'Ventana de vigilancia', Activo:false,
+    ParametrosJSON:JSON.stringify({desde:$('#v-desde').value,hasta:$('#v-hasta').value,intervaloMin:30,muteMin:parseInt($('#v-mute').value)||60}) };
+  // si ya existe, actualizar por MonID
+  fetch(BASE+'/apitorre/monitores').then(r=>r.json()).then(j=>{
+    const ex=((j&&j.monitores)||[]).find(x=>x.Codigo==='_VENTANA_');
+    if(ex) body.MonID=ex.MonID;
+    fetch(BASE+'/apitorre/monitores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(r=>r.json()).then(k=>{ alert(k&&k.ok?'Ventana guardada.':'Error: '+(k&&k.error||'?')); });
+  });
+}
+
+/* ── Monitores personalizados ── */
+let PERS=[], persItems=[], persGrupo=[], persEditId=null, persBusTimer=null, psMonId=null, psMonNom='';
+const PMET={clientes:'Clientes distintos',unidades:'Unidades',monto:'Monto RD$',impactos:'Impactos'};
+const PDIM={linea:'Línea/Categoría',producto:'Producto',suplidor:'Suplidor'};
+const PGRP={reptipe:'RepTipe',supervisor:'Supervisor',reps:'Reps'};
+function cargarPersonalizados(){
+  fetch(BASE+'/apitorre/monitores').then(r=>r.json()).then(j=>{
+    PERS=((j&&j.monitores)||[]).filter(x=>x.Tipo==='personalizado');
+    if(!PERS.length){ $('#pers-list').innerHTML='<div class="mini">Aún no hay monitores personalizados. Crea uno con “+ Nuevo”.</div>'; return; }
+    let h='<table><thead><tr><th class="l">Monitor</th><th class="l">Mide</th><th class="l">Grupo</th><th>Objetivo/día</th><th>Vigencia</th><th>Activo</th><th></th></tr></thead><tbody>';
+    PERS.forEach(x=>{ let p={}; try{p=JSON.parse(x.Parametros||'{}')}catch(e){}
+      const dim=PDIM[p.dimension]||p.dimension||''; const met=PMET[p.metrica]||p.metrica||'';
+      const g=(p.grupo&&(PGRP[p.grupo.tipo]||p.grupo.tipo)+' '+((p.grupo.valores||[]).join(', ')))||'todos';
+      const cmp=p.comparador==='menor'?'<':(p.comparador==='ritmo'?'≥ (ritmo)':'≥');
+      const cmpExtra=p.comparador==='ritmo'?(' <span class="mini">hasta '+(p.horaLimiteRitmo||'15:00')+'</span>'):'';
+      const vig=((x.VigenciaDesde||'—')+' → '+(x.VigenciaHasta||'—'));
+      h+='<tr><td class="l"><b>'+x.Nombre+'</b></td><td class="l">'+met+' · '+dim+' ['+((p.ids||[]).join(','))+']</td><td class="l">'+g+'</td><td>'+cmp+' '+(p.objetivo!=null?p.objetivo:'')+cmpExtra+'</td><td class="mini">'+vig+'</td>'+
+        '<td><input type="checkbox" '+(x.Activo?'checked':'')+' onchange="persToggle('+x.MonID+',this.checked)"></td>'+
+        '<td style="white-space:nowrap"><button class="btn" onclick="verStatsPersOpen('+x.MonID+',\''+(x.Nombre||'').replace(/\x27/g,"")+'\')">📊</button> <button class="btn" onclick="editarPers('+x.MonID+')">✎</button></td></tr>';
+    });
+    h+='</tbody></table>'; $('#pers-list').innerHTML=h;
+  });
+}
+function persToggle(id,act){
+  fetch(BASE+'/apitorre/monitores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({MonID:id,Activo:act})}).then(r=>r.json()).then(k=>{ if(!(k&&k.ok))alert('Error: '+(k&&k.error||'?')); });
+}
+function persMetChange(){ $('#p-minu-row').style.display=$('#p-met').value==='clientes'?'':'none'; }
+function persCompChange(){ $('#p-ritmo-row').style.display=$('#p-comp').value==='ritmo'?'':'none'; }
+function nuevoPers(){
+  persEditId=null; persItems=[]; persGrupo=[];
+  $('#pers-title').textContent='Nuevo monitor personalizado';
+  $('#p-nom').value=''; $('#p-dim').value='linea'; $('#p-met').value='clientes'; $('#p-minu').value='1';
+  $('#p-comp').value='mayorIgual'; $('#p-obj').value='5'; $('#p-sev').value='2'; $('#p-gtipo').value='reptipe'; $('#p-hh').value='';
+  $('#p-ri').value='08:20'; $('#p-rl').value='15:00';
+  $('#p-vd').value=dateF(new Date()); $('#p-vh').value='';
+  $('#p-buscar').value=''; $('#p-busres').innerHTML='';
+  persMetChange(); persCompChange(); persRenderItems(); persGrupoTipo();
+  $('#modal-pers').classList.add('open');
+}
+function editarPers(id){
+  const x=PERS.find(m=>m.MonID===id); if(!x)return; let p={}; try{p=JSON.parse(x.Parametros||'{}')}catch(e){}
+  persEditId=id; persItems=(p.ids||[]).map(i=>({id:i,nombre:''})); persGrupo=((p.grupo&&p.grupo.valores)||[]).map(v=>({id:v,nombre:v}));
+  $('#pers-title').textContent='Editar: '+x.Nombre;
+  $('#p-nom').value=x.Nombre||''; $('#p-dim').value=p.dimension||'linea'; $('#p-met').value=p.metrica||'clientes';
+  $('#p-minu').value=p.minUnid!=null?p.minUnid:1; $('#p-comp').value=p.comparador||'mayorIgual'; $('#p-obj').value=p.objetivo!=null?p.objetivo:5;
+  $('#p-sev').value=x.Severidad||2; $('#p-gtipo').value=(p.grupo&&p.grupo.tipo)||'reptipe'; $('#p-hh').value=p.horaHasta||'';
+  $('#p-ri').value=p.horaInicioRitmo||'08:20'; $('#p-rl').value=p.horaLimiteRitmo||'15:00';
+  $('#p-vd').value=x.VigenciaDesde||''; $('#p-vh').value=x.VigenciaHasta||'';
+  $('#p-buscar').value=''; $('#p-busres').innerHTML='';
+  persMetChange(); persCompChange(); persRenderItems(); persGrupoTipo();
+  // recuperar nombres de los ítems seleccionados
+  if(persItems.length){ fetch(BASE+'/apitorre/catalogo?tipo='+encodeURIComponent(p.dimension||'linea')).then(r=>r.json()).then(j=>{ const map={}; (j.items||[]).forEach(i=>map[i.id]=i.nombre); persItems.forEach(it=>{ if(map[it.id])it.nombre=map[it.id]; }); persRenderItems(); }); }
+  $('#modal-pers').classList.add('open');
+}
+function cerrarPers(){ $('#modal-pers').classList.remove('open'); }
+$('#modal-pers').onclick=e=>{ if(e.target.id==='modal-pers')cerrarPers(); };
+function persBuscarDeb(){ clearTimeout(persBusTimer); persBusTimer=setTimeout(persBuscar,350); }
+function persBuscar(){
+  const tipo=$('#p-dim').value, q=$('#p-buscar').value.trim();
+  fetch(BASE+'/apitorre/catalogo?tipo='+encodeURIComponent(tipo)+'&q='+encodeURIComponent(q)).then(r=>r.json()).then(j=>{
+    const it=(j&&j.items)||[];
+    $('#p-busres').innerHTML=it.length?it.map(i=>'<div class="mini" style="padding:3px 4px;cursor:pointer;border-radius:5px" onmouseover="this.style.background=\'#21262d\'" onmouseout="this.style.background=\'\'" onclick="persAddItem(\''+i.id+'\',\''+(i.nombre||'').replace(/\x27/g,"").replace(/"/g,"")+'\')">+ '+i.id+' · '+i.nombre+'</div>').join(''):'<div class="mini">Sin resultados.</div>';
+  });
+}
+function persAddItem(id,nom){ if(!persItems.some(x=>String(x.id)===String(id)))persItems.push({id:parseInt(id)||id,nombre:nom}); persRenderItems(); }
+function persDelItem(id){ persItems=persItems.filter(x=>String(x.id)!==String(id)); persRenderItems(); }
+function persRenderItems(){ $('#p-items').innerHTML=persItems.length?persItems.map(x=>'<span class="pill">'+x.id+(x.nombre?' · '+x.nombre:'')+' <b style="cursor:pointer" onclick="persDelItem(\''+x.id+'\')">✕</b></span>').join(''):'<span class="mini">Sin ítems seleccionados.</span>'; }
+function persGrupoTipo(){
+  const t=$('#p-gtipo').value, sel=$('#p-gsel');
+  const fill=arr=>{ sel.innerHTML='<option value="">— agregar —</option>'+arr.map(o=>'<option value="'+o.v+'">'+o.t+'</option>').join(''); };
+  if(t==='reps'){ fill(REPS.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre}))); }
+  else { fetch(BASE+'/apitorre/catalogo?tipo='+t).then(r=>r.json()).then(j=>fill(((j&&j.items)||[]).map(i=>({v:i.id,t:i.nombre})))); }
+  persRenderGrupo();
+}
+function persAddGrupo(){ const s=$('#p-gsel'); const v=s.value; if(!v)return; const t=s.options[s.selectedIndex].text; if(!persGrupo.some(x=>String(x.id)===String(v)))persGrupo.push({id:v,nombre:t}); s.value=''; persRenderGrupo(); }
+function persDelGrupo(v){ persGrupo=persGrupo.filter(x=>String(x.id)!==String(v)); persRenderGrupo(); }
+function persRenderGrupo(){ $('#p-grupo').innerHTML=persGrupo.length?persGrupo.map(x=>'<span class="pill">'+(x.nombre||x.id)+' <b style="cursor:pointer" onclick="persDelGrupo(\''+x.id+'\')">✕</b></span>').join(''):'<span class="mini">Sin grupo = aplica a todos.</span>'; }
+function guardarPers(){
+  const nom=$('#p-nom').value.trim(); if(!nom){alert('Ponle un nombre al monitor.');return;}
+  if(!persItems.length){alert('Agrega al menos un ítem (línea, producto o suplidor).');return;}
+  const par={ dimension:$('#p-dim').value, ids:persItems.map(x=>parseInt(x.id)||x.id),
+    metrica:$('#p-met').value, objetivo:parseFloat($('#p-obj').value)||0, comparador:$('#p-comp').value,
+    minUnid:parseFloat($('#p-minu').value)||0,
+    grupo:{ tipo:$('#p-gtipo').value, valores:persGrupo.map(x=>String(x.id)) } };
+  if($('#p-hh').value) par.horaHasta=$('#p-hh').value;
+  if($('#p-comp').value==='ritmo'){ par.horaInicioRitmo=$('#p-ri').value||'08:20'; par.horaLimiteRitmo=$('#p-rl').value||'15:00'; }
+  const body={ MonID:persEditId, Codigo:persEditId?undefined:('PERS_'+Date.now()), Tipo:'personalizado', Nombre:nom,
+    Severidad:parseInt($('#p-sev').value)||2, Orden:20, ParametrosJSON:JSON.stringify(par),
+    VigenciaDesde:$('#p-vd').value||null, VigenciaHasta:$('#p-vh').value||null, Activo:true };
+  overlay(true);
+  fetch(BASE+'/apitorre/monitores',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(r=>r.json()).then(j=>{ overlay(false); if(j&&j.ok){ cerrarPers(); cargarPersonalizados(); } else alert('Error: '+(j&&j.error||'?')); })
+    .catch(e=>{overlay(false);alert('Error: '+e);});
+}
+function verStatsPersOpen(id,nom){ psMonId=id; psMonNom=nom||''; $('#ps-title').textContent='📊 '+(nom||'Estadística');
+  const hoy=dateF(new Date()); const d=new Date();d.setDate(d.getDate()-6);
+  $('#ps-d0').value=dateF(d); $('#ps-d1').value=hoy; $('#ps-modo').value='dia';
+  $('#modal-pstats').classList.add('open'); verStatsPers();
+}
+function cerrarPStats(){ $('#modal-pstats').classList.remove('open'); }
+$('#modal-pstats').onclick=e=>{ if(e.target.id==='modal-pstats')cerrarPStats(); };
+function verStatsPers(){
+  if(!psMonId)return; overlay(true);
+  fetch(BASE+'/apitorre/personalizado?monId='+psMonId+'&desde='+$('#ps-d0').value+'&hasta='+$('#ps-d1').value).then(r=>r.json()).then(j=>{
+    overlay(false); if(!j||!j.ok){alert('Error: '+(j&&j.error||'?'));return;}
+    const modo=$('#ps-modo').value, m=j.monitor, dias=j.dias||[], filas=j.filas||[];
+    const unid=m.Metrica==='monto'?'RD$':(m.Metrica==='unidades'?'und':(m.Metrica==='impactos'?'imp':'cli'));
+    const cmp=m.Comparador==='menor'?'<':'≥';
+    $('#ps-cards').innerHTML=card('Objetivo/día',cmp+' '+m.Objetivo+' '+unid,'#58a6ff')+card('Vendedores',j.resumen.reps,'#e6edf3')+card('Días evaluados',j.resumen.diasEval,'#e6edf3')+card('Total grupo',(m.Metrica==='monto'?'RD$':'')+Math.round(j.resumen.totalGrupo).toLocaleString('es-DO'),'#3fb950');
+    let h='<table><thead><tr><th class="l">Vendedor</th><th class="l">Supervisor</th>';
+    if(modo==='dia') dias.forEach(d=>h+='<th title="'+d+'">'+d.slice(5)+'</th>');
+    h+='<th>Total</th><th>Días ✔</th></tr></thead><tbody>';
+    filas.forEach(f=>{ h+='<tr><td class="l">'+f.nombre+' <span class="mini">('+f.rep+')</span></td><td class="l">'+f.supervisor+'</td>';
+      if(modo==='dia') (f.valores||[]).forEach(v=>{ const ok=m.Comparador==='menor'?(v<m.Objetivo):(v>=m.Objetivo); h+='<td style="background:'+(ok?'rgba(63,185,80,.15)':'rgba(248,81,73,.12)')+'">'+(m.Metrica==='monto'?Math.round(v).toLocaleString('es-DO'):v)+'</td>'; });
+      const okd=f.diasCumplidos, tot=(j.dias||[]).length; const pc=tot?Math.round(okd*100/tot):0;
+      h+='<td><b>'+(m.Metrica==='monto'?'RD$'+Math.round(f.total).toLocaleString('es-DO'):f.total)+'</b></td><td style="color:'+(pc>=70?'#3fb950':(pc>0?'#e3b341':'#f85149'))+'">'+okd+'/'+tot+'</td></tr>';
+    });
+    h+='</tbody></table>'; if(!filas.length)h='<div class="hint">Sin datos en el rango.</div>';
+    $('#ps-body').innerHTML=h;
+  }).catch(e=>{overlay(false);alert('Error: '+e);});
+}
+
+/* ── Histórico ── */
+function cargarHistorico(){
+  const f=$('#h-fecha').value||dateF(new Date());
+  fetch(BASE+'/apitorre/snapshots?fecha='+f).then(r=>r.json()).then(j=>{
+    const s=(j&&j.snapshots)||[];
+    let h='<table><thead><tr><th class="l">Corte</th><th class="l">Vendedor</th><th class="l">Supervisor</th><th class="l">Monitor</th><th class="l">Detalle</th><th>Sev.</th></tr></thead><tbody>';
+    s.forEach(x=>h+='<tr><td class="l">'+x.Corte+'</td><td class="l">'+x.RepNombre+' <span class="mini">('+x.RepCodigo+')</span></td><td class="l">'+x.Supervisor+'</td><td class="l">'+x.Codigo+'</td><td class="l" style="white-space:normal">'+x.Detalle+'</td><td>'+x.Severidad+'</td></tr>');
+    h+='</tbody></table>'; if(!s.length)h='<div class="hint">Sin snapshots para esa fecha (se generan cada 30 min entre 8:20 y 16:00).</div>';
+    $('#historico').innerHTML=h;
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — AD ALL DIGITAL ENTERPRISE</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body>
+
+@{
+    var usuario     = ViewData["UsuarioNombre"]?.ToString() ?? User.Identity?.Name ?? "";
+    var perfil      = ViewData["UsuarioPerfil"]?.ToString() ?? "";
+    var esAdmin     = perfil == "Administrador";
+    var esOperativo = perfil == "Operativo" || esAdmin;
+}
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════════ -->
+<header class="app-header">
+    <div class="header-logo-area">
+        <img src="~/images/logo-fm.png" alt="Fanny Mercedes & Asoc." class="header-logo" />
+        <div class="header-titles">
+            <span class="header-empresa">Fanny Mercedes &amp; Asoc.</span>
+            <span class="header-sistema">AD ALL DIGITAL ENTERPRISE</span>
+        </div>
+    </div>
+    <div class="header-user-area">
+        <i class="bi bi-person-circle"></i>
+        <span class="usuario-nombre">@usuario</span>
+        <span class="badge bg-secondary ms-1">@perfil</span>
+        <div class="dropdown ms-3">
+            <button class="btn btn-sm btn-outline-light dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="bi bi-box-arrow-right"></i> Salir
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/Logout">
+                    <i class="bi bi-person-x text-secondary"></i> Cerrar sesión
+                    <div class="small text-muted">El servidor sigue activo</div>
+                </a></li>
+                @if (esAdmin)
+                {
+                <li><hr class="dropdown-divider"/></li>
+                <li><a class="dropdown-item text-danger" href="/Mantenimiento/Apagar">
+                    <i class="bi bi-power"></i> Cerrar sesión + Apagar servidor
+                    <div class="small text-muted">Detiene el sistema completamente</div>
+                </a></li>
+                }
+            </ul>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MENÚ DE NAVEGACIÓN
+════════════════════════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand-lg app-navbar">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav">
+
+                @if (esAdmin)
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear"></i> Mantenimiento
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Mantenimiento/Companias"><i class="bi bi-building"></i> Compañías</a></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Clientes"><i class="bi bi-people"></i> Clientes</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Importar"><i class="bi bi-upload"></i> Importar Datos</a></li>
+                        <li><a class="dropdown-item" href="/Mantenimiento/Backup"><i class="bi bi-shield-check"></i> Backup / Restauración</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="/Mantenimiento/Apagar"><i class="bi bi-power"></i> Apagar Servidor</a></li>
+                    </ul>
+                </li>
+                }
+
+                @if (esOperativo)
+                {
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-receipt"></i> Facturación
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Facturacion/Nueva"><i class="bi bi-plus-circle"></i> Nueva Factura</a></li>
+                        <li><a class="dropdown-item" href="/Facturacion/Consulta"><i class="bi bi-search"></i> Consulta de Facturas</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-cash-coin"></i> Pagos
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Pagos/Registrar"><i class="bi bi-plus-circle"></i> Registrar Pago</a></li>
+                        <li><a class="dropdown-item" href="/Pagos/Consulta"><i class="bi bi-search"></i> Consulta de Pagos</a></li>
+                    </ul>
+                </li>
+                }
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-file-earmark-bar-graph"></i> Reportes
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="/Reportes/General"><i class="bi bi-list-ul"></i> Reporte General</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCompania"><i class="bi bi-building"></i> Por Compañía</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorCliente"><i class="bi bi-person"></i> Por Cliente</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/PorPeriodo"><i class="bi bi-calendar-range"></i> Por Período</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Reportes/Pendientes"><i class="bi bi-clock-history"></i> Facturas Pendientes</a></li>
+                        <li><a class="dropdown-item" href="/Reportes/HistorialPagos"><i class="bi bi-cash-stack"></i> Historial de Pagos</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/Reportes/LogTransacciones"><i class="bi bi-journal-text"></i> Log de Transacciones</a></li>
+                    </ul>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                </li>
+
+                @if (esAdmin)
+                {
+                <li class="nav-item">
+                    <a class="nav-link" href="/Admin/Usuarios"><i class="bi bi-shield-person"></i> Usuarios</a>
+                </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════
+     CONTENIDO PRINCIPAL
+════════════════════════════════════════════════════════════════ -->
+<main class="container-fluid main-content">
+
+    @* Mensajes flash *@
+    @if (TempData["Exito"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-check-circle-fill"></i> @TempData["Exito"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @RenderBody()
+</main>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════════ -->
+<footer class="app-footer">
+    @{
+        var cfgEmpresa = (Microsoft.Extensions.Configuration.IConfiguration)ViewContext.HttpContext.RequestServices.GetService(typeof(Microsoft.Extensions.Configuration.IConfiguration))!;
+        var nomEmpresa = cfgEmpresa["Empresa:Nombre"] ?? "AD ALL DIGITAL ENTERPRISE";
+        var appVer     = cfgEmpresa["App:Version"] ?? "1.1.0";
+    }
+    <span>@nomEmpresa &copy; @DateTime.Now.Year</span>
+    <span class="ms-3 text-muted" style="font-size:0.75rem;">v@appVer</span>
+    <!-- AD ALL DIGITAL ENTERPRISE — Derechos reservados y exclusivos. Contacto: r.mercedesb@gmail.com -->
+    <span style="font-size:0.6rem;opacity:0.28;margin-left:auto;letter-spacing:.03em">
+        &nbsp;Powered by AD ALL DIGITAL ENTERPRISE · r.mercedesb@gmail.com
+    </span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

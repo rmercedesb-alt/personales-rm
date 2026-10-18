@@ -1,0 +1,264 @@
+@page
+@model ADEnterprise.Pages.CuentasCobrar.ImprimirReciboModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
+@{
+    Layout = null;
+    var nomEmpresa = Config["Empresa:Nombre"] ?? "Fanny Medicare & Asoc.";
+    var appVer     = Config["App:Version"]    ?? "1.1";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recibo @Model.NumRecibo — @nomEmpresa</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #f5f5f5; }
+
+        .recibo-wrapper {
+            max-width: 800px;
+            margin: 20px auto;
+            background: white;
+            padding: 30px 40px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.15);
+        }
+
+        .recibo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 3px solid #1a3a5c;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+
+        .recibo-logo img { max-height: 70px; max-width: 180px; }
+        .recibo-empresa  { font-size: 18px; font-weight: bold; color: #1a3a5c; }
+        .recibo-subtitulo { font-size: 12px; color: #555; }
+
+        .recibo-numero-box {
+            text-align: right;
+        }
+        .recibo-num-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: .05em; }
+        .recibo-num-value { font-size: 22px; font-weight: bold; color: #1a3a5c; font-family: monospace; }
+
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; margin-bottom: 20px; }
+        .info-item label { font-size: 10px; color: #888; text-transform: uppercase; display: block; margin-bottom: 2px; }
+        .info-item span  { font-size: 13px; font-weight: 600; color: #222; }
+
+        table.recibo-tabla { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+        table.recibo-tabla thead th {
+            background: #1a3a5c; color: white; padding: 7px 10px;
+            font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+        }
+        table.recibo-tabla tbody td { padding: 7px 10px; border-bottom: 1px solid #eee; font-size: 12px; }
+        table.recibo-tabla tbody tr:nth-child(even) { background: #f9f9f9; }
+        table.recibo-tabla tfoot td {
+            padding: 8px 10px; font-weight: bold; background: #eaf0f8;
+            border-top: 2px solid #1a3a5c;
+        }
+
+        .total-box {
+            background: #1a3a5c;
+            color: white;
+            border-radius: 8px;
+            padding: 14px 20px;
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .total-box .label { font-size: 11px; opacity: .75; }
+        .total-box .valor { font-size: 26px; font-weight: bold; letter-spacing: .02em; }
+
+        .firma-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 30px;
+        }
+        .firma-box {
+            flex: 1;
+            text-align: center;
+            border-top: 1px solid #999;
+            padding-top: 6px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .watermark {
+            text-align: center;
+            font-size: 10px;
+            color: #ccc;
+            margin-top: 20px;
+            letter-spacing: .05em;
+        }
+
+        /* Botones — solo en pantalla */
+        .print-actions {
+            max-width: 800px;
+            margin: 0 auto 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        @@media print {
+            body { background: white; }
+            .print-actions { display: none !important; }
+            .recibo-wrapper { box-shadow: none; margin: 0; padding: 20px 30px; max-width: none; }
+            @@page { margin: 1.5cm; }
+        }
+    </style>
+</head>
+<body>
+
+@if (!Model.Encontrado)
+{
+    <div class="recibo-wrapper text-center py-5">
+        <h4 class="text-danger">Recibo no encontrado</h4>
+        <p class="text-muted">No se encontró el recibo: <strong>@Model.NumRecibo</strong></p>
+        <a href="/CuentasCobrar/Consulta" class="btn btn-secondary btn-sm">← Volver</a>
+    </div>
+}
+else
+{
+<!-- Botones pantalla -->
+<div class="print-actions">
+    <button onclick="window.print()" class="btn btn-success btn-sm">
+        🖨️ Imprimir / Guardar PDF
+    </button>
+    <a href="/CuentasCobrar/Consulta?recibo=@Model.NumRecibo" class="btn btn-outline-secondary btn-sm">
+        ← Volver a Consulta
+    </a>
+</div>
+
+<div class="recibo-wrapper">
+    <!-- ── ENCABEZADO ── -->
+    <div class="recibo-header">
+        <div>
+            <div class="recibo-logo">
+                <img src="/images/logo-fm.png" alt="@nomEmpresa" onerror="this.style.display='none'" />
+            </div>
+            <div class="recibo-empresa mt-1">@nomEmpresa</div>
+            <div class="recibo-subtitulo">Sistema de Facturación y Cobros · v@appVer</div>
+        </div>
+        <div class="recibo-numero-box">
+            <div class="recibo-num-label">Recibo de Pago</div>
+            <div class="recibo-num-value">@Model.NumRecibo</div>
+            <div style="font-size:12px;color:#555;margin-top:4px">
+                Fecha: <strong>@Model.Fecha.ToString("dd/MM/yyyy")</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── INFO DEL INSTRUMENTO ── -->
+    <div class="info-grid mb-3">
+        <div class="info-item">
+            <label>Forma de Pago</label>
+            <span>@Model.FormaPago</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.NumCheque))
+        {
+        <div class="info-item">
+            <label>N° Cheque / Referencia</label>
+            <span>@Model.NumCheque</span>
+        </div>
+        }
+        <div class="info-item">
+            <label>Monto del Instrumento</label>
+            <span style="color:#1a3a5c">RD$ @Model.MontoInstrumento.ToString("N2")</span>
+        </div>
+        <div class="info-item">
+            <label>Registrado por</label>
+            <span>@Model.UsuarioRegistro</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Notas))
+        {
+        <div class="info-item" style="grid-column: 1 / -1">
+            <label>Notas</label>
+            <span>@Model.Notas</span>
+        </div>
+        }
+    </div>
+
+    <!-- ── DETALLE ── -->
+    <table class="recibo-tabla">
+        <thead>
+            <tr>
+                <th style="width:60px">#</th>
+                <th style="width:80px">Ticket</th>
+                <th>Empresa</th>
+                <th>Cliente</th>
+                <th style="width:70px">Tipo</th>
+                <th style="width:120px" class="text-end">Monto Aplicado</th>
+            </tr>
+        </thead>
+        <tbody>
+        @{ int ln = 1; }
+        @foreach (var linea in Model.Lineas)
+        {
+            <tr>
+                <td>@ln</td>
+                <td><strong>#@linea.Pago.NumTicket</strong></td>
+                <td>@linea.EmpresaNombre</td>
+                <td>@linea.ClienteNombre</td>
+                <td>
+                    @if (linea.TipoLinea == "Abono")
+                    {
+                        <span style="background:#ffc107;color:#333;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600">Abono</span>
+                    }
+                    else
+                    {
+                        <span style="background:#198754;color:white;font-size:10px;padding:2px 6px;border-radius:10px;font-weight:600">Factura</span>
+                    }
+                </td>
+                <td class="text-end fw-bold" style="color:#198754">RD$ @linea.Pago.MontoPagado.ToString("N2")</td>
+            </tr>
+            ln++;
+        }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-end">Total Aplicado:</td>
+                <td class="text-end" style="color:#198754">RD$ @Model.TotalAplicado.ToString("N2")</td>
+            </tr>
+            @if (Math.Abs(Model.MontoInstrumento - Model.TotalAplicado) > 0.01M)
+            {
+            <tr>
+                <td colspan="5" class="text-end">Balance Instrumento:</td>
+                <td class="text-end">RD$ @((Model.MontoInstrumento - Model.TotalAplicado).ToString("N2"))</td>
+            </tr>
+            }
+        </tfoot>
+    </table>
+
+    <!-- ── TOTAL BOX ── -->
+    <div class="total-box">
+        <div class="label">TOTAL COBRADO</div>
+        <div class="valor">RD$ @Model.TotalAplicado.ToString("N2")</div>
+    </div>
+
+    <!-- ── FIRMAS ── -->
+    <div class="firma-area">
+        <div class="firma-box">
+            Elaborado por<br/>
+            <strong>@Model.UsuarioRegistro</strong>
+        </div>
+        <div class="firma-box">
+            Recibido por<br/>
+            &nbsp;
+        </div>
+        <div class="firma-box">
+            Aprobado por<br/>
+            &nbsp;
+        </div>
+    </div>
+
+    <!-- ── WATERMARK ── -->
+    <div class="watermark">
+        Powered by AD ALL DIGITAL ENTERPRISE · r.mercedesb@gmail.com
+    </div>
+</div>
+}
+
+</body>
+</html>

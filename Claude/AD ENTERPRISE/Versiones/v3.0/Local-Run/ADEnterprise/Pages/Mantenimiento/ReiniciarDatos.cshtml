@@ -1,0 +1,44 @@
+@page
+@model ADEnterprise.Pages.Mantenimiento.ReiniciarDatosModel
+@{ ViewData["Title"] = "Reiniciar Datos"; }
+
+<div class="row justify-content-center">
+    <div class="col-md-7">
+
+        <div class="alert alert-danger border border-danger-subtle shadow-sm mb-4">
+            <h5 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> ⚠️ OPERACIÓN IRREVERSIBLE</h5>
+            <p class="mb-2">Esta operación <strong>archiva todos los datos actuales</strong> y crea una base de datos nueva en blanco.</p>
+            <ul class="mb-2">
+                <li>Las hojas <strong>FACTURAS, PAGOS, COMPAÑÍAS, CLIENTES, CAJA, CUADRE_CAJA, EGRESOS, INGRESOS_CAPITAL</strong> serán renombradas agregándoles el sufijo <code>_HISTORICOS</code>.</li>
+                <li>Se crearán hojas nuevas y vacías con los nombres originales.</li>
+                <li>Los <strong>usuarios</strong> del sistema <strong>no se eliminan</strong>.</li>
+                <li>Los datos históricos quedan accesibles en el menú <em>Datos Históricos</em>.</li>
+                <li><strong>No se puede deshacer esta acción.</strong></li>
+            </ul>
+            <p class="mb-0 small text-muted">Se recomienda realizar un Backup antes de continuar.</p>
+        </div>
+
+        <div class="card shadow-sm" style="border-left:4px solid var(--rojo,#dc3545)">
+            <div class="card-header fw-bold text-white" style="background:#dc3545">
+                <i class="bi bi-arrow-counterclockwise"></i> Confirmar Reinicio de Datos
+            </div>
+            <div class="card-body">
+                <p>Para confirmar, escriba <strong>REINICIAR</strong> en el campo de abajo y presione el botón.</p>
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Escriba REINICIAR para confirmar</label>
+                        <input type="text" name="Confirmacion" class="form-control form-control-lg fw-bold"
+                               placeholder="REINICIAR" autocomplete="off" required />
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="bi bi-arrow-counterclockwise"></i> Ejecutar Reinicio
+                        </button>
+                        <a href="/" class="btn btn-outline-secondary btn-lg">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

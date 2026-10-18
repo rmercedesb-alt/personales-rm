@@ -1,0 +1,2584 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Presupuestos &mdash; @ViewBag.EmpNombre</title>
+<style>
+:root{
+  --bg:#F7F9F7;--panel:#FFFFFF;--panel2:#F0F4F0;--border:#D9E2D9;--line:#E6ECE6;
+  --text:#1F2A22;--muted:#5C6B5F;
+  --verde:#388848;--verde-fuerte:#207830;--azul:#283078;
+  --good:#2E9E4A;--warn:#D29922;--bad:#C0392B;
+  --good-bg:#EAF7EE;--warn-bg:#FBF3DA;--bad-bg:#FBEAEA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;font-variant-numeric:tabular-nums;line-height:1.5}
+.wrap{max-width:1280px;margin:0 auto;padding:16px 16px 60px}
+a{color:var(--azul)}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.brand img{height:40px;width:auto;border-radius:8px;object-fit:contain;background:#fff;border:1px solid var(--border)}
+.title{font-size:22px;font-weight:800;letter-spacing:-.02em;color:var(--verde-fuerte)}
+.sub{font-size:12px;color:var(--muted)}
+.top .btn,.btn-out{background:var(--panel);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:7px 13px;font-size:12px;text-decoration:none;cursor:pointer}
+.btn-out:hover{border-color:var(--verde);color:var(--verde)}
+.who{font-size:12px;color:var(--muted)}
+.seg{display:inline-flex;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:4px;gap:2px;flex-wrap:wrap;margin-bottom:14px}
+.seg button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:600;font-size:13px;padding:8px 13px;border-radius:9px;cursor:pointer}
+.seg button.on{background:var(--panel);color:var(--verde-fuerte);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.view{display:none}.view.on{display:block}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:13px}
+.hint{font-size:12px;color:var(--muted);padding:18px;text-align:center}
+.filtros{padding:14px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.filtros .pd{display:flex;flex-direction:column;gap:3px;font-size:11px;color:var(--muted)}
+.filtros .fl-label{font-size:11px;color:var(--muted);line-height:1.4}
+.filtros select{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:7px 8px;font-size:12px;color:var(--text);height:34px}
+.ms{position:relative;min-width:150px}
+/* Semana/Día tienen pocas opciones (1-5 y 1-31) — no necesitan el mismo ancho que
+   Vendedor/Producto/etc. Pedido del usuario 2026-08-28, para dejar sitio a las
+   pestañas Del Día/Mes/Año/Histórico/Extras en la misma línea. */
+.pd.mini .ms{min-width:70px}
+.ms-btn{background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;gap:8px;align-items:center;height:34px;box-sizing:border-box}
+.ms-btn .cnt{background:var(--verde);color:#fff;border-radius:10px;padding:0 7px;font-size:11px}
+.ms-pop{display:none;position:absolute;top:105%;left:0;z-index:30;background:var(--panel);border:1px solid var(--border);border-radius:8px;width:240px;max-height:280px;overflow:auto;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:6px}
+.ms-pop.open{display:block}
+.ms-search{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px;font-size:12px;margin-bottom:5px}
+.ms-head{display:flex;justify-content:space-between;padding:2px 4px 6px}
+.ms-link{font-size:11px;color:var(--azul);cursor:pointer}
+.ms-opt{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:5px;cursor:pointer}
+.ms-opt:hover{background:var(--panel2)}
+.btn-go{background:var(--verde);color:#fff;border:0;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;align-self:flex-end;height:34px;box-sizing:border-box}
+.btn-go:hover{background:var(--verde-fuerte)}
+/* Tarjetas "días del mes/transcurridos/restantes/incidencia" (pedido 2026-09-06) —
+   mismas 4, repetidas en KPI/Gráficos/Detalle (los 3 entornos comparten un solo período
+   Año/Mes, así que el mismo cálculo aplica a los 3 por igual). */
+.dias-cards{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;grid-column:1/-1}
+.dia-card{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;min-width:120px}
+.dia-card-lbl{font-size:11px;color:var(--muted);white-space:nowrap}
+.dia-card-val{font-size:19px;font-weight:800;color:var(--text)}
+.fam-block{margin-bottom:18px}
+.fam-title{font-size:14px;font-weight:800;color:var(--verde-fuerte);padding:14px 16px 4px}
+table.kpis{width:100%;border-collapse:collapse;font-size:12.5px}
+table.kpis th{background:var(--panel2);color:var(--muted);text-align:right;padding:8px 10px;font-weight:700;border-bottom:1px solid var(--border)}
+table.kpis th:first-child,table.kpis td:first-child{text-align:left}
+table.kpis td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+table.kpis tr:last-child td{border-bottom:0}
+.pct{font-weight:700;border-radius:6px;padding:2px 7px;display:inline-block}
+.pct.good{background:var(--good-bg);color:var(--good)}
+.pct.warn{background:var(--warn-bg);color:var(--warn)}
+.pct.bad{background:var(--bad-bg);color:var(--bad)}
+.pct.na{color:var(--muted)}
+.crumbs{margin:4px 0 10px;font-size:13px}
+.crumb{color:var(--azul);cursor:pointer}
+.crumb.cur{color:var(--text);font-weight:700;cursor:default}
+.btn-modo{background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;margin-right:4px}
+.btn-modo.on{background:var(--verde);border-color:var(--verde);color:#fff}
+table.drill{width:100%;border-collapse:collapse;font-size:12.5px}
+table.drill th{background:var(--panel2);color:var(--muted);text-align:right;padding:8px 10px;font-weight:700;border-bottom:1px solid var(--border)}
+table.drill th.l,table.drill td.l{text-align:left}
+table.drill td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right}
+table.drill tbody tr.clickable{cursor:pointer}
+table.drill tbody tr.clickable:hover{background:var(--panel2)}
+table.drill tr.totals td{border-top:2px solid var(--border);font-weight:800;background:var(--panel2)}
+/* Encabezados congelados + columnas ordenables (aplica a TODAS las tablas .drill/.kpis) */
+table.drill thead th,table.kpis thead th{position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+table.drill thead th:hover,table.kpis thead th:hover{color:var(--verde-fuerte)}
+table.drill thead th.sorted-asc::after{content:' \25B2';font-size:9px}
+table.drill thead th.sorted-desc::after{content:' \25BC';font-size:9px}
+table.kpis thead th.sorted-asc::after{content:' \25B2';font-size:9px}
+table.kpis thead th.sorted-desc::after{content:' \25BC';font-size:9px}
+.pie-filtros{font-size:11px;color:var(--muted);padding:6px 4px 16px;text-align:right}
+.drill-head{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.drill-head b{color:var(--verde-fuerte)}
+.periodo-titulo{font-weight:800;color:var(--verde-fuerte);padding:4px 0 8px;font-size:13px}
+/* ── Mosaico "Dashboard Gráficos" — 1 tarjeta = 1 gráfico compacto (pedido 2026-08-28,
+   rediseñado 2026-08-29 con tarjetas "bullet" left-aligned + drill + tabla) ── */
+/* 2 tarjetas por fila (antes cabían 3+ con auto-fit/340px) — pedido 2026-08-29: menos
+   tarjetas por fila = más ancho cada una = más espacio para el nombre/la descripción. */
+.graf-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+@@media (max-width:820px){.graf-grid{grid-template-columns:1fr}}
+.graf-card{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:14px 16px;overflow-x:auto}
+.graf-card canvas{max-height:260px}
+.graf-card.full{grid-column:1/-1}
+.graf-card .sub{font-weight:400}
+.graf-card+.graf-card{margin-top:14px}
+/* "Detalle por Recurso" (2ª hoja) — combo de columnas + línea de Logro%, con TODOS los
+   recursos (no solo Top 10, pedido explícito) -> ancho proporcional a la cantidad y
+   scroll horizontal dentro de la tarjeta en vez de amontonar las barras. */
+.graf-scroll-x{overflow-x:auto}
+.crumb.chico{font-size:11px;font-weight:400}
+/* Tarjeta "bullet": nombre SIEMPRE alineado a la izquierda (pedido explícito), barra
+   completa = Presupuesto (100% de la fila), con 2 rellenos superpuestos: Proyectado
+   (claro, de fondo) y Ejecutado al momento (oscuro, coloreado según Alcance%). */
+.bullet-list{display:flex;flex-direction:column;gap:7px}
+.bullet-row{display:grid;grid-template-columns:minmax(90px,150px) 1fr 54px;gap:8px;align-items:center;font-size:12px}
+.bullet-row.clickable{cursor:pointer}
+.bullet-row.clickable:hover .bullet-name{color:var(--verde-fuerte);text-decoration:underline}
+.bullet-name{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bullet-track{position:relative;height:15px;background:var(--panel2);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.bullet-fill-proy{position:absolute;top:0;left:0;bottom:0;background:#A9C4E8}
+.bullet-fill-ej{position:absolute;top:0;left:0;bottom:0}
+.bullet-pct{text-align:right;font-weight:700;font-size:11.5px}
+table.mini-tabla{width:100%;border-collapse:collapse;font-size:11px;margin-top:10px}
+table.mini-tabla th{background:var(--panel2);color:var(--muted);text-align:right;padding:4px 6px;font-weight:700;border-bottom:1px solid var(--border)}
+table.mini-tabla th.l,table.mini-tabla td.l{text-align:left}
+/* Nombre truncado con "…" (no desbordar la tarjeta ni partir la fila en 2 líneas) —
+   mismo max-width que .bullet-name arriba, para que ambos corten en el mismo punto.
+   El texto completo queda accesible vía title="" (tooltip nativo), no se pierde. */
+table.mini-tabla td.l{max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+table.mini-tabla td{padding:4px 6px;border-bottom:1px solid var(--line);text-align:right}
+table.mini-tabla tr:last-child td{border-bottom:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <img src="@(Context.Request.PathBase)/api/logo" alt="Logo" onerror="this.style.display='none'">
+      <div>
+        <div class="title">Presupuestos</div>
+        <div class="sub" id="emp-nombre">@ViewBag.EmpNombre</div>
+      </div>
+    </div>
+    <div class="who">
+      <span id="user-nombre"></span>
+      &nbsp;·&nbsp;
+      <button class="btn-out" id="btn-excel" style="cursor:pointer">⬇ Excel</button>
+      <button class="btn-out" id="btn-pdf" style="cursor:pointer">📄 PDF</button>
+      <a href="@(Context.Request.PathBase)/menu" class="btn-out">&larr; Menú</a>
+    </div>
+  </div>
+
+  <!-- Fila superior con 3 grupos (Año/Mes/Semana/Día · KPI/Gráficos · pestañas) —
+       "KPI Presupuestos/Dashboard Gráficos" reubicado aquí, CENTRADO, pedido explícito
+       2026-08-29 ("para que todo suba un poco") — antes vivía en su propia fila entre
+       el panel de filtros detallado y el contenido, ocupando una fila completa aparte.
+       flex:1 en los 2 grupos de los extremos (mismo ancho "elástico" cada uno) es lo que
+       centra de verdad el grupo del medio, sin importar que Año/Mes/Semana/Día pese más
+       que las pestañas de la derecha. -->
+  <div class="panel filtros" style="margin-bottom:10px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;flex:1 1 0;min-width:0">
+      <div class="pd mini"><span class="fl-label">Año</span><div id="ms-anio"></div></div>
+      <div class="pd mini"><span class="fl-label">Mes</span><div id="ms-mes"></div></div>
+      <div class="pd mini"><span class="fl-label">Semana</span><div id="ms-semana"></div></div>
+      <div class="pd mini"><span class="fl-label">Día</span><div id="ms-dia"></div></div>
+    </div>
+    <div class="seg" id="modo-seg" style="margin-bottom:0;flex:0 0 auto">
+      <button class="on" id="btn-modo-kpi">📋 KPI Presupuestos</button>
+      <button id="btn-modo-graficos">📊 Dashboard Gráficos</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;flex:1 1 0;min-width:0">
+      <div class="seg" id="tabs" style="margin-bottom:0">
+        <button data-tab="dia">Del Día</button>
+        <button class="on" data-tab="mes">Del Mes</button>
+        <button data-tab="anio">Del Año</button>
+        <button data-tab="historico">Histórico</button>
+        <button data-tab="extras">Extras</button>
+      </div>
+    </div>
+  </div>
+  <!-- Panel de filtros detallado — reubicado ARRIBA del contenido (KPI o Gráficos),
+       pedido explícito 2026-08-29: "los filtros deben estar arriba, no debajo". Antes
+       vivía debajo del mosaico de Dashboard Gráficos; ahora es el mismo panel para
+       ambos modos y siempre precede al contenido que filtra. -->
+  <div style="display:flex;justify-content:flex-end;margin-bottom:4px">
+    <button class="btn-modo" id="btn-toggle-filtros">▲ Ocultar filtros</button>
+  </div>
+  <div class="panel filtros" id="panel-filtros">
+    <div class="pd"><span class="fl-label">Centro</span><div id="ms-centro"></div></div>
+    <div class="pd"><span class="fl-label">Canal</span><div id="ms-canal"></div></div>
+    <div class="pd"><span class="fl-label">División</span><div id="ms-division"></div></div>
+    <div class="pd"><span class="fl-label">Supervisor</span><div id="ms-supervisor"></div></div>
+    <div class="pd"><span class="fl-label">Vendedor</span><div id="ms-vendedor"></div></div>
+    <div class="pd"><span class="fl-label">Suplidor</span><div id="ms-suplidor"></div></div>
+    <div class="pd"><span class="fl-label">Categoría</span><div id="ms-categoria"></div></div>
+    <div class="pd"><span class="fl-label">Producto</span><div id="ms-producto"></div></div>
+    <div class="pd"><span class="fl-label">Detalle</span><select id="detalle-vista">
+      <option value="organizacion" selected>Organización (Centro, Supervisor, Vendedor)</option>
+      <option value="producto">Producto (Suplidor, Categoría, Producto)</option>
+    </select></div>
+    <div class="pd"><span class="fl-label">KPI</span><select id="detalle-kpi">
+      <option value="dinero">Dinero</option>
+      <option value="unidades">Cajas</option>
+      <option value="facturas">Facturas</option>
+      <option value="activaciones" selected>Activación</option>
+    </select></div>
+    <!-- Solo tiene sentido en modo "Dashboard Gráficos" (decide Resumen/Detalle por
+         Recurso ahí) — oculto en modo "KPI Presupuestos", ver setModo(). Pedido
+         explícito 2026-08-29: junto al resto de los filtros de "tipo de consulta"
+         (Detalle/KPI arriba), en vez de vivir dentro de la vista de Gráficos. -->
+    <div class="pd" id="graf-hoja-wrap" style="display:none"><span class="fl-label">Vista Gráficos</span><div class="seg" id="graf-hoja-seg" style="margin-bottom:0">
+      <button class="on" data-hoja="resumen">Resumen</button>
+      <button data-hoja="detalle">Detalle</button>
+    </div></div>
+    <div class="pd" style="position:relative;margin-left:auto">
+      <span class="fl-label">&nbsp;</span>
+      <button class="btn-out" id="btn-patron" type="button" title="Patrón histórico de 4 franjas del mes (últimos 6 meses cerrados) para el Suplidor/Categoría/Canal filtrado — el mismo patrón que usa &quot;Estimado&quot;">ⓘ Patrón</button>
+      <div class="ms-pop" id="patron-pop" style="width:280px;padding:10px 12px;right:0;left:auto"></div>
+    </div>
+    <button class="btn-go" id="btn-consultar">Consultar</button>
+  </div>
+
+  <div class="panel" id="view-graficos" style="display:none;padding:14px 16px;margin-bottom:14px">
+    <div class="drill-head" style="margin-bottom:14px">
+      <span class="sub">Cada tarjeta: barra completa = Presupuesto (100%) · relleno oscuro = Ejecutado al momento · relleno claro = Proyectado · Detalle, KPI y Vista se eligen arriba, en el panel de filtros</span>
+    </div>
+    <div id="graficos-contenido" class="graf-grid"><div class="hint">Elige tus filtros y presiona Consultar.</div></div>
+    <!-- El esqueleto interno (Por Centro/Canal/Suplidor + #cadena-centro/canal/suplidor)
+         YA NO va aquí fijo — lo arma renderHojaDetalle() cada vez que corre (ver JS).
+         Bug encontrado en vivo 2026-08-29 (con Puppeteer, tras "sigue sin cargar"): el
+         mensaje "Cargando…" de cargarGraficos() reemplazaba TODO este innerHTML, borrando
+         los #cadena-X de los que dependía renderCadenaCentro/Canal/Suplidor — como esos
+         div ya no existían, cada función hacía "if(!cont) return" en silencio (sin
+         error) y la pantalla se quedaba en "Cargando…" para siempre, aun con los datos
+         ya cargados. Ahora el esqueleto se reconstruye solo, en cada render, así nunca
+         depende de qué haya quedado del render anterior. -->
+    <div id="graficos-detalle-contenido" style="display:none"><div class="hint">Elige tus filtros y presiona Consultar.</div></div>
+  </div>
+
+  <div class="view" id="view-dia">
+    <div class="panel" style="padding:14px 16px">
+      <div class="drill-head">
+        <b>Del Día</b>
+        <select id="deldia-familia"></select>
+        <select id="deldia-kpi"></select>
+      </div>
+      <div id="deldia-tabla"><div class="hint">Elige familia/KPI y presiona Consultar (solo Categoría y Suplidor tienen historial diario).</div></div>
+      <div id="deldia-drill-wrap" style="display:none;margin-top:14px">
+        <div class="drill-head"><b id="deldia-drill-titulo">Detalle del día</b></div>
+        <div class="seg" id="deldia-vista-seg" style="margin-bottom:8px">
+          <button class="on" data-v="org">Por Organización</button>
+          <button data-v="prod" id="deldia-vista-prod-btn">Por Categoría</button>
+        </div>
+        <div class="seg" id="deldia-modo-seg" style="margin-bottom:8px;display:none">
+          <button class="on" data-m="comparacion">Comparación</button>
+          <button data-m="total">Total sumado</button>
+        </div>
+        <div id="deldia-vista-org">
+          <div id="deldia-drill-nivelbar" style="margin-bottom:8px"></div>
+          <div class="crumbs" id="deldia-drill-crumbs"></div>
+          <div id="deldia-drill-tabla"></div>
+        </div>
+        <div id="deldia-vista-prod" style="display:none">
+          <div class="crumbs" id="deldia-drill-prod-crumbs"></div>
+          <div id="deldia-drill-prod-tabla"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="view on" id="view-mes">
+    <div id="kpis-mes"><div class="panel"><div class="hint">Elige tus filtros y presiona Consultar.</div></div></div>
+    <div class="panel" style="margin-top:14px;padding:14px 16px">
+      <div class="drill-head">
+        <b>Detalle</b>
+        <label id="drill-porcanal-wrap" style="display:none;align-items:center;gap:5px;font-size:12px;color:var(--muted);cursor:pointer">
+          <input type="checkbox" id="drill-porcanal"> Desglosar por Canal
+        </label>
+        <span class="sub">Se agrupa según "Detalle" y "KPI" del panel de filtros de arriba</span>
+      </div>
+      <div id="drill-nivelbar" style="margin-bottom:8px"></div>
+      <div class="crumbs" id="drill-crumbs"></div>
+      <button class="btn-modo" id="btn-ver-detalle-producto" style="display:none;margin-bottom:8px"></button>
+      <div id="drill-tabla"><div class="hint">Presiona Consultar arriba para cargar el detalle.</div></div>
+    </div>
+  </div>
+  <div class="view" id="view-anio">
+    <div id="kpis-anio"><div class="panel"><div class="hint">Elige tus filtros y presiona Consultar.</div></div></div>
+  </div>
+  <div class="view" id="view-historico">
+    <div class="panel" style="padding:14px 16px">
+      <div class="drill-head">
+        <b>Histórico — solo ejecución (sin proyección)</b>
+        <label class="pd" style="flex-direction:row;align-items:center;gap:4px">Desde <select id="hist-anioIni"></select></label>
+        <label class="pd" style="flex-direction:row;align-items:center;gap:4px">Hasta <select id="hist-anioFin"></select></label>
+        <select id="hist-familia"></select>
+        <select id="hist-kpi"></select>
+      </div>
+      <div id="hist-tabla"><div class="hint">Presiona Consultar arriba para cargar el histórico.</div></div>
+    </div>
+  </div>
+  <div class="view" id="view-extras">
+    <div class="panel" style="padding:14px 16px">
+      <div class="fam-title" style="padding:0 0 10px">Extras</div>
+      <div id="extras-cards"><div class="hint">Presiona Consultar arriba para cargar.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+const $ = s=>document.querySelector(s);
+
+/* ── Multiselect (copiado de Views/Torre/Index.cshtml) ── */
+// singleWhen: función opcional -> true si, en este momento, el control debe
+// comportarse como selección única (marcar 1 desmarca los demás) — pedido
+// 2026-08-29 para Suplidor/Categoría cuando el KPI (Activación/Facturas) exige
+// acotar a UN solo Suplidor o UNA sola Categoría en la vista por Organización.
+function multiselect(host,label,opts,onChange,singleWhen){
+  const wrap=document.createElement('div');wrap.className='ms';const btn=document.createElement('div');btn.className='ms-btn';
+  const txt=document.createElement('span');txt.textContent=label;const cnt=document.createElement('span');cnt.className='cnt';cnt.style.display='none';
+  btn.append(txt,cnt);const pop=document.createElement('div');pop.className='ms-pop';
+  const search=document.createElement('input');search.className='ms-search';search.placeholder='Buscar...';
+  const head=document.createElement('div');head.className='ms-head';const all=document.createElement('span');all.className='ms-link';all.textContent='✓ Todos';const non=document.createElement('span');non.className='ms-link';non.textContent='✕ Ninguno';head.append(all,non);
+  const list=document.createElement('div');pop.append(search,head,list);wrap.append(btn,pop);host.appendChild(wrap);
+  let options=opts.slice(),selected=new Set();
+  const vis=()=>{const q=(search.value||'').toLowerCase();return options.filter(o=>o.t.toLowerCase().includes(q));};
+  all.onclick=e=>{e.stopPropagation();
+    if(singleWhen&&singleWhen()){ const v=vis(); selected=new Set(v.length?[v[0].v]:[]); }
+    else vis().forEach(o=>selected.add(o.v));
+    render();sync();onChange&&onChange();};
+  non.onclick=e=>{e.stopPropagation();vis().forEach(o=>selected.delete(o.v));render();sync();onChange&&onChange();};
+  function render(){list.innerHTML='';vis().forEach(o=>{const row=document.createElement('label');row.className='ms-opt';const cb=document.createElement('input');cb.type='checkbox';cb.checked=selected.has(o.v);
+    cb.onchange=()=>{
+      if(cb.checked){ if(singleWhen&&singleWhen()){ selected=new Set([o.v]); render(); } else selected.add(o.v); }
+      else selected.delete(o.v);
+      sync();onChange&&onChange();
+    };
+    const sp=document.createElement('span');sp.textContent=o.t;row.append(cb,sp);list.appendChild(row);});}
+  function sync(){const n=selected.size;cnt.style.display=n?'inline-block':'none';cnt.textContent=n;}
+  btn.onclick=e=>{e.stopPropagation();document.querySelectorAll('.ms-pop.open').forEach(p=>{if(p!==pop)p.classList.remove('open');});pop.classList.toggle('open');if(pop.classList.contains('open')){search.value='';render();search.focus();}};
+  search.oninput=render;pop.onclick=e=>e.stopPropagation();render();sync();
+  return {
+    values:()=>[...selected],
+    setOptions:(n)=>{options=n.slice();selected=new Set([...selected].filter(v=>options.some(o=>o.v===v)));render();sync();},
+    select:(vals)=>{selected=new Set(vals);render();sync();},
+  };
+}
+document.addEventListener('click',()=>document.querySelectorAll('.ms-pop.open').forEach(p=>p.classList.remove('open')));
+
+/* ── Colapsar/expandir el panel de filtros ── */
+$('#btn-toggle-filtros').addEventListener('click', ()=>{
+  const panel=$('#panel-filtros'); const btn=$('#btn-toggle-filtros');
+  const oculto = panel.style.display==='none';
+  panel.style.display = oculto ? '' : 'none';
+  btn.textContent = oculto ? '▲ Ocultar filtros' : '▼ Mostrar filtros';
+});
+
+/* ── Filtros ── */
+const MS = {};
+const MESES_NOMBRE=['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let REPS = [];
+let FAMILIAS = [];
+let CANALES_NOMBRE = new Map();
+let SUPLIDORES_NOMBRE = new Map();
+let CATEGORIAS_NOMBRE = new Map();
+let PRODUCTOS_NOMBRE = new Map();
+function dependReps(){
+  const cen=new Set(MS.centro.values());
+  const rc=cen.size?REPS.filter(r=>cen.has(r.CedCodigo)):REPS;
+  MS.supervisor.setOptions([...new Map(rc.filter(r=>r.SupervisorCod).map(r=>[r.SupervisorCod,r.SupervisorNombre])).entries()].map(([v,t])=>({v,t})));
+  const sup=new Set(MS.supervisor.values());
+  const rs=sup.size?rc.filter(r=>sup.has(r.SupervisorCod)):rc;
+  MS.vendedor.setOptions(rs.map(r=>({v:r.RepCodigo,t:r.RepCodigo+' - '+r.RepNombre})));
+}
+
+/* Cascada Suplidor→Categoría→Producto, mismo patrón que dependReps() — pero anclada
+   a PRODUCTOS_CASCADA (solo lo que tiene dato real) en vez del catálogo maestro completo. */
+let PRODUCTOS_CASCADA=[], SUPLIDORES_FULL=[], CATEGORIAS_FULL=[], PRODUCTOS_FULL=[];
+function dependProductos(){
+  const sup=new Set(MS.suplidor.values());
+  if(sup.size){
+    const rc=PRODUCTOS_CASCADA.filter(p=>sup.has(String(p.Cat3ID)));
+    MS.categoria.setOptions([...new Map(rc.filter(p=>p.Cat1ID).map(p=>[String(p.Cat1ID),p.Cat1Nombre])).entries()].map(([v,t])=>({v,t})));
+  } else {
+    MS.categoria.setOptions(CATEGORIAS_FULL);
+  }
+  const cat=new Set(MS.categoria.values());
+  let rs=PRODUCTOS_CASCADA;
+  if(sup.size) rs=rs.filter(p=>sup.has(String(p.Cat3ID)));
+  if(cat.size) rs=rs.filter(p=>cat.has(String(p.Cat1ID)));
+  MS.producto.setOptions((sup.size||cat.size) ? rs.map(p=>({v:String(p.ProID),t:p.Nombre})) : PRODUCTOS_FULL);
+}
+fetch(BASE+'/apipresupuestos/filtros').then(r=>r.json()).then(j=>{
+  if(!j||!j.ok){ alert('No se pudieron cargar los filtros: '+(j&&j.error||'error desconocido')); return; }
+  REPS = j.representantes||[];
+  const centros=[...new Map(REPS.filter(r=>r.CedCodigo).map(r=>[r.CedCodigo,r.CentroNombre])).entries()].map(([v,t])=>({v,t}));
+  const divis=[...new Set(REPS.map(r=>r.Division).filter(Boolean))].sort().map(v=>({v,t:'División '+v}));
+  MS.centro = multiselect($('#ms-centro'),'Centro',centros,dependReps);
+  const canalesOpts=(j.canales||[]).map(c=>({v:c.v,t:c.t}));
+  CANALES_NOMBRE = new Map(canalesOpts.map(c=>[c.v,c.t]));
+  MS.canal = multiselect($('#ms-canal'),'Canal',canalesOpts);
+  MS.division = multiselect($('#ms-division'),'División',divis);
+  MS.supervisor = multiselect($('#ms-supervisor'),'Supervisor',[],dependReps);
+  MS.vendedor = multiselect($('#ms-vendedor'),'Vendedor',[]);
+  SUPLIDORES_FULL=j.suplidores||[]; CATEGORIAS_FULL=j.categorias||[]; PRODUCTOS_FULL=j.productos||[];
+  PRODUCTOS_CASCADA=j.productosCascada||[];
+  SUPLIDORES_NOMBRE = new Map(SUPLIDORES_FULL.map(s=>[s.v,s.t]));
+  CATEGORIAS_NOMBRE = new Map(CATEGORIAS_FULL.map(c=>[c.v,c.t]));
+  PRODUCTOS_NOMBRE = new Map(PRODUCTOS_FULL.map(p=>[p.v,p.t]));
+  // Suplidor/Categoría se fuerzan a selección única (marcar 1 desmarca los demás)
+  // cuando la vista es "Organización" y el KPI es Activación/Facturas — pedido
+  // explícito 2026-08-29: ahí solo tiene sentido acotar a UN suplidor o UNA
+  // categoría a la vez (ver familiaParaOrg/familiaParaProd más abajo).
+  const singleWhenOrgKpiDim = ()=> detalleVista()==='organizacion' && (detalleKpi()==='activaciones' || detalleKpi()==='facturas');
+  MS.suplidor = multiselect($('#ms-suplidor'),'Suplidor',SUPLIDORES_FULL,dependProductos,singleWhenOrgKpiDim);
+  MS.categoria = multiselect($('#ms-categoria'),'Categoría',CATEGORIAS_FULL,dependProductos,singleWhenOrgKpiDim);
+  MS.producto = multiselect($('#ms-producto'),'Producto',PRODUCTOS_FULL);
+  MS.semana = multiselect($('#ms-semana'),'Semana',[1,2,3,4,5].map(n=>({v:String(n),t:String(n)})),dependDias);
+  MS.dia = multiselect($('#ms-dia'),'Día',[],()=>cargarDelDia());
+  // Año y Mes ahora son multiselección (pedido 2026-08-28) — "Del Mes" muestra un bloque
+  // por cada combinación Año×Mes elegida; "Del Día" y demás vistas de un solo período
+  // usan siempre la PRIMERA combinación (ver anioEfectivo()/mesEfectivo()).
+  MS.mes = multiselect($('#ms-mes'),'Mes',MESES_NOMBRE.slice(1).map((t,i)=>({v:String(i+1),t})), actualizarDiasDelMes);
+  MS.anio = multiselect($('#ms-anio'),'Año',(j.anios||[]).map(a=>({v:String(a),t:String(a)})), actualizarDiasDelMes);
+  dependReps();
+  // Canal por defecto: todos MENOS Institucional (7000) — pedido explícito del usuario.
+  MS.canal.select(canalesOpts.filter(c=>c.v!=='7000').map(c=>c.v));
+  FAMILIAS = j.familias||[];
+  deldiaPoblarSelectores();
+  histPoblarSelectores();
+  const hoy=new Date();
+  MS.anio.select([String(j.anios&&j.anios.includes(hoy.getFullYear()) ? hoy.getFullYear() : (j.anios&&j.anios.length?j.anios[j.anios.length-1]:hoy.getFullYear()))]);
+  MS.mes.select([String(hoy.getMonth()+1)]);
+  actualizarDiasDelMes(false); // false = no disparar cargarDelDia todavía (nada se carga al abrir)
+  $('#detalle-vista').addEventListener('change', enforceSingleFiltros);
+  $('#detalle-vista').addEventListener('change', actualizarControlesDetalle);
+  $('#detalle-kpi').addEventListener('change', enforceSingleFiltros);
+  // "Desglosar por Canal" cambia un parámetro de la consulta (porCanal) — hace falta
+  // volver a pedir los datos, no basta con re-renderizar del lado del cliente.
+  $('#drill-porcanal').addEventListener('change', ()=>{ if(detalleVista()==='producto') cargarDrillProducto(); });
+  // Nada se consulta al abrir la página (pedido explícito 2026-08-29) — todo espera a
+  // que el usuario presione "Consultar" (ver btn-consultar más abajo).
+  setInterval(refrescarDelDiaAuto, 2*60*1000); // refresco cada 2 min de "Del Día", solo tiene efecto una vez que ya se consultó; preserva drill/vista en pantalla
+}).catch(err=>alert('Error cargando filtros: '+err));
+
+// Semana N = días (N-1)*7+1 .. N*7 (Semana 5 = lo que sobre del mes, 29/30/31).
+function semanaDeDia(d){ return Math.min(5, Math.ceil(d/7)); }
+
+// Año/Mes son multiselección, pero "Del Día" y cualquier otra vista de un solo período
+// (drill, Del Día, PDF, etc.) necesitan UNA sola combinación — se usa siempre la PRIMERA
+// (más antigua) de las elegidas. "Del Mes" es la única vista que realmente itera sobre
+// TODAS las combinaciones elegidas (ver periodosSeleccionados()).
+function anioEfectivo(){ const v=MS.anio.values().map(Number).sort((a,b)=>a-b); return v.length?v[0]:new Date().getFullYear(); }
+function mesEfectivo(){ const v=MS.mes.values().map(Number).sort((a,b)=>a-b); return v.length?v[0]:new Date().getMonth()+1; }
+// Todas las combinaciones Año×Mes elegidas, ordenadas cronológicamente — usadas por
+// "Del Mes" (un bloque por combinación) y "Del Año" (una fila por Año-Mes).
+function periodosSeleccionados(){
+  const anios=MS.anio.values().map(Number).sort((a,b)=>a-b);
+  const meses=MS.mes.values().map(Number).sort((a,b)=>a-b);
+  const a2=anios.length?anios:[anioEfectivo()], m2=meses.length?meses:[mesEfectivo()];
+  return a2.flatMap(anio=>m2.map(mes=>({anio,mes})));
+}
+
+// Repuebla las opciones de Día (1..díasDelMes del Año/Mes elegidos), acotadas a las
+// Semanas elegidas si hay alguna — cascada Semana→Día, pedida por el usuario
+// 2026-08-25 (multi-selección de días/semanas, con comparación o suma).
+let DIA_OPCIONES_ACTUALES=[];
+function dependDias(){
+  const anio=anioEfectivo(), mes=mesEfectivo();
+  const diasEnMes=new Date(anio,mes,0).getDate();
+  const semanas=new Set(MS.semana.values());
+  const opts=[];
+  for(let d=1;d<=diasEnMes;d++){
+    if(semanas.size && !semanas.has(String(semanaDeDia(d)))) continue;
+    opts.push({v:String(d),t:String(d)});
+  }
+  DIA_OPCIONES_ACTUALES=opts.map(o=>o.v);
+  MS.dia.setOptions(opts);
+  cargarDelDia();
+}
+// Reinicia Semana/Día al cambiar Año/Mes (evita mezclar números de semana/día que no
+// existen o significan otra cosa en el mes nuevo) y preselecciona hoy si aplica.
+// disparar=false (solo usado en la carga inicial de la página) evita el cargarDelDia()
+// automático — pedido 2026-08-29: "no corramos nada al abrir".
+function actualizarDiasDelMes(disparar){
+  if(disparar===undefined) disparar=true;
+  const anio=anioEfectivo(), mes=mesEfectivo();
+  MS.semana.select([]);
+  const diasEnMes=new Date(anio,mes,0).getDate();
+  const opts=[]; for(let d=1;d<=diasEnMes;d++) opts.push({v:String(d),t:String(d)});
+  DIA_OPCIONES_ACTUALES=opts.map(o=>o.v);
+  MS.dia.setOptions(opts);
+  const hoy=new Date();
+  MS.dia.select(anio===hoy.getFullYear() && mes===hoy.getMonth()+1 ? [String(hoy.getDate())] : []);
+  if(disparar) cargarDelDia();
+}
+// Días efectivos a consultar: los elegidos explícitamente en el multiselect de Día;
+// si no hay ninguno pero sí Semana(s), todos los días de esas semanas; si tampoco,
+// "" (Todos — se muestra la tabla del mes completo, no el drill diario).
+function diasEfectivos(){
+  const sel=MS.dia.values();
+  if(sel.length) return sel.slice().sort((a,b)=>a-b).join(',');
+  if(MS.semana.values().length) return DIA_OPCIONES_ACTUALES.join(',');
+  return '';
+}
+
+/* ── Consultar /resumen y render de KPIs ── */
+// "unidades" se muestra como "Cajas" — pedido explícito del usuario 2026-08-28: el
+// presupuesto/ejecutado de unidades se revisa en Cajas, no en unidades sueltas (el
+// backend ya convierte con Productos.ProUnidades antes de llegar aquí).
+const kpiTexto = {dinero:'Dinero',unidades:'Cajas',facturas:'Facturas',activaciones:'Activaciones'};
+const familiaTexto2 = {general:'General',categoria:'Categoría',suplidor:'Suplidor',producto:'Producto',grupoproducto:'Grupo de Producto'};
+function fmtNum(x){ return x==null?'—':Number(x).toLocaleString('es-DO',{maximumFractionDigits:0}); }
+function fmtPct(x){
+  if(x==null) return '<span class="pct na">—</span>';
+  const cls = x>=90?'good':(x>=75?'warn':'bad');
+  return `<span class="pct ${cls}">${x.toFixed(1)}%</span>`;
+}
+// ── Detalle (Organización/Producto) + KPI: 1 solo par de controles compartido
+// (panel de filtros de arriba), pedido explícito 2026-08-29 — reemplaza los que antes
+// vivían por separado en "Detalle" (Del Mes) y en el lente de "Dashboard Gráficos".
+// Reemplazan también a "Tipo de Presupuesto" (General/Categoría/Suplidor/Producto):
+// la "familia" que el backend necesita ahora se infiere sola, sin pedírsela al usuario.
+function detalleVista(){ return $('#detalle-vista').value; }
+function detalleKpi(){ return $('#detalle-kpi').value; }
+// Si el usuario deja 2+ Suplidores/Categorías marcados y luego cambia a una
+// combinación que exige selección única, se recorta a la primera de inmediato.
+function enforceSingleFiltros(){
+  if(!(detalleVista()==='organizacion' && (detalleKpi()==='activaciones' || detalleKpi()==='facturas'))) return;
+  const s=MS.suplidor.values(); if(s.length>1) MS.suplidor.select([s[0]]);
+  const c=MS.categoria.values(); if(c.length>1) MS.categoria.select([c[0]]);
+}
+// Familia efectiva para drill/organizacion (Centro→Supervisor→Vendedor→Canal):
+//  - Facturas solo existe a nivel de Categoría (backend) -> familia=categoria siempre.
+//  - Activación: verificado en vivo contra la BD (ago-2026) que NO se puede escalar
+//    desde Producto como las demás — UNDDACTPROD agregado por Categoría da 96,596
+//    mientras que UNDDLINACT (nativo de Categoría) da 58,271 — son la MISMA métrica
+//    contada de 2 formas distintas que NO reconcilian (a diferencia de Dinero/Cajas,
+//    donde MNTDPROD/Unddprod escalados SÍ igualan exacto a MNTDCAT/MNTDCAT3VEN/UNDDLIN/
+//    UNDDCAT3VEN). Además UNDDACTCAT3 (nativo de Suplidor) tiene Ejecutado=0 SIEMPRE en
+//    2026 (presupuesto cargado, ejecución nunca poblada por TI) — inutilizable. Por eso:
+//      - sin filtro, o filtrando solo por Categoría -> familia=categoria (UNDDLINACT,
+//        nativo, el número "oficial" según el usuario: "el pretipo de activación del
+//        mes es UnddlinACT"). "General" = compañía completa vía UNDDLINACT sin filtrar.
+//      - filtrando por Suplidor o por Producto -> familia=producto (UNDDACTPROD), única
+//        fuente con Ejecutado real a esa granularidad — el total ya NO va a coincidir
+//        con el de "sin filtro" (son PreTipo distintos), caveat inherente a los datos,
+//        no a este código — pendiente para TI: revisar por qué Producto y Categoría no
+//        reconcilian en Activaciones, y por qué UNDDACTCAT3 no tiene ejecución cargada.
+//  - Dinero/Cajas: "general" (nativo, más preciso) mientras no haya filtro de producto;
+//    en cuanto se filtra por Suplidor/Categoría/Producto, familia=producto para que ese
+//    filtro tenga efecto (ver ResolverFuenteProducto en el backend — Suplidor/Categoría/
+//    Producto se filtran los 3 a la vez, cualquiera de las 3 familias da el mismo dato,
+//    SÍ verificado reconciliando exacto contra MNTDCAT/MNTDCAT3VEN/UNDDLIN/UNDDCAT3VEN).
+function familiaParaOrg(kpi){
+  if(kpi==='facturas') return 'categoria';
+  if(kpi==='activaciones'){
+    const haySuplidorOProducto = MS.suplidor.values().length>0 || MS.producto.values().length>0;
+    return haySuplidorOProducto ? 'producto' : 'categoria';
+  }
+  const hayFiltroProducto = MS.suplidor.values().length>0 || MS.categoria.values().length>0 || MS.producto.values().length>0;
+  return hayFiltroProducto ? 'producto' : 'general';
+}
+// Misma familia que usan las tarjetas KPI (Resumen) — 1 sola combinación, la que esté
+// filtrada, pedido explícito 2026-08-29 ("solo debe haber una sola consulta desplegada").
+function familiaResumen(kpi){
+  return detalleVista()==='producto' ? familiaParaProd(kpi) : familiaParaOrg(kpi);
+}
+// Familia efectiva para drill/producto (Suplidor→Categoría→Producto): esta vista SIEMPRE
+// necesita el desglose a nivel de Producto para poder pivotar Suplidor/Categoría/Producto
+// (UNDDLINACT, nativo de Categoría, no tiene esa granularidad) — así que Activación
+// (y Dinero/Cajas) usan familia=producto aquí SIEMPRE, aunque su total ya no coincida
+// con el de "Por Organización" (ver nota de familiaParaOrg — caveat de los datos, no de
+// este código). Facturas solo existe a nivel Categoría (backend cae a 1 nivel ahí).
+function familiaParaProd(kpi){
+  return kpi==='facturas' ? 'categoria' : 'producto';
+}
+function qsFiltros(){
+  const p=new URLSearchParams();
+  p.set('anio',anioEfectivo()); p.set('mes',mesEfectivo());
+  if(MS.centro.values().length) p.set('centros',MS.centro.values().join(','));
+  if(MS.canal.values().length) p.set('canales',MS.canal.values().join(','));
+  if(MS.division.values().length) p.set('divisiones',MS.division.values().join(','));
+  if(MS.supervisor.values().length) p.set('supervisores',MS.supervisor.values().join(','));
+  if(MS.vendedor.values().length) p.set('vendedores',MS.vendedor.values().join(','));
+  if(MS.suplidor.values().length) p.set('suplidor',MS.suplidor.values().join(','));
+  if(MS.categoria.values().length) p.set('categoria',MS.categoria.values().join(','));
+  if(MS.producto.values().length) p.set('producto',MS.producto.values().join(','));
+  return p;
+}
+// "ⓘ Patrón": muestra el patrón de 4 franjas del mes (1-7/8-16/17-22/23-cierre) que
+// alimenta "Estimado" para el Suplidor/Categoría/Canal vigente en el filtro — pedido
+// explícito del usuario 2026-09-05 ("quiero ver el patrón, no solo el número final").
+// Reusa la clase .ms-pop (mismo popover que los multiselect) para heredar el cierre al
+// hacer clic afuera, ya conectado a nivel de documento más abajo.
+$('#btn-patron').addEventListener('click', e=>{
+  e.stopPropagation();
+  const pop=$('#patron-pop');
+  const abrir=!pop.classList.contains('open');
+  document.querySelectorAll('.ms-pop.open').forEach(p=>{ if(p!==pop) p.classList.remove('open'); });
+  pop.classList.toggle('open', abrir);
+  if(!abrir) return;
+  pop.innerHTML='<div class="hint">Cargando…</div>';
+  const p=new URLSearchParams();
+  p.set('anio',anioEfectivo()); p.set('mes',mesEfectivo());
+  if(MS.suplidor.values().length) p.set('suplidor',MS.suplidor.values().join(','));
+  if(MS.categoria.values().length) p.set('categoria',MS.categoria.values().join(','));
+  if(MS.canal.values().length) p.set('canales',MS.canal.values().join(','));
+  fetch(BASE+'/apipresupuestos/patron-franjas?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ pop.innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    if(!j.mesesConDatos){ pop.innerHTML='<div class="hint">Sin historial suficiente (0 de los últimos 6 meses cerrados con datos) para esta combinación.</div>'; return; }
+    let h='<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Patrón histórico — promedio de '+j.mesesConDatos+' de los últimos 6 meses cerrados</div>';
+    h+='<table style="width:100%;font-size:12px"><tbody>';
+    j.franjas.forEach(f=>{ h+='<tr><td style="text-align:left">'+f.rango+'</td><td style="text-align:right;font-weight:600">'+f.pct.toFixed(1)+'%</td></tr>'; });
+    h+='</tbody></table>';
+    pop.innerHTML=h;
+  }).catch(err=>{ pop.innerHTML='<div class="hint">Error: '+err+'</div>'; });
+});
+// Tarjetas "días del mes/transcurridos/restantes/incidencia" (pedido 2026-09-06) — se
+// arman a partir de CUALQUIER KpiResultado ya traído (todos comparten el mismo Año/Mes
+// de la consulta, así que DiasDelPeriodo/DiasTranscurridosAjustado son iguales entre
+// ellos). primerKpiValido busca el primero no-nulo dentro de un "entorno" anidado
+// {familia:{kpi:KpiResultado}}, tal como lo devuelve /apipresupuestos/resumen.
+function primerKpiValido(entorno){
+  for(const fam of Object.keys(entorno||{})){
+    for(const k of Object.keys(entorno[fam]||{})){
+      if(entorno[fam][k]) return entorno[fam][k];
+    }
+  }
+  return null;
+}
+function diaCard(lbl,val){ return '<div class="dia-card"><div class="dia-card-lbl">'+lbl+'</div><div class="dia-card-val">'+val+'</div></div>'; }
+// "asumirAyer" (pedido del usuario 2026-09-25): bajo operación normal, la fecha de última
+// actualización de PresupuestosHistoricos (Ultima) SIEMPRE debería quedar "ayer" — el
+// proceso de TI corre de noche reflejando la facturación de un día antes. Si ese proceso
+// no corrió anoche y se corrió hoy (catch-up manual/tardío), Ultima queda "hoy" en vez de
+// "ayer", e infla "Días transcurridos"/"Días restantes" en 1 día hábil de más — ver
+// DiasTranscurridosAjustado en Services/PresupuestosCore.cs. No hay forma de que el
+// backend distinga por sí solo "corrió normal" de "corrió tarde hoy mismo" (ambos casos
+// dejan Ultima con una fecha válida) — así que se avisa cuando Ultima=hoy (el patrón
+// atípico que describió el usuario) y se deja que la persona confirme si aplica el ajuste,
+// en vez de adivinarlo automáticamente.
+let ASUMIR_AYER=false;
+document.addEventListener('change', e=>{
+  if(e.target && e.target.classList && e.target.classList.contains('chk-asumir-ayer')){
+    ASUMIR_AYER=e.target.checked;
+    cargarResumen();
+  }
+});
+function ultimaActualizacionHtml(ultimaIso){
+  if(!ultimaIso) return '';
+  const u=new Date(ultimaIso), hoy=new Date();
+  const mismoDia = u.getFullYear()===hoy.getFullYear() && u.getMonth()===hoy.getMonth() && u.getDate()===hoy.getDate();
+  const fechaTxt=u.toLocaleDateString('es-DO',{day:'2-digit',month:'2-digit',year:'numeric'});
+  if(!mismoDia) return '<div class="hint" style="margin:2px 0 8px">Última actualización de datos: '+fechaTxt+'</div>';
+  return '<div style="margin:4px 0 10px;padding:8px 10px;border-radius:8px;background:#fff3cd;border:1px solid #ffe08a;font-size:12.5px;color:#7a5b00">'
+    +'⚠ Última actualización de datos: <b>hoy ('+fechaTxt+')</b> — esto es inusual (normalmente refleja el día anterior). '
+    +'Si el proceso nocturno de anoche no corrió y se corrió hoy en su lugar, "Días transcurridos"/"Días restantes" pueden estar sobreestimados en 1 día. '
+    +'<label style="margin-left:4px;cursor:pointer;font-weight:600;white-space:nowrap"><input type="checkbox" class="chk-asumir-ayer"'+(ASUMIR_AYER?' checked':'')+' style="vertical-align:middle;margin-right:4px">Recalcular asumiendo ayer</label>'
+    +'</div>';
+}
+function cardsDiasHtml(r){
+  if(!r || !r.DiasDelPeriodo) return '';
+  const dm=r.DiasDelPeriodo, dt=r.DiasTranscurridosAjustado, dr=r.DiasRestantes;
+  const inc = dm>0 ? (100*dt/dm) : 0;
+  return '<div class="dias-cards">'
+    + diaCard('Días del mes', dm)
+    + diaCard('Días transcurridos', dt)
+    + diaCard('Días restantes', dr)
+    + diaCard('Incidencia', inc.toFixed(1)+'%')
+    + '</div>'
+    + ultimaActualizacionHtml(r.Ultima);
+}
+function renderKpisEn(host, entorno){
+  const familias=Object.keys(entorno||{});
+  if(familias.length===0){ host.insertAdjacentHTML('beforeend','<div class="panel"><div class="hint">Sin datos para estos filtros.</div></div>'); return; }
+  familias.forEach(fam=>{
+    const kpis=entorno[fam]||{};
+    const kpiKeys=Object.keys(kpis);
+    if(kpiKeys.length===0) return;
+    const block=document.createElement('div'); block.className='fam-block panel';
+    let rows='';
+    kpiKeys.forEach(k=>{
+      const r=kpis[k];
+      if(!r){ rows+=`<tr><td>${kpiTexto[k]||k}</td><td colspan="11" style="text-align:center;color:var(--muted)">Sin datos</td></tr>`; return; }
+      rows+=`<tr>
+        <td>${kpiTexto[k]||k}</td>
+        <td>${fmtNum(r.Presupuesto)}</td>
+        <td>${fmtNum(r.PresupuestoAlDia)}</td>
+        <td>${fmtNum(r.Ejecutado)}</td>
+        <td>${fmtPct(r.AlcancePct)}</td>
+        <td>${fmtNum((r.PresupuestoAlDia||0)-(r.Ejecutado||0))}</td>
+        <td>${fmtNum(r.VentasProyectadas)}</td>
+        <td>${fmtPct(r.ProyectadoPct)}</td>
+        <td>${fmtNum(r.VentasEstimadas)}</td>
+        <td>${fmtPct(r.EstimadoPct)}</td>
+        <td>${r.VentasEstimadas==null?'—':fmtNum((r.Presupuesto||0)-r.VentasEstimadas)}</td>
+        <td>${r.NecesidadDiaria==null?'—':fmtNum(r.NecesidadDiaria)}</td>
+      </tr>`;
+    });
+    block.innerHTML = `<div class="fam-title">${familiaTexto2[fam]||fam}</div>
+      <table class="kpis">
+        <thead><tr><th>KPI</th><th>Presupuesto</th><th>Pres. al día</th><th>Ejecutado</th><th>Alcance%</th><th>Déficit al Momento</th><th>Proyectado</th><th>Proyectado%</th><th>Estimado</th><th>Estimado%</th><th>Déficit Estimado</th><th>Necesidad Diaria</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    host.appendChild(block);
+  });
+}
+let LAST_RESUMEN=null, LAST_HISTORICO=null, LAST_EXTRAS=null;
+// Modo de presentación de "Del Mes" cuando hay 2+ períodos seleccionados — pedido
+// explícito 2026-09-24: "debe presentar el resultado de la suma de los meses
+// seleccionados, y si se pide ver el detalle entonces hacer un Drill Down por Mes".
+// 'acumulado' (default) = 1 solo bloque con los KPI SUMADOS de todos los períodos;
+// 'detalle' = el comportamiento de antes, 1 bloque completo por mes (drill-down). Ambos
+// se renderizan desde LAST_RESUMEN ya en caché (sin volver a consultar el backend) — mismo
+// patrón que CD.detallado en Supervisión/Cierre Diario (Views/Supervision/Index.cshtml).
+let RESUMEN_MODO_MES='acumulado';
+// Suma un mismo KPI (p.ej. Cat1=Dinero) a través de N períodos ya consultados. Los montos
+// (Presupuesto/PresupuestoAlDia/Ejecutado/VentasProyectadas/VentasEstimadas/DiasTranscurridos/
+// DiasDelPeriodo/DiasTranscurridosAjustado/DiasRestantes) se SUMAN directo — son cantidades
+// absolutas. Los porcentajes (AlcancePct/ProyectadoPct/EstimadoPct) y NecesidadDiaria NO se
+// promedian (un promedio de porcentajes mensuales desvirtúa el peso real de cada mes) — se
+// RECALCULAN desde los montos ya sumados, misma fórmula que usa el backend para 1 mes
+// (Services/PresupuestosCore.cs: AlcancePct=Ejecutado/Presupuesto, NecesidadDiaria=
+// (Presupuesto-Ejecutado)/DiasRestantes) — solo que aplicada al acumulado de todo el rango.
+function sumarKpi(porPeriodo){
+  const validos=porPeriodo.filter(r=>r);
+  if(!validos.length) return null;
+  const sum=f=>validos.reduce((s,r)=>s+(r[f]||0),0);
+  const sumOrNull=f=>validos.every(r=>r[f]==null) ? null : validos.reduce((s,r)=>s+(r[f]||0),0);
+  const presupuesto=sum('Presupuesto'), presupuestoAlDia=sum('PresupuestoAlDia'), ejecutado=sum('Ejecutado');
+  const ventasProyectadas=sumOrNull('VentasProyectadas'), ventasEstimadas=sumOrNull('VentasEstimadas');
+  const diasRestantes=sum('DiasRestantes');
+  return {
+    Presupuesto: presupuesto, PresupuestoAlDia: presupuestoAlDia, Ejecutado: ejecutado,
+    AlcancePct: presupuesto!==0 ? 100*ejecutado/presupuesto : null,
+    VentasProyectadas: ventasProyectadas,
+    ProyectadoPct: (ventasProyectadas!=null && presupuesto!==0) ? 100*ventasProyectadas/presupuesto : null,
+    VentasEstimadas: ventasEstimadas,
+    EstimadoPct: (ventasEstimadas!=null && presupuesto!==0) ? 100*ventasEstimadas/presupuesto : null,
+    DiasTranscurridos: sum('DiasTranscurridos'), DiasDelPeriodo: sum('DiasDelPeriodo'),
+    DiasTranscurridosAjustado: sum('DiasTranscurridosAjustado'), DiasRestantes: diasRestantes,
+    NecesidadDiaria: diasRestantes>0 ? (presupuesto-ejecutado)/diasRestantes : null,
+  };
+}
+// Combina entornos.mes {familia:{kpi:KpiResultado}} de N períodos en 1 solo, sumando cada
+// combinación familia+kpi con sumarKpi(). Todos los períodos comparten los mismos filtros/
+// familia/kpi (misma consulta, solo cambia Año/Mes), así que las claves ya calzan 1 a 1.
+function sumarEntornosMes(resultados){
+  const out={}, familias=new Set();
+  resultados.forEach(r=>Object.keys(r.j.entornos.mes||{}).forEach(f=>familias.add(f)));
+  familias.forEach(fam=>{
+    out[fam]={};
+    const kpiKeys=new Set();
+    resultados.forEach(r=>Object.keys((r.j.entornos.mes||{})[fam]||{}).forEach(k=>kpiKeys.add(k)));
+    kpiKeys.forEach(k=>{ out[fam][k]=sumarKpi(resultados.map(r=>((r.j.entornos.mes||{})[fam]||{})[k]||null)); });
+  });
+  return out;
+}
+// "Del Mes" ahora siempre muestra un caption con el detalle de la selección — igual que
+// ya existía en Del Día ("Detalle del día 28/8/2026") pero antes NO existía aquí, pedido
+// explícito 2026-08-28 ("no lo hace igual con el presupuesto del mes"). Con 1 sola
+// combinación Año×Mes es 1 línea ("Agosto 2026"); con varias, el acumulado por defecto
+// (toggle "Acumulado"/"Detalle por mes" — el drill-down por mes pedido 2026-09-24). Se
+// re-renderiza desde LAST_RESUMEN, sin refetch, al cambiar el toggle.
+function renderResumenMes(){
+  const host=$('#kpis-mes'); host.innerHTML='';
+  const resultados=LAST_RESUMEN;
+  const cap=document.createElement('div'); cap.className='periodo-titulo';
+  cap.textContent = resultados.length===1
+    ? ('Detalle de '+MESES_NOMBRE[resultados[0].periodo.mes]+' '+resultados[0].periodo.anio)
+    : ((RESUMEN_MODO_MES==='acumulado'?'Acumulado de ':'Detalle de ')+resultados.length+' períodos ('+resultados.map(r=>MESES_NOMBRE[r.periodo.mes]+' '+r.periodo.anio).join(', ')+')');
+  host.appendChild(cap);
+  if(resultados.length>1){
+    const seg=document.createElement('div'); seg.className='seg'; seg.style.marginBottom='10px';
+    seg.innerHTML='<button id="mes-modo-acum" class="'+(RESUMEN_MODO_MES==='acumulado'?'on':'')+'">Acumulado</button>'
+      +'<button id="mes-modo-detalle" class="'+(RESUMEN_MODO_MES==='detalle'?'on':'')+'">Detalle por mes</button>';
+    host.appendChild(seg);
+    $('#mes-modo-acum').addEventListener('click', ()=>{ RESUMEN_MODO_MES='acumulado'; renderResumenMes(); });
+    $('#mes-modo-detalle').addEventListener('click', ()=>{ RESUMEN_MODO_MES='detalle'; renderResumenMes(); });
+  }
+  if(resultados.length>1 && RESUMEN_MODO_MES==='acumulado'){
+    const entornoAgg=sumarEntornosMes(resultados);
+    host.insertAdjacentHTML('beforeend', cardsDiasHtml(primerKpiValido(entornoAgg)));
+    renderKpisEn(host, entornoAgg);
+    return;
+  }
+  resultados.forEach(r=>{
+    if(resultados.length>1){
+      const tit=document.createElement('div'); tit.className='fam-title'; tit.style.padding='16px 0 4px';
+      tit.textContent=MESES_NOMBRE[r.periodo.mes]+' '+r.periodo.anio;
+      host.appendChild(tit);
+    }
+    host.insertAdjacentHTML('beforeend', cardsDiasHtml(primerKpiValido(r.j.entornos.mes)));
+    renderKpisEn(host, r.j.entornos.mes);
+  });
+}
+// Contador de tiempo transcurrido mientras carga "Del Mes" — pedido del usuario
+// 2026-09-25 tras reportar que, tras marcar "Recalcular asumiendo ayer", la pantalla se
+// quedó en "Cargando…" 2 minutos sin ningún indicio de si seguía trabajando o estaba
+// realmente colgada. Un "Cargando…" estático se siente igual a los 2 segundos que a los 2
+// minutos — este contador al menos confirma que la petición sigue viva (el navegador
+// sigue actualizando el DOM) y da un número real que reportar si hace falta seguir
+// investigando (junto con los logs del servidor — carpeta .\logs, líneas "Curva ...:
+// esperó ... por el candado global + ... calculando contra VWVentas").
+let _cargandoMesTimer=null;
+function iniciarCargandoMes(host){
+  const t0=Date.now();
+  const render=()=>{
+    const seg=Math.floor((Date.now()-t0)/1000);
+    const txt = seg<20 ? 'Cargando…' : 'Cargando… ('+seg+'s — si tarda más de lo normal, puede ser el cálculo del patrón de estacionalidad para esta combinación de filtros; revisa los logs del servidor si persiste)';
+    host.innerHTML='<div class="panel"><div class="hint">'+txt+'</div></div>';
+  };
+  render();
+  _cargandoMesTimer=setInterval(render, 1000);
+}
+function detenerCargandoMes(){
+  if(_cargandoMesTimer){ clearInterval(_cargandoMesTimer); _cargandoMesTimer=null; }
+}
+function cargarResumen(){
+  const periodos=periodosSeleccionados();
+  const kpi=detalleKpi();
+  const host=$('#kpis-mes');
+  iniciarCargandoMes(host);
+  Promise.all(periodos.map(pe=>{
+    const p=qsFiltros(); p.set('anio',pe.anio); p.set('mes',pe.mes);
+    p.set('familias',familiaResumen(kpi)); p.set('kpi',kpi);
+    // OJO: el binder de query string de [FromQuery] bool en ASP.NET Core usa
+    // bool.TryParse internamente, que NO acepta "1"/"0" (bool.TryParse("1")==false) —
+    // solo "true"/"false". Mandar "1" aquí hacía fallar el model binding, y con
+    // [ApiController] eso dispara un 400 automático con un JSON de validación que no
+    // tiene "ok"/"error" (por eso el usuario veía "Error al consultar: desconocido",
+    // sin mensaje útil) — bug real, encontrado 2026-09-25 tras el reporte del usuario.
+    if(ASUMIR_AYER) p.set('asumirAyer','true');
+    // Se lee como texto primero (no r.json() directo) — si el backend responde con un
+    // shape inesperado (ej. el 400 automático de [ApiController] por un model-binding
+    // fallido, que no trae "ok"/"error") antes esto colapsaba en un inútil "Error al
+    // consultar: desconocido", sin pista de qué pasó realmente. Guardar httpStatus+raw
+    // permite mostrar algo diagnosticable en vez de "desconocido" — pedido implícito del
+    // usuario 2026-09-25 tras perder tiempo sin saber qué estaba fallando.
+    return fetch(BASE+'/apipresupuestos/resumen?'+p.toString()).then(r=>r.text().then(txt=>{
+      let j=null; try{ j=JSON.parse(txt); }catch(e){ /* respuesta no-JSON, j queda null */ }
+      return {periodo:pe, j, httpStatus:r.status, raw:txt};
+    }));
+  })).then(resultados=>{
+    detenerCargandoMes();
+    const malos=resultados.filter(r=>!r.j||!r.j.ok);
+    if(malos.length){
+      const m=malos[0];
+      const detalle=(m.j&&m.j.error) || ('HTTP '+m.httpStatus+' — '+(m.raw||'').slice(0,300));
+      alert('Error al consultar: '+detalle);
+      return;
+    }
+    LAST_RESUMEN=resultados;
+    RESUMEN_MODO_MES='acumulado';
+    renderResumenMes();
+  }).catch(err=>{ detenerCargandoMes(); alert('Error al consultar: '+err); });
+}
+// Causa real de "Dashboard Gráficos tarda varios minutos" (reportado 2026-08-29,
+// verificado en vivo con Puppeteer + Chrome real contra la BD real): Consultar
+// disparaba Del Año/Histórico/Extras SIEMPRE, aunque el usuario estuviera viendo
+// "Del Mes" o "Dashboard Gráficos" — Del Año en particular calcula la curva de
+// estacionalidad UNA VEZ POR CADA MES con datos ese año (hasta 8 veces), y cada una
+// puede tardar ~17s la primera vez que ese mes no está en caché ese día (ObtenerCurva/
+// CurvaGeneral, ya identificado en la 13ª parte para Dashboard Gráficos — pero Del
+// Mes/Del Año NUNCA recibieron el sinCurva=true de aquella vez, porque sí necesitan
+// mostrar Estimado/Est.%, a propósito). Con hasta 9 consultas concurrentes compitiendo
+// por la misma BD compartida, esas de ~17s atrasaban TODO lo demás disparado en el
+// mismo clic — incluidas las de Dashboard Gráficos, que en sí mismas ya son rápidas
+// (100-600ms, verificado con timing real: filtros/organización 104ms, producto 575ms,
+// resumen 136ms — el cuello de botella nunca fue Chart.js ni esas consultas). Ahora
+// Consultar solo refresca la pestaña oculta que esté ACTIVA en ese momento; las otras
+// quedan "obsoletas" (se sacan de TABS_CARGADOS) y se recargan solas, frescas, la
+// próxima vez que el usuario las visite — mismo patrón de carga perezosa que ya usa
+// el clic de pestaña.
+$('#btn-consultar').addEventListener('click', ()=>{
+  // Del Día queda FUERA de este gate: su recarga ya la maneja su propia cascada
+  // (cambios de Año/Mes/Semana/Día + el setInterval de 2 min), no el clic de pestaña
+  // como Del Año/Histórico/Extras — sacarlo de TABS_CARGADOS aquí no serviría de nada
+  // (nada lo vuelve a disparar al cambiar de pestaña) y dejaría una ventana de filtros
+  // obsoletos (Centro/Canal/etc.) hasta el próximo refresco automático.
+  cargarResumen(); cargarDrill(); cargarDelDia(); cargarGraficos();
+  const tabActivo = document.querySelector('#tabs button.on')?.dataset.tab;
+  const pestañasOcultas = {anio:cargarDelAnio, historico:cargarHistorico, extras:cargarExtras};
+  Object.keys(pestañasOcultas).forEach(tab=>{
+    if(tab===tabActivo){ pestañasOcultas[tab](); TABS_CARGADOS.add(tab); }
+    else TABS_CARGADOS.delete(tab);
+  });
+});
+
+/* ── Histórico: solo ejecución, sin proyección (períodos cerrados) ── */
+function histPoblarSelectores(){
+  const selFam=$('#hist-familia'); selFam.innerHTML='';
+  FAMILIAS.forEach(f=>{ const o=document.createElement('option'); o.value=f.cod; o.textContent=familiaTexto2[f.cod]||f.cod; selFam.appendChild(o); });
+  selFam.value='categoria';
+  histPoblarKpis();
+  selFam.onchange=()=>{ histPoblarKpis(); cargarHistorico(); };
+  $('#hist-kpi').onchange=cargarHistorico;
+  const anioActual=new Date().getFullYear();
+  const selIni=$('#hist-anioIni'), selFin=$('#hist-anioFin');
+  for(let a=anioActual-3;a<=anioActual;a++){
+    selIni.appendChild(new Option(a,a)); selFin.appendChild(new Option(a,a));
+  }
+  selIni.value=anioActual-1; selFin.value=anioActual;
+  selIni.onchange=cargarHistorico; selFin.onchange=cargarHistorico;
+}
+function histPoblarKpis(){
+  const fam=FAMILIAS.find(f=>f.cod===$('#hist-familia').value);
+  const selKpi=$('#hist-kpi'); const prev=selKpi.value; selKpi.innerHTML='';
+  (fam?fam.kpis:[]).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=kpiTexto[k]||k; selKpi.appendChild(o); });
+  if([...selKpi.options].some(o=>o.value===prev)) selKpi.value=prev;
+}
+function cargarHistorico(){
+  const fam=$('#hist-familia').value, kpi=$('#hist-kpi').value;
+  if(!fam||!kpi) return;
+  const p=qsFiltros(); p.delete('familias'); p.delete('anio'); p.delete('mes');
+  p.set('familia',fam); p.set('kpi',kpi); p.set('anioIni',$('#hist-anioIni').value); p.set('anioFin',$('#hist-anioFin').value);
+  $('#hist-tabla').innerHTML='<div class="hint">Cargando…</div>';
+  fetch(BASE+'/apipresupuestos/historico?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ $('#hist-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    LAST_HISTORICO=j;
+    renderHistorico(j.serie||[]);
+  }).catch(err=>{ $('#hist-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+function renderHistorico(serie){
+  if(serie.length===0){ $('#hist-tabla').innerHTML='<div class="hint">Sin datos para este rango.</div>'; return; }
+  const porAnio={};
+  serie.forEach(s=>{ (porAnio[s.Anio]=porAnio[s.Anio]||{})[s.Mes]=s.Ejecutado; });
+  let h='<table class="drill"><thead><tr><th class="l">Año</th>';
+  for(let m=1;m<=12;m++) h+='<th>'+MESES_CORTO[m]+'</th>';
+  h+='<th>Total</th></tr></thead><tbody>';
+  Object.keys(porAnio).sort().forEach(a=>{
+    h+='<tr><td class="l">'+a+'</td>';
+    let tot=0;
+    for(let m=1;m<=12;m++){ const v=porAnio[a][m]||0; tot+=v; h+='<td>'+fmtNum(v)+'</td>'; }
+    h+='<td>'+fmtNum(tot)+'</td></tr>';
+  });
+  h+='</tbody></table>';
+  $('#hist-tabla').innerHTML=h;
+}
+
+/* ── Extras: Devoluciones, Meta Gerencial, Efectividad de Visitas, Retención 2 meses ── */
+function cargarExtras(){
+  const p=qsFiltros(); p.delete('familias');
+  $('#extras-cards').innerHTML='<div class="hint">Cargando…</div>';
+  fetch(BASE+'/apipresupuestos/extras?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ $('#extras-cards').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    LAST_EXTRAS=j;
+    const cards=[
+      ['Devoluciones (presupuesto)',fmtNum(j.devolucionesPresupuesto),'var(--bad)'],
+      ['Devoluciones (ejecutado)',fmtNum(j.devolucionesEjecutado),'var(--bad)'],
+      ['Meta Gerencial (sin seguimiento)',fmtNum(j.metaGerencial),'var(--muted)'],
+      ['Efectividad de Visitas — meta',fmtNum(j.efectividadPresupuesto),'var(--azul)'],
+      ['Efectividad de Visitas — logro',fmtNum(j.efectividadEjecutado),'var(--verde)'],
+      ['Retención 2 meses (clientes)',fmtNum(j.retencion2Meses),'var(--verde)'],
+    ];
+    $('#extras-cards').innerHTML='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'+
+      cards.map(c=>'<div class="panel" style="padding:16px;text-align:center"><div style="font-size:24px;font-weight:800;color:'+c[2]+'">'+c[1]+'</div><div style="font-size:11px;color:var(--muted);margin-top:6px">'+c[0]+'</div></div>').join('')+
+      '</div>';
+  }).catch(err=>{ $('#extras-cards').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+
+/* ── Dashboard Gráficos: Chart.js vendored, carga perezosa (Del Año ya no usa gráfico —
+   pedido 2026-08-28, se reemplazó por la tabla mes a mes de abajo) ── */
+function ensureChart(cb){
+  if(typeof Chart!=='undefined'){ cb(); return; }
+  const s=document.createElement('script'); s.src=BASE+'/lib/chart.umd.min.js';
+  s.onload=()=>cb(); s.onerror=()=>alert('No se pudo cargar el generador de gráficos.');
+  document.head.appendChild(s);
+}
+const MESES_CORTO=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+/* ── Toggle KPI Presupuestos / Dashboard Gráficos ──
+   Cambiar de modo YA NO dispara una consulta (pedido 2026-08-29: "no cargar la consulta
+   hasta que no se realice el filtro") — si ya se consultó antes (GRAF_MOSAICO_DATA
+   tiene datos, sin importar en qué modo se estaba), se re-usa/re-renderiza sin refetch;
+   si nunca se consultó, se muestra el mismo mensaje que el resto de las vistas. */
+function setModo(modo){
+  const esGraficos = modo==='graficos';
+  $('#btn-modo-kpi').classList.toggle('on', !esGraficos);
+  $('#btn-modo-graficos').classList.toggle('on', esGraficos);
+  $('#tabs').style.display = esGraficos ? 'none' : '';
+  $('#graf-hoja-wrap').style.display = esGraficos ? '' : 'none';
+  document.querySelectorAll('.view').forEach(v=>{ v.style.display = esGraficos ? 'none' : (v.classList.contains('on') ? '' : 'none'); });
+  $('#view-graficos').style.display = esGraficos ? 'block' : 'none';
+  if(esGraficos){
+    if(GRAF_MOSAICO_DATA){ if(GRAF_HOJA==='detalle') renderHojaDetalle(); else renderMosaicoGraficos(); }
+    else { $('#graficos-contenido').innerHTML='<div class="hint">Elige tus filtros y presiona Consultar.</div>'; $('#graficos-detalle-contenido').innerHTML=''; }
+  }
+}
+$('#btn-modo-kpi').addEventListener('click', ()=>setModo('kpi'));
+$('#btn-modo-graficos').addEventListener('click', ()=>setModo('graficos'));
+/* ── Dashboard Gráficos (rediseñado 2026-08-29): tarjetas "bullet" con drill down/up
+   ligado a los filtros activos — reemplaza el mosaico de rankings/donas de Chart.js
+   del 2026-08-28. Pedido explícito del usuario:
+   - Nombre (Centro/Canal/Supervisor/Vendedor/Suplidor/Categoría/Producto) SIEMPRE
+     alineado a la izquierda — se logra de raíz usando HTML propio (grid de 3
+     columnas: nombre/barra/%) en vez de las etiquetas del eje de Chart.js.
+   - Barra completa = Presupuesto de la fila (su propio 100%), con 2 rellenos
+     superpuestos: Proyectado (claro, de fondo) y Ejecutado al momento (oscuro,
+     coloreado según Alcance% — mismo código verde/ámbar/rojo que las tablas).
+   - Debajo de cada tarjeta, tabla Presupuesto/Ejecutado/Alcance%/Proyectado/Proy.%.
+   - Centro/Canal/Supervisor/Suplidor: Top 10, con drill down (clic en una fila baja
+     de nivel) y drill up (clic en la miga de pan) — ambos ligados a los mismos
+     filtros ya elegidos arriba, porque parten de GRAF_MOSAICO_DATA (ya filtrado por
+     qsFiltros()) y solo lo acotan más en el cliente.
+   - Categoría/Producto/Vendedor: 2 tarjetas (Top 5 / Last 5), sin drill (son la vista
+     final, no un nivel intermedio).
+   Todas las tarjetas ordenan de mayor a menor por Proyectado% (logro proyectado vs.
+   Presupuesto, no venta cruda) — pedido explícito 2026-08-29: "el mayor siempre estará
+   arriba" — ver graftop()/porProyectadoDesc().
+   El KPI (Dinero/Cajas/Facturas/Activación) y el Detalle (Organización/Producto) ya NO
+   tienen su propio control aquí (pedido 2026-08-29) — se leen del panel de filtros de
+   arriba (detalleKpi()/detalleVista()), el mismo que usa "Detalle" en Del Mes; Facturas
+   rara vez tendrá desglose por Suplidor a nivel de producto (ver familiaParaProd), así
+   que esas tarjetas pueden salir vacías con ese KPI — comportamiento esperado, no error.
+   La Tendencia Mensual sigue siendo el único gráfico Chart.js (línea) — ahora a ancho
+   completo (misma altura, más ancho — pedido explícito) y con Proyectado agregado como
+   3ª serie, para ver cuánto se proyecta caer/superar frente al Presupuesto, no solo
+   Ejecutado vs Presupuesto. ── */
+let GRAF_CHARTS=[];
+let GRAF_MOSAICO_DATA=null;
+function limpiarGraficos(){ GRAF_CHARTS.forEach(c=>c.destroy()); GRAF_CHARTS=[]; }
+function colorAlcance(pct){ return pct==null?'#A9C4E8':(pct>=90?'#2E9E4A':(pct>=75?'#D29922':'#C0392B')); }
+// Por Canal: no viene directo en drill/organizacion (esas filas no traen CanID) — se
+// resuelve por RepCodigo contra el catálogo REPS que ya tiene CanID. Compartidas también
+// con los nivelbares Centro/Supervisor/Vendedor de Del Mes y Del Día.
+function nombreCanal(id){ return CANALES_NOMBRE.get(String(id))||('Canal '+id); }
+function conCanal(list){
+  const canalPorRep=new Map(REPS.map(r=>[r.RepCodigo, r.CanID]));
+  return list.map(v=>({...v, _canId:canalPorRep.get(v.RepCodigo)}));
+}
+// Nav de drill de cada tarjeta "primaria" — se resetea cada vez que se cargan datos
+// nuevos (cargarGraficos, p.ej. tras Consultar o cambiar de lente KPI), no al navegar
+// de nivel dentro de la misma consulta (mismo patrón que drillNav de Detalle).
+let GRAF_NAV_CENTRO, GRAF_NAV_CANAL, GRAF_NAV_SUP, GRAF_NAV_SUPLIDOR;
+function grafResetNav(){
+  GRAF_NAV_CENTRO={nivel:'centro', ced:null, sup:null};
+  GRAF_NAV_CANAL={nivel:'canal', canal:null, sup:null};
+  GRAF_NAV_SUP={nivel:'supervisor', sup:null};
+  GRAF_NAV_SUPLIDOR={nivel:'suplidor', cat3:null, cat1:null};
+}
+// Ya NO se guarda por visibilidad (view-graficos oculto) — Consultar refresca TODO
+// siempre (mismo patrón que cargarResumen/cargarDrill/etc.), pedido 2026-08-29. Si el
+// modo Gráficos no está visible en ese momento, se cachea en GRAF_MOSAICO_DATA y se
+// renderiza recién cuando el usuario cambie a ese modo (evita construir gráficos
+// Chart.js dentro de un contenedor oculto, que Chart.js dimensiona mal).
+function cargarGraficos(){
+  const kpi=detalleKpi();
+  const visible = $('#view-graficos').style.display!=='none';
+  if(visible){
+    if(GRAF_HOJA==='detalle') $('#graficos-detalle-contenido').innerHTML='<div class="hint">Cargando…</div>';
+    else $('#graficos-contenido').innerHTML='<div class="hint">Cargando…</div>';
+  }
+  // sinCurva=true: el Dashboard Gráficos no muestra Estimado/Est.% (solo Presupuesto/
+  // Ejecutado/Alcance%/Proyectado/Proy.%) — se le pide al backend que se salte el cálculo
+  // de la curva de estacionalidad por completo (evita, sobre todo en drill/producto sin
+  // filtrar por Suplidor, decenas/cientos de consultas pesadas contra VWVentas — 1 por
+  // cada Suplidor distinto del catálogo — que eran la causa real de la lentitud
+  // reportada por el usuario 2026-08-29).
+  const famOrg=familiaParaOrg(kpi);
+  const pOrg=qsFiltros(); pOrg.set('familia',famOrg); pOrg.set('kpi',kpi); pOrg.set('sinCurva','true');
+  const pProd=qsFiltros(); pProd.set('familia',familiaParaProd(kpi)); pProd.set('kpi',kpi); pProd.set('sinCurva','true');
+  // La Tendencia Mensual usa la MISMA familia que las tarjetas "Top 10 Centros/Canales/
+  // Supervisores" de abajo (famOrg) — antes siempre leía la familia "producto" fija, lo
+  // que para Activación mostraba un total distinto al de esas tarjetas (UNDDACTPROD no
+  // reconcilia con UNDDLINACT, ver familiaParaOrg) — pedido 2026-08-29: números
+  // consistentes entre las tarjetas del mismo dashboard.
+  const pMensual=qsFiltros(); pMensual.set('anio',anioEfectivo()); pMensual.set('mes',12); pMensual.set('detalleMensual','true'); pMensual.set('sinCurva','true');
+  pMensual.set('familias',famOrg); pMensual.set('kpi',kpi);
+  Promise.all([
+    fetch(BASE+'/apipresupuestos/drill/organizacion?'+pOrg.toString()).then(r=>r.json()),
+    fetch(BASE+'/apipresupuestos/drill/producto?'+pProd.toString()).then(r=>r.json()),
+    fetch(BASE+'/apipresupuestos/resumen?'+pMensual.toString()).then(r=>r.json()),
+  ]).then(([jOrg,jProd,jMensual])=>{
+    GRAF_MOSAICO_DATA={
+      org:(jOrg&&jOrg.ok)?(jOrg.filas||[]):[],
+      prod:(jProd&&jProd.ok)?(jProd.filas||[]):[],
+      mensual:(jMensual&&jMensual.ok)?(jMensual.entornos.detalle||{}):{},
+    };
+    grafResetNav(); grafResetNav2();
+    if($('#view-graficos').style.display!=='none'){ if(GRAF_HOJA==='detalle') renderHojaDetalle(); else renderMosaicoGraficos(); }
+  }).catch(err=>{
+    if($('#view-graficos').style.display==='none') return;
+    const host = GRAF_HOJA==='detalle' ? $('#graficos-detalle-contenido') : $('#graficos-contenido');
+    host.innerHTML='<div class="hint">Error: '+err+'</div>';
+  });
+}
+// Texto de contexto ("Agosto 2026 · Activación") repetido en la cabecera de cada
+// tarjeta — pedido explícito 2026-08-29: "en cada gráfico trae más descripción, ejemplo
+// el mes... lo que se mide (dinero, activación, facturas)". El período/KPI no cambian
+// al hacer drill dentro de una misma consulta, así que basta con fijarlo 1 vez al crear
+// la tarjeta (a diferencia del título, que sí cambia con cada nivel).
+function subtituloPeriodoKpi(){
+  const kpi=detalleKpi();
+  return MESES_NOMBRE[mesEfectivo()]+' '+anioEfectivo()+' · '+(kpiTexto[kpi]||kpi);
+}
+function tarjetaCard(titulo, id, opts){
+  opts=opts||{};
+  const card=document.createElement('div'); card.className='graf-card'+(opts.full?' full':'');
+  card.id=id+'-card';
+  let inner='<div class="fam-title" style="padding:0 0 2px">'+titulo+'</div>';
+  if(opts.sub) inner+='<div class="sub" style="padding:0 0 6px">'+opts.sub+'</div>';
+  if(opts.crumbs) inner+='<div class="crumbs" style="margin:0 0 8px" data-role="crumbs"></div>';
+  inner += opts.canvas ? '<canvas id="'+id+'" height="'+(opts.altura||220)+'"></canvas>' : '<div data-role="body"></div>';
+  card.innerHTML=inner;
+  $('#graficos-contenido').appendChild(card);
+  return card;
+}
+// Suma cruda de Presupuesto/Ejecutado/Proyectado de un conjunto de filas — usada para
+// la fila "TOTAL GENERAL" de renderBullet (pedido 2026-08-29: "agrega un TotalGeneral,
+// para saber el cuadre del Total de ese filtro" — verificar que el mosaico cuadra
+// contra el total real de ese filtro, no solo contra lo que se alcanzó a mostrar).
+function sumaFilas(filas){
+  let Presupuesto=0, PresupuestoAlDia=0, Ejecutado=0, VentasProyectadas=0, tieneProy=false;
+  filas.forEach(f=>{
+    Presupuesto+=f.Presupuesto||0; PresupuestoAlDia+=f.PresupuestoAlDia||0; Ejecutado+=f.Ejecutado||0;
+    if(f.VentasProyectadas!=null){ VentasProyectadas+=f.VentasProyectadas; tieneProy=true; }
+  });
+  return {
+    Presupuesto, PresupuestoAlDia, Ejecutado,
+    AlcancePct: Presupuesto?100*Ejecutado/Presupuesto:null,
+    VentasProyectadas: tieneProy?VentasProyectadas:null,
+    ProyectadoPct: (tieneProy&&Presupuesto)?100*VentasProyectadas/Presupuesto:null,
+  };
+}
+// 1 sola "fila" que resume TODO un conjunto (usada como barra "Compañía" en la 2ª hoja).
+function filaTotalDe(nombre, rows){ return Object.assign({nombre, k:'__total__'}, sumaFilas(rows)); }
+// ── Componente "bullet": barra completa = Presupuesto de la fila (100%), con 2
+// rellenos superpuestos (Proyectado claro de fondo, Ejecutado oscuro encima) + tabla
+// Presupuesto/Ejecutado/Alcance%/Proyectado/Proy.% debajo. filas: {nombre,k,Presupuesto,
+// Ejecutado,AlcancePct,VentasProyectadas,ProyectadoPct}. onClick opcional (fila)=>{} —
+// si se da, las filas son clic-ables (drill down); usa índice+listener (no onclick
+// inline) para no depender de que nombre/k no tengan comillas. filasTotal (opcional):
+// conjunto COMPLETO de ese filtro (antes de recortar a Top 10/5) para calcular el TOTAL
+// GENERAL — si no se da, se usa 'filas' tal cual (ya es el total, no hubo recorte).
+function renderBullet(bodyEl, filas, onClick, filasTotal){
+  if(!filas.length){ bodyEl.innerHTML='<div class="hint">Sin datos.</div>'; return; }
+  let h='<div class="bullet-list">';
+  filas.forEach((f,i)=>{
+    const pres=f.Presupuesto||0;
+    const pctEj=pres?100*(f.Ejecutado||0)/pres:0;
+    const pctProy=pres?100*(f.VentasProyectadas||0)/pres:0;
+    h+='<div class="bullet-row'+(onClick?' clickable':'')+'"'+(onClick?' data-i="'+i+'"':'')+'>'
+      +'<div class="bullet-name" title="'+f.nombre.replace(/"/g,'&quot;')+'">'+f.nombre+'</div>'
+      +'<div class="bullet-track">'
+        +'<div class="bullet-fill-proy" style="width:'+Math.max(0,Math.min(100,pctProy))+'%"></div>'
+        +'<div class="bullet-fill-ej" style="width:'+Math.max(0,Math.min(100,pctEj))+'%;background:'+colorAlcance(f.AlcancePct)+'"></div>'
+      +'</div>'
+      +'<div class="bullet-pct">'+(f.AlcancePct!=null?f.AlcancePct.toFixed(1)+'%':'—')+'</div>'
+    +'</div>';
+  });
+  h+='</div>';
+  h+='<table class="mini-tabla"><thead><tr><th class="l">Nombre</th><th>Presupuesto</th><th>Ejecutado</th><th>Alcance%</th><th>Proyectado</th><th>Proy.%</th></tr></thead><tbody>';
+  filas.forEach(f=>{
+    h+='<tr><td class="l" title="'+f.nombre.replace(/"/g,'&quot;')+'">'+f.nombre+'</td><td>'+fmtNum(f.Presupuesto)+'</td><td>'+fmtNum(f.Ejecutado)+'</td><td>'+fmtPct(f.AlcancePct)+'</td><td>'+fmtNum(f.VentasProyectadas)+'</td><td>'+fmtPct(f.ProyectadoPct)+'</td></tr>';
+  });
+  const tot=sumaFilas(filasTotal||filas);
+  h+='<tr style="font-weight:800;background:var(--panel2);border-top:2px solid var(--border)"><td class="l">TOTAL GENERAL</td><td>'+fmtNum(tot.Presupuesto)+'</td><td>'+fmtNum(tot.Ejecutado)+'</td><td>'+fmtPct(tot.AlcancePct)+'</td><td>'+fmtNum(tot.VentasProyectadas)+'</td><td>'+fmtPct(tot.ProyectadoPct)+'</td></tr>';
+  h+='</tbody></table>';
+  bodyEl.innerHTML=h;
+  if(onClick) bodyEl.querySelectorAll('.bullet-row[data-i]').forEach(el=>{
+    el.addEventListener('click', ()=>onClick(filas[+el.dataset.i]));
+  });
+}
+// Filas hoja (Vendedor/Producto) no vienen con nombre/k — se homogeniza al mismo shape
+// que produce drillAggOrg/drillAggProd para reusar renderBullet sin distinguir casos.
+function graficoFilasOrg(list){
+  return list.map(v=>({nombre:v.RepNombre+' ('+v.RepCodigo+')', k:v.RepCodigo, Presupuesto:v.Presupuesto, PresupuestoAlDia:v.PresupuestoAlDia, Ejecutado:v.Ejecutado, AlcancePct:v.AlcancePct, VentasProyectadas:v.VentasProyectadas, ProyectadoPct:v.ProyectadoPct}));
+}
+function graficoFilasProd(list){
+  return list.map(v=>({nombre:v.Nombre, k:v.ProID, Presupuesto:v.Presupuesto, PresupuestoAlDia:v.PresupuestoAlDia, Ejecutado:v.Ejecutado, AlcancePct:v.AlcancePct, VentasProyectadas:v.VentasProyectadas, ProyectadoPct:v.ProyectadoPct}));
+}
+// Ordenado por Proyectado% (logro proyectado vs. Presupuesto) descendente — pedido
+// explícito 2026-08-29: "el mayor siempre estará arriba". Antes ordenaba por Ejecutado
+// crudo (quién vende más en $), no por qué tan bien va a quedar vs. su propia meta.
+function graftop(filas,n){ return filas.slice().sort((a,b)=>(b.ProyectadoPct||0)-(a.ProyectadoPct||0)).slice(0,n||10); }
+// Pedido explícito 2026-08-29: "si la cantidad es menor, no pongas Top" — el título de
+// cada tarjeta ("Top 10 Centros"...) ahora se arma según lo que REALMENTE hay antes de
+// recortar (totalDisponible), no queda fijo desde que se crea la tarjeta. Si no hay que
+// recortar nada (totalDisponible<=limite), se muestra solo el sustantivo, sin "Top N".
+function tituloConteo(base,totalDisponible,limite){
+  limite=limite||10;
+  return totalDisponible>limite ? ('Top '+limite+' '+base) : base;
+}
+function actualizarTituloCard(id,texto){
+  const card=$('#'+id+'-card'); if(!card) return;
+  const t=card.querySelector('.fam-title'); if(t) t.textContent=texto;
+}
+function porProyectadoDesc(filas){ return filas.filter(f=>(f.Presupuesto||0)>0).sort((a,b)=>(b.ProyectadoPct||0)-(a.ProyectadoPct||0)); }
+// "Top 5"/"Last 5" ahora son 2 TARJETAS SEPARADAS (antes 1 tarjeta con 2 columnas
+// lado a lado) — pedido explícito 2026-08-29: "si hablamos de los 5 Mejores Vendedores,
+// solo listas esos 5 mejores; en otra gráfica colocas los 5 más rezagados", con los
+// nombres renombrados a "Los 5 Mejores"/"Los 5 Más Rezagados" (se evita la concordancia
+// de género de "rezagados/rezagadas" según el sustantivo dejando ese sustantivo como
+// prefijo: "Categorías — Los 5 Mejores"). Con 5 o menos disponibles no existen un
+// "Mejores" y un "Rezagados" reales (serían las MISMAS filas repetidas 2 veces) — se
+// colapsa a 1 sola tarjeta ("pluralLabel" simple) y la 2ª tarjeta se oculta.
+function renderTop5Last5(cardIdBase, pluralLabel, filas){
+  const ordenado=porProyectadoDesc(filas);
+  const idMejores=cardIdBase+'-mejores', idRezagados=cardIdBase+'-rezagados';
+  const cardM=$('#'+idMejores+'-card'), cardR=$('#'+idRezagados+'-card');
+  if(!cardM||!cardR) return;
+  if(ordenado.length<=5){
+    cardM.style.display=''; cardR.style.display='none';
+    actualizarTituloCard(idMejores, pluralLabel);
+    renderBullet(cardM.querySelector('[data-role="body"]'), ordenado, null, filas);
+    return;
+  }
+  cardM.style.display=''; cardR.style.display='';
+  actualizarTituloCard(idMejores, pluralLabel+' — Los 5 Mejores (por Proyectado%)');
+  actualizarTituloCard(idRezagados, pluralLabel+' — Los 5 Más Rezagados (por Proyectado%)');
+  const top5=ordenado.slice(0,5), last5=ordenado.slice(-5).reverse();
+  renderBullet(cardM.querySelector('[data-role="body"]'), top5, null, filas);
+  renderBullet(cardR.querySelector('[data-role="body"]'), last5, null, filas);
+}
+
+/* ── Tarjeta drill Centro → Supervisor → Vendedor (Top 10 en cada nivel) ── */
+function scopeCentro(){
+  let d=(GRAF_MOSAICO_DATA.org||[]);
+  if(GRAF_NAV_CENTRO.ced) d=d.filter(v=>v.CedCodigo===GRAF_NAV_CENTRO.ced);
+  if(GRAF_NAV_CENTRO.sup) d=d.filter(v=>v.SupCod===GRAF_NAV_CENTRO.sup);
+  return d;
+}
+function renderCardCentro(){
+  const card=$('#graf-centro-card'); if(!card) return;
+  const nav=GRAF_NAV_CENTRO, org=GRAF_MOSAICO_DATA.org||[], list=scopeCentro();
+  let cr='<span class="crumb'+(nav.ced?'':' cur')+'" data-crumb="centro">Compañía</span>';
+  if(nav.ced){ const cn=(org.find(v=>v.CedCodigo===nav.ced)||{}).CentroNombre||nav.ced;
+    cr+=' › <span class="crumb'+(nav.sup?'':' cur')+'" data-crumb="supervisor">'+cn+'</span>'; }
+  if(nav.sup){ const sn=(org.find(v=>v.SupCod===nav.sup)||{}).SupNombre||nav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  card.querySelector('[data-role="crumbs"]').innerHTML=cr;
+  card.querySelectorAll('[data-crumb]').forEach(el=>el.addEventListener('click',()=>{
+    if(el.dataset.crumb==='centro'){ nav.nivel='centro'; nav.ced=null; nav.sup=null; }
+    else if(el.dataset.crumb==='supervisor'){ nav.nivel='supervisor'; nav.sup=null; }
+    renderCardCentro();
+  }));
+  let agg, onClick=null;
+  if(nav.nivel==='centro'){
+    agg=drillAggOrg(list,v=>v.CedCodigo,v=>v.CentroNombre);
+    onClick=f=>{ nav.ced=f.k; nav.sup=null; nav.nivel='supervisor'; renderCardCentro(); };
+  } else if(nav.nivel==='supervisor'){
+    agg=drillAggOrg(list,v=>v.SupCod,v=>v.SupNombre);
+    onClick=f=>{ nav.sup=f.k; nav.nivel='vendedor'; renderCardCentro(); };
+  } else {
+    agg=graficoFilasOrg(list);
+  }
+  const nombreNivel={centro:'Centros',supervisor:'Supervisores',vendedor:'Vendedores'}[nav.nivel];
+  actualizarTituloCard('graf-centro', tituloConteo(nombreNivel, agg.length));
+  renderBullet(card.querySelector('[data-role="body"]'), graftop(agg), onClick, agg);
+}
+
+/* ── Tarjeta drill Canal → Supervisor → Vendedor (Top 10 en cada nivel) ── */
+function scopeCanal(){
+  let d=conCanal(GRAF_MOSAICO_DATA.org||[]);
+  if(GRAF_NAV_CANAL.canal!=null) d=d.filter(v=>String(v._canId)===String(GRAF_NAV_CANAL.canal));
+  if(GRAF_NAV_CANAL.sup) d=d.filter(v=>v.SupCod===GRAF_NAV_CANAL.sup);
+  return d;
+}
+function renderCardCanal(){
+  const card=$('#graf-canal-card'); if(!card) return;
+  const nav=GRAF_NAV_CANAL, orgCanal=conCanal(GRAF_MOSAICO_DATA.org||[]), list=scopeCanal();
+  let cr='<span class="crumb'+(nav.canal!=null?'':' cur')+'" data-crumb="canal">Canales</span>';
+  if(nav.canal!=null){ const cn=nombreCanal(nav.canal);
+    cr+=' › <span class="crumb'+(nav.sup?'':' cur')+'" data-crumb="supervisor">'+cn+'</span>'; }
+  if(nav.sup){ const sn=(orgCanal.find(v=>v.SupCod===nav.sup)||{}).SupNombre||nav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  card.querySelector('[data-role="crumbs"]').innerHTML=cr;
+  card.querySelectorAll('[data-crumb]').forEach(el=>el.addEventListener('click',()=>{
+    if(el.dataset.crumb==='canal'){ nav.nivel='canal'; nav.canal=null; nav.sup=null; }
+    else if(el.dataset.crumb==='supervisor'){ nav.nivel='supervisor'; nav.sup=null; }
+    renderCardCanal();
+  }));
+  let agg, onClick=null;
+  if(nav.nivel==='canal'){
+    agg=drillAggOrg(list,v=>v._canId,v=>nombreCanal(v._canId));
+    onClick=f=>{ nav.canal=f.k; nav.sup=null; nav.nivel='supervisor'; renderCardCanal(); };
+  } else if(nav.nivel==='supervisor'){
+    agg=drillAggOrg(list,v=>v.SupCod,v=>v.SupNombre);
+    onClick=f=>{ nav.sup=f.k; nav.nivel='vendedor'; renderCardCanal(); };
+  } else {
+    agg=graficoFilasOrg(list);
+  }
+  const nombreNivel={canal:'Canales',supervisor:'Supervisores',vendedor:'Vendedores'}[nav.nivel];
+  actualizarTituloCard('graf-canal', tituloConteo(nombreNivel, agg.length));
+  renderBullet(card.querySelector('[data-role="body"]'), graftop(agg), onClick, agg);
+}
+
+/* ── Tarjeta drill Supervisor (global) → Vendedor (Top 10 en cada nivel) ── */
+function scopeSup(){
+  let d=(GRAF_MOSAICO_DATA.org||[]);
+  if(GRAF_NAV_SUP.sup) d=d.filter(v=>v.SupCod===GRAF_NAV_SUP.sup);
+  return d;
+}
+function renderCardSup(){
+  const card=$('#graf-sup-card'); if(!card) return;
+  const nav=GRAF_NAV_SUP, org=GRAF_MOSAICO_DATA.org||[], list=scopeSup();
+  let cr='<span class="crumb'+(nav.sup?'':' cur')+'" data-crumb="supervisor">Todos los supervisores</span>';
+  if(nav.sup){ const sn=(org.find(v=>v.SupCod===nav.sup)||{}).SupNombre||nav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  card.querySelector('[data-role="crumbs"]').innerHTML=cr;
+  card.querySelectorAll('[data-crumb]').forEach(el=>el.addEventListener('click',()=>{ nav.nivel='supervisor'; nav.sup=null; renderCardSup(); }));
+  let agg, onClick=null;
+  if(nav.nivel==='supervisor'){
+    agg=drillAggOrg(list,v=>v.SupCod,v=>v.SupNombre);
+    onClick=f=>{ nav.sup=f.k; nav.nivel='vendedor'; renderCardSup(); };
+  } else {
+    agg=graficoFilasOrg(list);
+  }
+  const nombreNivel={supervisor:'Supervisores',vendedor:'Vendedores'}[nav.nivel];
+  actualizarTituloCard('graf-sup', tituloConteo(nombreNivel, agg.length));
+  renderBullet(card.querySelector('[data-role="body"]'), graftop(agg), onClick, agg);
+}
+
+/* ── Tarjeta drill Suplidor → Categoría → Producto (Top 10 en cada nivel) ── */
+function scopeSuplidor(){
+  let d=(GRAF_MOSAICO_DATA.prod||[]);
+  if(GRAF_NAV_SUPLIDOR.cat3!=null) d=d.filter(v=>v.Cat3ID===GRAF_NAV_SUPLIDOR.cat3);
+  if(GRAF_NAV_SUPLIDOR.cat1!=null) d=d.filter(v=>v.Cat1ID===GRAF_NAV_SUPLIDOR.cat1);
+  return d;
+}
+function renderCardSuplidor(){
+  const card=$('#graf-suplidor-card'); if(!card) return;
+  const nav=GRAF_NAV_SUPLIDOR, prod=GRAF_MOSAICO_DATA.prod||[], list=scopeSuplidor();
+  let cr='<span class="crumb'+(nav.cat3!=null?'':' cur')+'" data-crumb="suplidor">Todos los suplidores</span>';
+  if(nav.cat3!=null){ const sn=(prod.find(v=>v.Cat3ID===nav.cat3)||{}).Cat3Nombre||nav.cat3;
+    cr+=' › <span class="crumb'+(nav.cat1!=null?'':' cur')+'" data-crumb="categoria">'+sn+'</span>'; }
+  if(nav.cat1!=null){ const cn=(prod.find(v=>v.Cat1ID===nav.cat1)||{}).Cat1Nombre||nav.cat1; cr+=' › <span class="crumb cur">'+cn+'</span>'; }
+  card.querySelector('[data-role="crumbs"]').innerHTML=cr;
+  card.querySelectorAll('[data-crumb]').forEach(el=>el.addEventListener('click',()=>{
+    if(el.dataset.crumb==='suplidor'){ nav.nivel='suplidor'; nav.cat3=null; nav.cat1=null; }
+    else if(el.dataset.crumb==='categoria'){ nav.nivel='categoria'; nav.cat1=null; }
+    renderCardSuplidor();
+  }));
+  let agg, onClick=null;
+  if(nav.nivel==='suplidor'){
+    agg=drillAggProd(list,v=>v.Cat3ID,v=>v.Cat3Nombre);
+    onClick=f=>{ nav.cat3=f.k; nav.cat1=null; nav.nivel='categoria'; renderCardSuplidor(); };
+  } else if(nav.nivel==='categoria'){
+    agg=drillAggProd(list,v=>v.Cat1ID,v=>v.Cat1Nombre);
+    onClick=f=>{ nav.cat1=f.k; nav.nivel='producto'; renderCardSuplidor(); };
+  } else {
+    agg=graficoFilasProd(list);
+  }
+  const nombreNivel={suplidor:'Suplidores',categoria:'Categorías',producto:'Productos'}[nav.nivel];
+  actualizarTituloCard('graf-suplidor', tituloConteo(nombreNivel, agg.length));
+  renderBullet(card.querySelector('[data-role="body"]'), graftop(agg), onClick, agg);
+}
+
+function tarjetaTendencia(titulo, idBase, lista){
+  tarjetaCard(titulo, idBase, {canvas:true, full:true});
+  GRAF_CHARTS.push(new Chart($('#'+idBase).getContext('2d'),{type:'line',
+    data:{labels:lista.map(r=>MESES_CORTO[r.Mes]), datasets:[
+      {label:'Presupuesto',data:lista.map(r=>r.Presupuesto),borderColor:'#A9C4E8',backgroundColor:'transparent',borderDash:[5,4]},
+      {label:'Ejecutado',data:lista.map(r=>r.Ejecutado),borderColor:'#388848',backgroundColor:'transparent',tension:.2},
+      {label:'Proyectado',data:lista.map(r=>r.VentasProyectadas),borderColor:'#D29922',backgroundColor:'transparent',borderDash:[2,3],tension:.2},
+    ]},options:{responsive:true,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}}));
+}
+function renderMosaicoGraficos(){
+  const host=$('#graficos-contenido'); host.innerHTML='';
+  const d=GRAF_MOSAICO_DATA;
+  if(!d || (!d.org.length && !d.prod.length)){ host.innerHTML='<div class="hint">Sin datos para estos filtros.</div>'; return; }
+  host.insertAdjacentHTML('beforeend', cardsDiasHtml(d.org[0]||d.prod[0]));
+  ensureChart(()=>{
+    limpiarGraficos();
+    const kpi=detalleKpi();
+    const detProd=(d.mensual[familiaParaOrg(kpi)]||{})[kpi]||[];
+    if(detProd.length) tarjetaTendencia('Tendencia Mensual (con Proyectado) — '+(kpiTexto[kpi]||kpi), 'graf-tendencia', detProd);
+    const sub=subtituloPeriodoKpi();
+    if(d.org.length){
+      tarjetaCard('Centros', 'graf-centro', {crumbs:true, sub});
+      tarjetaCard('Canales', 'graf-canal', {crumbs:true, sub});
+      tarjetaCard('Supervisores', 'graf-sup', {crumbs:true, sub});
+    }
+    if(d.prod.length) tarjetaCard('Suplidores', 'graf-suplidor', {crumbs:true, sub});
+    if(d.org.length){ renderCardCentro(); renderCardCanal(); renderCardSup(); }
+    if(d.prod.length) renderCardSuplidor();
+    if(d.prod.length){
+      tarjetaCard('Categorías', 'graf-categoria-mejores', {sub});
+      tarjetaCard('Categorías', 'graf-categoria-rezagados', {sub});
+      renderTop5Last5('graf-categoria', 'Categorías', drillAggProd(d.prod, v=>v.Cat1ID, v=>v.Cat1Nombre));
+      tarjetaCard('Productos', 'graf-producto-mejores', {sub});
+      tarjetaCard('Productos', 'graf-producto-rezagados', {sub});
+      renderTop5Last5('graf-producto', 'Productos', graficoFilasProd(d.prod));
+    }
+    if(d.org.length){
+      tarjetaCard('Vendedores', 'graf-vendedor-mejores', {sub});
+      tarjetaCard('Vendedores', 'graf-vendedor-rezagados', {sub});
+      renderTop5Last5('graf-vendedor', 'Vendedores', graficoFilasOrg(d.org));
+    }
+  });
+}
+
+/* ── "Detalle por Recurso" (2ª hoja de Dashboard Gráficos, pedido 2026-08-29) ──
+   Combos de columnas (Presupuesto/Pres. al día/Ejecutado/Proyectado) + línea de Logro%
+   (Proyectado%), UNO por cada nivel de 3 "cadenas" independientes que conviven en la
+   misma hoja (mismo patrón que Centro/Canal/Suplidor en la hoja 1):
+     Compañía → Centro → Supervisor → Vendedor
+     Compañía → Canal  → Supervisor → Vendedor
+     Compañía → Suplidor → Categoría → Producto
+   A diferencia de la hoja 1 (que reemplaza 1 tarjeta al hacer drill), aquí cada nivel
+   es su PROPIA tarjeta que se apila debajo — Compañía y el primer nivel (Centro/Canal/
+   Suplidor) SIEMPRE visibles; los niveles más profundos aparecen recién al hacer clic
+   en el nivel anterior, y cada uno reemplaza lo que hubiera más abajo de él (si cambias
+   de Centro, el Supervisor/Vendedor de la selección anterior desaparece). "Ver todos"
+   en cada tarjeta drilleada permite volver sin perder de vista los niveles de arriba.
+   Muestra TODOS los recursos (no Top 10, pedido explícito "aquí se podrían ver todos
+   los recursos") — con scroll horizontal dentro de la tarjeta para que quepan. */
+let GRAF2_NAV_CENTRO={ced:null,sup:null};
+let GRAF2_NAV_CANAL={canal:null,sup:null};
+let GRAF2_NAV_SUPLIDOR={cat3:null,cat1:null};
+function grafResetNav2(){
+  GRAF2_NAV_CENTRO={ced:null,sup:null};
+  GRAF2_NAV_CANAL={canal:null,sup:null};
+  GRAF2_NAV_SUPLIDOR={cat3:null,cat1:null};
+}
+// Combo Chart.js: 4 barras (Presupuesto/Pres.alDía/Ejecutado/Proyectado, eje izq.) + 1
+// línea (Logro% = Proyectado%, eje der.) — SIEMPRE ordenado de mayor a menor Logro%
+// (pedido explícito: "como siempre ordenada de mayor logro a menor logro"). onClick(fila)
+// opcional -> drill al siguiente nivel (clic en cualquier barra/punto de esa columna).
+function renderChartCombo(containerEl, filas, onClick){
+  containerEl.innerHTML='';
+  if(!filas.length){ containerEl.innerHTML='<div class="hint">Sin datos.</div>'; return; }
+  const t0=performance.now();
+  const ordenado=filas.slice().sort((a,b)=>(b.ProyectadoPct||0)-(a.ProyectadoPct||0));
+  const wrap=document.createElement('div'); wrap.className='graf-scroll-x';
+  const inner=document.createElement('div');
+  inner.style.cssText='height:280px;width:'+Math.max(420,ordenado.length*90)+'px';
+  const canvas=document.createElement('canvas');
+  inner.appendChild(canvas); wrap.appendChild(inner); containerEl.appendChild(wrap);
+  const chart=new Chart(canvas.getContext('2d'),{
+    type:'bar',
+    data:{ labels:ordenado.map(f=>f.nombre), datasets:[
+      {type:'bar',label:'Presupuesto',data:ordenado.map(f=>f.Presupuesto||0),backgroundColor:'#A9C4E8',yAxisID:'y'},
+      {type:'bar',label:'Pres. al día',data:ordenado.map(f=>f.PresupuestoAlDia||0),backgroundColor:'#7FA8D9',yAxisID:'y'},
+      {type:'bar',label:'Ejecutado',data:ordenado.map(f=>f.Ejecutado||0),backgroundColor:'#283078',yAxisID:'y'},
+      {type:'bar',label:'Proyectado',data:ordenado.map(f=>f.VentasProyectadas||0),backgroundColor:'#D29922',yAxisID:'y'},
+      {type:'line',label:'Logro% (Proyectado)',data:ordenado.map(f=>f.ProyectadoPct),borderColor:'#C0392B',backgroundColor:'#C0392B',yAxisID:'y1',tension:.25,pointRadius:3},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      // animation:false — con cientos de barras, animar no aporta nada y sí cuesta.
+      animation:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{position:'bottom',labels:{boxWidth:11,font:{size:10}}}},
+      scales:{
+        // OJO — causa real de "dura varios minutos" (reportado 2026-08-29): con
+        // autoSkip:false, Chart.js intenta calcular una rotación SIN solapamiento
+        // probando ángulo por ángulo para CADA etiqueta (nombres de producto/vendedor
+        // pueden ser largos) — con cientos de barras esa búsqueda se vuelve carísima
+        // (caso documentado de Chart.js, no un bug nuestro). Como el ancho del canvas
+        // YA se dimensiona proporcional a la cantidad (ver más abajo), autoSkip:true
+        // (default) alcanza para mostrar todas las etiquetas sin necesitar ese cálculo
+        // costoso — y minRotation=maxRotation fija un solo ángulo (45°) de una vez,
+        // sin buscar, para las que sí requieran rotarse.
+        x:{ticks:{autoSkip:true,maxRotation:45,minRotation:45}},
+        y:{beginAtZero:true,position:'left',ticks:{callback:v=>fmtNum(v)}},
+        y1:{beginAtZero:true,position:'right',grid:{drawOnChartArea:false},ticks:{callback:v=>(v==null?'':v.toFixed(0)+'%')}},
+      },
+      onClick: onClick ? (evt,elems)=>{ if(elems.length) onClick(ordenado[elems[0].index]); } : undefined,
+    }
+  });
+  GRAF_CHARTS.push(chart);
+  // Diagnóstico temporal (pedido 2026-08-29, "dura varios minutos") — deja evidencia en
+  // consola de cuántas barras y cuánto tardó CADA gráfico, para confirmar si el fix de
+  // arriba resuelve o si hace falta seguir investigando con datos reales del usuario.
+  console.log('[graf-combo]', ordenado.length, 'recursos —', (performance.now()-t0).toFixed(0), 'ms');
+}
+// 1 tarjeta = 1 nivel de una cadena. onVolver (opcional) agrega un link "‹ Ver todos"
+// junto al título — solo tiene sentido en niveles drilleados (no en Compañía/nivel 1).
+function crearNivelChart(parentEl, titulo, sub, filas, onClick, onVolver){
+  const card=document.createElement('div'); card.className='graf-card';
+  card.innerHTML='<div class="fam-title" style="padding:0 0 2px">'+titulo
+      +(onVolver?' <span class="crumb chico" data-role="volver">‹ Ver todos</span>':'')+'</div>'
+    +(sub?'<div class="sub" style="padding:0 0 8px">'+sub+'</div>':'')
+    +'<div data-role="chart"></div>';
+  parentEl.appendChild(card);
+  if(onVolver) card.querySelector('[data-role="volver"]').addEventListener('click', onVolver);
+  renderChartCombo(card.querySelector('[data-role="chart"]'), filas, onClick);
+  return card;
+}
+function renderCadenaCentro(){
+  const cont=$('#cadena-centro'); if(!cont) return; cont.innerHTML='';
+  const org=GRAF_MOSAICO_DATA.org||[];
+  if(!org.length){ cont.innerHTML='<div class="hint">Sin datos.</div>'; return; }
+  const sub=subtituloPeriodoKpi();
+  crearNivelChart(cont, 'Compañía', sub, [filaTotalDe('Compañía', org)], null, null);
+  const aggCentro=drillAggOrg(org, v=>v.CedCodigo, v=>v.CentroNombre);
+  crearNivelChart(cont, 'Por Centro', sub, aggCentro, f=>{ GRAF2_NAV_CENTRO={ced:f.k,sup:null}; renderCadenaCentro(); }, null);
+  if(GRAF2_NAV_CENTRO.ced==null) return;
+  const listCed=org.filter(v=>v.CedCodigo===GRAF2_NAV_CENTRO.ced);
+  const nombreCed=(org.find(v=>v.CedCodigo===GRAF2_NAV_CENTRO.ced)||{}).CentroNombre||GRAF2_NAV_CENTRO.ced;
+  const aggSup=drillAggOrg(listCed, v=>v.SupCod, v=>v.SupNombre);
+  crearNivelChart(cont, 'Supervisores de '+nombreCed, sub, aggSup,
+    f=>{ GRAF2_NAV_CENTRO.sup=f.k; renderCadenaCentro(); },
+    ()=>{ GRAF2_NAV_CENTRO={ced:null,sup:null}; renderCadenaCentro(); });
+  if(GRAF2_NAV_CENTRO.sup==null) return;
+  const listSup=listCed.filter(v=>v.SupCod===GRAF2_NAV_CENTRO.sup);
+  const nombreSup=(listCed.find(v=>v.SupCod===GRAF2_NAV_CENTRO.sup)||{}).SupNombre||GRAF2_NAV_CENTRO.sup;
+  crearNivelChart(cont, 'Vendedores de '+nombreSup, sub, graficoFilasOrg(listSup), null,
+    ()=>{ GRAF2_NAV_CENTRO.sup=null; renderCadenaCentro(); });
+}
+function renderCadenaCanal(){
+  const cont=$('#cadena-canal'); if(!cont) return; cont.innerHTML='';
+  const org=conCanal(GRAF_MOSAICO_DATA.org||[]);
+  if(!org.length){ cont.innerHTML='<div class="hint">Sin datos.</div>'; return; }
+  const sub=subtituloPeriodoKpi();
+  crearNivelChart(cont, 'Compañía', sub, [filaTotalDe('Compañía', org)], null, null);
+  const aggCanal=drillAggOrg(org, v=>v._canId, v=>nombreCanal(v._canId));
+  crearNivelChart(cont, 'Por Canal', sub, aggCanal, f=>{ GRAF2_NAV_CANAL={canal:f.k,sup:null}; renderCadenaCanal(); }, null);
+  if(GRAF2_NAV_CANAL.canal==null) return;
+  const listCanal=org.filter(v=>String(v._canId)===String(GRAF2_NAV_CANAL.canal));
+  const nombreCan=nombreCanal(GRAF2_NAV_CANAL.canal);
+  const aggSup=drillAggOrg(listCanal, v=>v.SupCod, v=>v.SupNombre);
+  crearNivelChart(cont, 'Supervisores de '+nombreCan, sub, aggSup,
+    f=>{ GRAF2_NAV_CANAL.sup=f.k; renderCadenaCanal(); },
+    ()=>{ GRAF2_NAV_CANAL={canal:null,sup:null}; renderCadenaCanal(); });
+  if(GRAF2_NAV_CANAL.sup==null) return;
+  const listSup=listCanal.filter(v=>v.SupCod===GRAF2_NAV_CANAL.sup);
+  const nombreSup=(listCanal.find(v=>v.SupCod===GRAF2_NAV_CANAL.sup)||{}).SupNombre||GRAF2_NAV_CANAL.sup;
+  crearNivelChart(cont, 'Vendedores de '+nombreSup, sub, graficoFilasOrg(listSup), null,
+    ()=>{ GRAF2_NAV_CANAL.sup=null; renderCadenaCanal(); });
+}
+function renderCadenaSuplidor(){
+  const cont=$('#cadena-suplidor'); if(!cont) return; cont.innerHTML='';
+  const prod=GRAF_MOSAICO_DATA.prod||[];
+  if(!prod.length){ cont.innerHTML='<div class="hint">Sin datos.</div>'; return; }
+  const sub=subtituloPeriodoKpi();
+  crearNivelChart(cont, 'Compañía', sub, [filaTotalDe('Compañía', prod)], null, null);
+  const aggSuplidor=drillAggProd(prod, v=>v.Cat3ID, v=>v.Cat3Nombre);
+  crearNivelChart(cont, 'Por Suplidor', sub, aggSuplidor, f=>{ GRAF2_NAV_SUPLIDOR={cat3:f.k,cat1:null}; renderCadenaSuplidor(); }, null);
+  if(GRAF2_NAV_SUPLIDOR.cat3==null) return;
+  const listCat3=prod.filter(v=>v.Cat3ID===GRAF2_NAV_SUPLIDOR.cat3);
+  const nombreSup=(prod.find(v=>v.Cat3ID===GRAF2_NAV_SUPLIDOR.cat3)||{}).Cat3Nombre||GRAF2_NAV_SUPLIDOR.cat3;
+  const aggCat=drillAggProd(listCat3, v=>v.Cat1ID, v=>v.Cat1Nombre);
+  crearNivelChart(cont, 'Categorías de '+nombreSup, sub, aggCat,
+    f=>{ GRAF2_NAV_SUPLIDOR.cat1=f.k; renderCadenaSuplidor(); },
+    ()=>{ GRAF2_NAV_SUPLIDOR={cat3:null,cat1:null}; renderCadenaSuplidor(); });
+  if(GRAF2_NAV_SUPLIDOR.cat1==null) return;
+  const listCat1=listCat3.filter(v=>v.Cat1ID===GRAF2_NAV_SUPLIDOR.cat1);
+  const nombreCat=(listCat3.find(v=>v.Cat1ID===GRAF2_NAV_SUPLIDOR.cat1)||{}).Cat1Nombre||GRAF2_NAV_SUPLIDOR.cat1;
+  crearNivelChart(cont, 'Productos de '+nombreCat, sub, graficoFilasProd(listCat1), null,
+    ()=>{ GRAF2_NAV_SUPLIDOR.cat1=null; renderCadenaSuplidor(); });
+}
+// Reconstruye el esqueleto (Por Centro/Canal/Suplidor + sus 3 contenedores) CADA VEZ
+// que se llama — antes vivía fijo en el HTML y cargarGraficos() lo borraba sin querer
+// al mostrar "Cargando…" (ver comentario en el HTML), dejando la pantalla trabada en
+// "Cargando…" para siempre aunque los datos ya hubieran llegado. Al reconstruirlo aquí
+// mismo, ya no importa qué haya pasado antes con ese contenedor.
+function renderHojaDetalle(){
+  ensureChart(()=>{
+    limpiarGraficos();
+    const host=$('#graficos-detalle-contenido');
+    host.innerHTML =
+      '<div class="fam-title" style="padding:4px 0 8px">Por Centro</div><div id="cadena-centro"></div>'
+      +'<div class="fam-title" style="padding:18px 0 8px">Por Canal</div><div id="cadena-canal"></div>'
+      +'<div class="fam-title" style="padding:18px 0 8px">Por Suplidor</div><div id="cadena-suplidor"></div>';
+    renderCadenaCentro(); renderCadenaCanal(); renderCadenaSuplidor();
+  });
+}
+// ── Toggle Resumen / Detalle por Recurso (hoja 1 / hoja 2) — conserva la posición del
+// drill de cada hoja al cambiar entre ellas (solo se resetea cuando llegan datos nuevos,
+// ver cargarGraficos()); cada hoja se reconstruye entera al activarse (más simple y
+// seguro que tratar de sincronizar altas/bajas parciales de Chart.js entre las 2).
+let GRAF_HOJA='resumen';
+function setGrafHoja(hoja){
+  GRAF_HOJA=hoja;
+  document.querySelectorAll('#graf-hoja-seg button').forEach(b=>b.classList.toggle('on', b.dataset.hoja===hoja));
+  $('#graficos-contenido').style.display = hoja==='resumen' ? '' : 'none';
+  $('#graficos-detalle-contenido').style.display = hoja==='detalle' ? '' : 'none';
+  if(!GRAF_MOSAICO_DATA) return;
+  if(hoja==='detalle') renderHojaDetalle(); else renderMosaicoGraficos();
+}
+document.querySelectorAll('#graf-hoja-seg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>setGrafHoja(btn.dataset.hoja));
+});
+
+// ── Del Año (rediseñado 2026-08-25 [sic 2026-08-28]): ya NO es un pivote Vendedor/
+// Producto × mes ni un gráfico — pedido explícito del usuario: "siempre serán datos
+// GENERALES de los filtros" (el listado de vendedores mes a mes, si hace falta, iría en
+// otra pestaña) y "una tabla similar a la que tenemos en Por Mes pero los meses crecen
+// hacia abajo". Se arma con /resumen?detalleMensual=true — 1 llamada por Año elegido (esa
+// llamada ya trae los 12 meses en 1 sola query por familia/KPI, sin costo adicional).
+let LAST_DELANIO=null;
+function cargarDelAnio(){
+  const anios=MS.anio.values().map(Number).sort((a,b)=>a-b);
+  const aniosUsar = anios.length?anios:[anioEfectivo()];
+  const kpi=detalleKpi();
+  const host=$('#kpis-anio'); host.innerHTML='<div class="panel"><div class="hint">Cargando…</div></div>';
+  Promise.all(aniosUsar.map(anio=>{
+    const p=qsFiltros(); p.set('anio',anio); p.set('mes',12); p.set('detalleMensual','true');
+    p.set('familias',familiaResumen(kpi)); p.set('kpi',kpi);
+    return fetch(BASE+'/apipresupuestos/resumen?'+p.toString()).then(r=>r.json()).then(j=>({anio,j}));
+  })).then(resultados=>{
+    const malos=resultados.filter(r=>!r.j||!r.j.ok);
+    if(malos.length){ host.innerHTML='<div class="panel"><div class="hint">'+(malos[0].j&&malos[0].j.error||'Error')+'</div></div>'; return; }
+    LAST_DELANIO=resultados;
+    renderDelAnioTabla(host, resultados);
+  }).catch(err=>{ host.innerHTML='<div class="panel"><div class="hint">Error: '+err+'</div></div>'; });
+}
+function renderDelAnioTabla(host, resultados){
+  host.innerHTML='';
+  const familias=[...new Set(resultados.flatMap(r=>Object.keys(r.j.entornos.detalle||{})))];
+  if(familias.length===0){ host.innerHTML='<div class="panel"><div class="hint">Sin datos para estos filtros.</div></div>'; return; }
+  const multiAnio = resultados.length>1;
+  familias.forEach(fam=>{
+    const kpisPresentes=[...new Set(resultados.flatMap(r=>Object.keys((r.j.entornos.detalle||{})[fam]||{})))];
+    if(kpisPresentes.length===0) return;
+    let rows='';
+    resultados.forEach(({anio,j})=>{
+      const detFam=(j.entornos.detalle||{})[fam]||{};
+      // Total de filas que ocupa este Año (para el rowspan de su celda) — se cuenta 1 fila
+      // por mes con datos de cada KPI, o 1 fila "Sin datos" si ese KPI no trajo nada.
+      const totalFilasAnio = kpisPresentes.reduce((acc,k)=>acc+Math.max(1,(detFam[k]||[]).length),0);
+      let primeraFilaAnioHecha=false;
+      const celdaAnio=()=>{
+        if(!multiAnio || primeraFilaAnioHecha) return '';
+        primeraFilaAnioHecha=true;
+        return `<td rowspan="${totalFilasAnio}" class="l">${anio}</td>`;
+      };
+      kpisPresentes.forEach(k=>{
+        const lista=detFam[k]||[];
+        if(lista.length===0){
+          rows+=`<tr>${celdaAnio()}<td class="l">${kpiTexto[k]||k}</td><td colspan="10" style="text-align:center;color:var(--muted)">Sin datos en ${anio}</td></tr>`;
+          return;
+        }
+        lista.forEach(r=>{
+          rows+=`<tr>
+            ${celdaAnio()}
+            <td class="l">${MESES_CORTO[r.Mes]}</td>
+            <td class="l">${kpiTexto[k]||k}</td>
+            <td>${fmtNum(r.Presupuesto)}</td>
+            <td>${fmtNum(r.PresupuestoAlDia)}</td>
+            <td>${fmtNum(r.Ejecutado)}</td>
+            <td>${fmtPct(r.AlcancePct)}</td>
+            <td>${fmtNum((r.PresupuestoAlDia||0)-(r.Ejecutado||0))}</td>
+            <td>${fmtNum(r.VentasProyectadas)}</td>
+            <td>${fmtPct(r.ProyectadoPct)}</td>
+            <td>${fmtNum(r.VentasEstimadas)}</td>
+            <td>${fmtPct(r.EstimadoPct)}</td>
+            <td>${r.VentasEstimadas==null?'—':fmtNum((r.Presupuesto||0)-r.VentasEstimadas)}</td>
+          </tr>`;
+        });
+      });
+    });
+    const block=document.createElement('div'); block.className='fam-block panel';
+    block.innerHTML = `<div class="fam-title">${familiaTexto2[fam]||fam}</div>
+      <table class="kpis">
+        <thead><tr>${multiAnio?'<th class="l">Año</th>':''}<th class="l">Mes</th><th class="l">KPI</th><th>Presupuesto</th><th>Pres. al día</th><th>Ejecutado</th><th>Alcance%</th><th>Déficit al Momento</th><th>Proyectado</th><th>Proyectado%</th><th>Estimado</th><th>Estimado%</th><th>Déficit Estimado</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+    host.appendChild(block);
+  });
+}
+
+/* ── Del Día: meta lineal vs. ajustada por déficit (solo Categoría/Suplidor) ── */
+function deldiaPoblarSelectores(){
+  const selFam=$('#deldia-familia'); selFam.innerHTML='';
+  const conDiario=FAMILIAS.filter(f=>(f.kpisDiario||[]).length>0);
+  conDiario.forEach(f=>{ const o=document.createElement('option'); o.value=f.cod; o.textContent=familiaTexto2[f.cod]||f.cod; selFam.appendChild(o); });
+  deldiaPoblarKpis();
+  selFam.onchange=()=>{ deldiaPoblarKpis(); cargarDelDia(); };
+  $('#deldia-kpi').onchange=()=>cargarDelDia();
+}
+function deldiaPoblarKpis(){
+  const fam=FAMILIAS.find(f=>f.cod===$('#deldia-familia').value);
+  const selKpi=$('#deldia-kpi'); selKpi.innerHTML='';
+  (fam?fam.kpisDiario:[]||[]).forEach(k=>{ const o=document.createElement('option'); o.value=k; o.textContent=kpiTexto[k]||k; selKpi.appendChild(o); });
+}
+function cargarDelDia(auto){
+  const fam=$('#deldia-familia').value, kpi=$('#deldia-kpi').value;
+  if(!fam||!kpi) return;
+  const diasSel=diasEfectivos();
+  if(diasSel){ cargarDelDiaDrill(fam,kpi,diasSel,auto); return; }
+  $('#deldia-drill-wrap').style.display='none';
+  const p=qsFiltros(); p.delete('familias'); p.set('familia',fam); p.set('kpi',kpi);
+  // En refresco automático no se borra la tabla mientras carga — evita el parpadeo/
+  // "pantalla en blanco" que el usuario reportó al estar revisando datos.
+  if(!auto) $('#deldia-tabla').innerHTML='<div class="hint">Cargando…</div>';
+  fetch(BASE+'/apipresupuestos/deldia?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ if(!auto) $('#deldia-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    renderDelDia(j);
+  }).catch(err=>{ if(!auto) $('#deldia-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+// Refresco automático (setInterval cada 2 min): vuelve a pedir los datos vigentes pero
+// SIN resetear nada de lo que el usuario tiene en pantalla (nivel de drill Centro/
+// Supervisor/Vendedor, vista Organización/Producto, breadcrumbs) — antes cada refresco
+// devolvía todo a "Compañía"/"Por Organización" de golpe, perdiendo la navegación.
+function refrescarDelDiaAuto(){
+  const fam=$('#deldia-familia').value, kpi=$('#deldia-kpi').value;
+  if(!fam||!kpi) return;
+  cargarDelDia(true);
+  if(diasEfectivos() && deldiaVista==='prod') cargarDelDiaDrillProducto(true);
+}
+
+/* ── Drill-down Centro→Supervisor→Vendedor para uno o varios días ── */
+let DELDIA_DRILL_DATA=[]; let deldiaDrillNav={nivel:'centro',ced:null,sup:null,canal:null}; let DELDIA_DIAS_ACTUALES=[];
+let deldiaVista='org'; let DELDIA_PROD_DATA=[]; let DELDIA_PROD_DIM='categoria'; let DELDIA_PROD_DIAS_ACTUALES=[];
+// 'comparacion' (default, pedido por el usuario 2026-08-25) muestra una columna por
+// día elegido; 'total' suma todos los días elegidos en un solo valor. Con 1 solo día
+// da igual — el toggle se oculta y se usa 'total' (camino más simple, ya probado).
+let deldiaModo='comparacion';
+document.querySelectorAll('#deldia-vista-seg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#deldia-vista-seg button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    deldiaVista=btn.dataset.v;
+    $('#deldia-vista-org').style.display = deldiaVista==='org' ? '' : 'none';
+    $('#deldia-vista-prod').style.display = deldiaVista==='prod' ? '' : 'none';
+    if(deldiaVista==='prod') cargarDelDiaDrillProducto();
+  });
+});
+document.querySelectorAll('#deldia-modo-seg button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#deldia-modo-seg button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    deldiaModo=btn.dataset.m;
+    drillRenderDia();
+    if(deldiaVista==='prod') drillRenderDiaProducto();
+  });
+});
+function cargarDelDiaDrill(fam,kpi,diasCSV,auto){
+  $('#deldia-drill-wrap').style.display='block';
+  const listaDias=diasCSV.split(',');
+  $('#deldia-drill-titulo').textContent = listaDias.length>1
+    ? ('Detalle de '+listaDias.length+' días ('+listaDias.join(', ')+') — '+mesEfectivo()+'/'+anioEfectivo())
+    : ('Detalle del día '+diasCSV+'/'+mesEfectivo()+'/'+anioEfectivo());
+  $('#deldia-vista-prod-btn').textContent = fam==='suplidor' ? 'Por Suplidor' : 'Por Categoría';
+  $('#deldia-modo-seg').style.display = listaDias.length>1 ? '' : 'none';
+  if(!auto){
+    $('#deldia-tabla').innerHTML='';
+    // Reset a "Por Organización" solo cuando el usuario cambió día/familia/kpi a propósito
+    // — evita mostrar datos de producto obsoletos de una consulta anterior. En refresco
+    // automático (auto=true) se deja tal cual está, junto con el nivel de drill (ver abajo).
+    deldiaVista='org';
+    document.querySelectorAll('#deldia-vista-seg button').forEach(b=>b.classList.toggle('on', b.dataset.v==='org'));
+    $('#deldia-vista-org').style.display=''; $('#deldia-vista-prod').style.display='none';
+    DELDIA_PROD_DATA=[]; $('#deldia-drill-prod-tabla').innerHTML='';
+    $('#deldia-drill-tabla').innerHTML='<div class="hint">Cargando…</div>'; $('#deldia-drill-nivelbar').innerHTML=''; $('#deldia-drill-crumbs').innerHTML='';
+  }
+  const p=qsFiltros(); p.delete('familias'); p.set('familia',fam); p.set('kpi',kpi); p.set('dias',diasCSV);
+  fetch(BASE+'/apipresupuestos/deldia/drill?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ if(!auto) $('#deldia-drill-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    DELDIA_DRILL_DATA=j.filas||[]; DELDIA_DIAS_ACTUALES=j.dias||[];
+    // Solo se reinicia el nivel de navegación (Compañía/Centro/Supervisor/Vendedor) en
+    // consultas manuales — el refresco automático mantiene dónde estaba el usuario parado.
+    if(!auto) deldiaDrillNav={nivel:'centro',ced:null,sup:null,canal:null};
+    drillRenderDia();
+  }).catch(err=>{ if(!auto) $('#deldia-drill-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+let deldiaProdNav={nivel:'suplidor',padreId:null}; let DELDIA_PROD_NIVELES=1;
+function cargarDelDiaDrillProducto(auto){
+  const fam=$('#deldia-familia').value, kpi=$('#deldia-kpi').value, diasCSV=diasEfectivos();
+  if(!fam||!kpi||!diasCSV) return;
+  const p=qsFiltros(); p.delete('familias'); p.set('familia',fam); p.set('kpi',kpi); p.set('dias',diasCSV);
+  if(!auto){ $('#deldia-drill-prod-tabla').innerHTML='<div class="hint">Cargando…</div>'; $('#deldia-drill-prod-crumbs').innerHTML=''; }
+  fetch(BASE+'/apipresupuestos/deldia/drillproducto?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ if(!auto) $('#deldia-drill-prod-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    DELDIA_PROD_DATA=j.filas||[]; DELDIA_PROD_DIM=j.dimension||'categoria'; DELDIA_PROD_DIAS_ACTUALES=j.dias||[];
+    DELDIA_PROD_NIVELES=j.niveles||1;
+    // El nivel de drill (Suplidor/Categoría elegida) solo se reinicia en consulta manual.
+    if(!auto) deldiaProdNav={nivel:'suplidor',padreId:null};
+    drillRenderDiaProducto();
+  }).catch(err=>{ if(!auto) $('#deldia-drill-prod-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+// Nivel 2 (Suplidor→Categoría, disponible cuando DELDIA_PROD_NIVELES===2 — Suplidor+
+// Dinero inferido desde Categoría). Mismo patrón de breadcrumb que deldiaDrillSetNivel.
+function deldiaProdSetNivel(nivel,padreId){
+  deldiaProdNav={nivel,padreId:(padreId!==undefined?padreId:deldiaProdNav.padreId)};
+  if(nivel==='suplidor') deldiaProdNav.padreId=null;
+  drillRenderDiaProducto();
+}
+window.deldiaProdDrill=(padreId)=>{ deldiaProdSetNivel('categoria',padreId); };
+// Agrupa filas {Id/Nombre,Dia,Ejecutado} en {k,nombre,porDia:{dia:ejec}} — usado por el
+// modo "Comparación" (pivote entidad × día) tanto para Organización como Producto.
+function pivoteAgg(list,keyFn,nameFn,parentFn){
+  const g={};
+  list.forEach(v=>{
+    const k=keyFn(v);
+    if(!g[k]) g[k]={k,nombre:nameFn(v),padre:parentFn?parentFn(v):'',porDia:{}};
+    g[k].porDia[v.Dia]=(g[k].porDia[v.Dia]||0)+(v.Ejecutado||0);
+  });
+  return Object.values(g).sort((a,b)=>{
+    const ta=Object.values(a.porDia).reduce((x,y)=>x+y,0), tb=Object.values(b.porDia).reduce((x,y)=>x+y,0);
+    return tb-ta;
+  });
+}
+// Igual patrón que deldiaDrillAggHoja pero con clave/nombre genéricos — usado por
+// Por Categoría/Suplidor en modo "Total sumado" (suma entre días elegidos).
+function deldiaProdAgg(list,keyFn,nameFn){
+  const g={};
+  list.forEach(v=>{
+    const k=keyFn(v);
+    if(!g[k]) g[k]={k,nombre:nameFn(v),PresupuestoA:0,PresupuestoB:0,Ejecutado:0,tieneB:false};
+    g[k].PresupuestoA+=v.PresupuestoA||0; g[k].Ejecutado+=v.Ejecutado||0;
+    if(v.PresupuestoB!=null){ g[k].PresupuestoB+=v.PresupuestoB; g[k].tieneB=true; }
+  });
+  return Object.values(g).map(o=>{
+    o.AlcancePct=o.PresupuestoA?100*o.Ejecutado/o.PresupuestoA:null;
+    o.AlcanceLinealPct=(o.tieneB&&o.PresupuestoB)?100*o.Ejecutado/o.PresupuestoB:null;
+    return o;
+  }).sort((a,b)=>b.PresupuestoA-a.PresupuestoA);
+}
+function drillRenderDiaProducto(){
+  if(!DELDIA_PROD_DATA.length){ $('#deldia-drill-prod-tabla').innerHTML='<div class="hint">Sin datos para este/estos día(s).</div>'; $('#deldia-drill-prod-crumbs').innerHTML=''; return; }
+  const dosNiveles = DELDIA_PROD_NIVELES===2; // Suplidor+Dinero inferido desde Categoría
+  let list=DELDIA_PROD_DATA, etiqueta=(DELDIA_PROD_DIM==='suplidor'?'Suplidor':'Categoría'), enNivel2=false;
+  if(dosNiveles){
+    let cr='<span class="crumb '+(deldiaProdNav.padreId==null?'cur':'')+'" onclick="deldiaProdSetNivel(\'suplidor\')">Todos los suplidores</span>';
+    if(deldiaProdNav.padreId!=null){
+      const fila=DELDIA_PROD_DATA.find(v=>v.PadreId===deldiaProdNav.padreId);
+      cr+=' › <span class="crumb cur">'+(fila?fila.PadreNombre:deldiaProdNav.padreId)+'</span>';
+      list=DELDIA_PROD_DATA.filter(v=>v.PadreId===deldiaProdNav.padreId);
+      etiqueta='Categoría'; enNivel2=true;
+    }
+    $('#deldia-drill-prod-crumbs').innerHTML=cr;
+  } else {
+    $('#deldia-drill-prod-crumbs').innerHTML='';
+  }
+  const drillable = dosNiveles && !enNivel2; // nivel 1 (Suplidor) es clickeable -> baja a Categoría
+  const keyFn = drillable ? (v=>v.PadreId) : (v=>v.Id);
+  const nameFn = drillable ? (v=>v.PadreNombre) : (v=>v.Nombre);
+
+  const dias=DELDIA_PROD_DIAS_ACTUALES.slice().sort((a,b)=>a-b);
+  if(dias.length>1 && deldiaModo==='comparacion'){
+    const rows=pivoteAgg(list, keyFn, nameFn);
+    let h='<table class="drill"><thead><tr><th class="l">#</th><th class="l">'+etiqueta+'</th>'+
+      dias.map(d=>'<th>Día '+d+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+    const totales=new Array(dias.length).fill(0); let totalGeneral=0;
+    rows.forEach((r,i)=>{
+      const porDia=dias.map(d=>r.porDia[d]||0);
+      porDia.forEach((v,ix)=>totales[ix]+=v);
+      const tot=porDia.reduce((a,b)=>a+b,0); totalGeneral+=tot;
+      h+='<tr'+(drillable?' class="clickable" onclick="deldiaProdDrill('+r.k+')"':'')+'><td class="l">'+(i+1)+'</td><td class="l">'+r.nombre+'</td>'+porDia.map(v=>'<td>'+fmtNum(v)+'</td>').join('')+'<td><b>'+fmtNum(tot)+'</b></td></tr>';
+    });
+    h+='<tr class="totals"><td class="l" colspan="2">TOTAL</td>'+totales.map(v=>'<td>'+fmtNum(v)+'</td>').join('')+'<td><b>'+fmtNum(totalGeneral)+'</b></td></tr>';
+    h+='</tbody></table>';
+    $('#deldia-drill-prod-tabla').innerHTML=h;
+    return;
+  }
+  // Modo "Total sumado" (o un solo día): agregar sumando todos los días elegidos.
+  const rows=deldiaProdAgg(list, keyFn, nameFn);
+  const tieneB=rows.some(r=>r.tieneB);
+  let h='<table class="drill"><thead><tr><th class="l">#</th><th class="l">'+etiqueta+'</th><th>Meta ajustada</th>'+
+    (tieneB?'<th>Meta lineal</th>':'')+'<th>Ejecutado</th><th>Alcance del día%</th>'+(tieneB?'<th>Alcance lineal%</th>':'')+'</tr></thead><tbody>';
+  let tA=0,tB=0,tE=0;
+  rows.forEach((r,i)=>{
+    h+='<tr'+(drillable?' class="clickable" onclick="deldiaProdDrill('+r.k+')"':'')+'><td class="l">'+(i+1)+'</td><td class="l">'+r.nombre+'</td><td>'+fmtNum(r.PresupuestoA)+'</td>'+
+      (tieneB?'<td>'+fmtNum(r.tieneB?r.PresupuestoB:null)+'</td>':'')+'<td>'+fmtNum(r.Ejecutado)+'</td><td>'+fmtPct(r.AlcancePct)+'</td>'+
+      (tieneB?'<td>'+fmtPct(r.AlcanceLinealPct)+'</td>':'')+'</tr>';
+    tA+=r.PresupuestoA||0; tB+=(r.tieneB?r.PresupuestoB:0)||0; tE+=r.Ejecutado||0;
+  });
+  h+='<tr class="totals"><td class="l" colspan="2">TOTAL ('+rows.length+')</td><td>'+fmtNum(tA)+'</td>'+
+    (tieneB?'<td>'+fmtNum(tB)+'</td>':'')+'<td>'+fmtNum(tE)+'</td><td>'+fmtPct(tA?100*tE/tA:null)+'</td>'+
+    (tieneB?'<td>'+fmtPct(tB?100*tE/tB:null)+'</td>':'')+'</tr>';
+  h+='</tbody></table>';
+  $('#deldia-drill-prod-tabla').innerHTML=h;
+}
+function deldiaDrillScope(){
+  let d=DELDIA_DRILL_DATA;
+  if(deldiaDrillNav.canal!=null) d=conCanal(d).filter(v=>String(v._canId)===String(deldiaDrillNav.canal));
+  if(deldiaDrillNav.ced) d=d.filter(v=>v.CedCodigo===deldiaDrillNav.ced);
+  if(deldiaDrillNav.sup) d=d.filter(v=>v.SupCod===deldiaDrillNav.sup);
+  return d;
+}
+function deldiaDrillAgg(list,keyFn,nameFn,parentFn){
+  const g={};
+  list.forEach(v=>{
+    const k=keyFn(v);
+    if(!g[k]) g[k]={k,nombre:nameFn(v),padre:parentFn?parentFn(v):'',PresupuestoA:0,PresupuestoB:0,Ejecutado:0,tieneB:false};
+    g[k].PresupuestoA+=v.PresupuestoA||0; g[k].Ejecutado+=v.Ejecutado||0;
+    if(v.PresupuestoB!=null){ g[k].PresupuestoB+=v.PresupuestoB; g[k].tieneB=true; }
+  });
+  return Object.values(g).map(o=>{
+    o.AlcancePct=o.PresupuestoA?100*o.Ejecutado/o.PresupuestoA:null;
+    o.AlcanceLinealPct=(o.tieneB&&o.PresupuestoB)?100*o.Ejecutado/o.PresupuestoB:null;
+    return o;
+  }).sort((a,b)=>b.PresupuestoA-a.PresupuestoA);
+}
+// Agrega filas hoja (Vendedor) sumando entre días — antes se mostraba 'list' crudo
+// (1 fila por vendedor) porque solo había 1 día; con varios días hay 1 fila por
+// (vendedor,día) y hay que sumarlas para no repetir al mismo vendedor N veces.
+function deldiaDrillAggHoja(list){
+  const g={};
+  list.forEach(v=>{
+    const k=v.RepCodigo;
+    if(!g[k]) g[k]={RepCodigo:v.RepCodigo,RepNombre:v.RepNombre,CentroNombre:v.CentroNombre,SupNombre:v.SupNombre,_canId:v._canId,PresupuestoA:0,PresupuestoB:0,Ejecutado:0,tieneB:false};
+    g[k].PresupuestoA+=v.PresupuestoA||0; g[k].Ejecutado+=v.Ejecutado||0;
+    if(v.PresupuestoB!=null){ g[k].PresupuestoB+=v.PresupuestoB; g[k].tieneB=true; }
+  });
+  return Object.values(g).map(o=>{
+    o.AlcancePct=o.PresupuestoA?100*o.Ejecutado/o.PresupuestoA:null;
+    o.AlcanceLinealPct=(o.tieneB&&o.PresupuestoB)?100*o.Ejecutado/o.PresupuestoB:null;
+    return o;
+  }).sort((a,b)=>b.PresupuestoA-a.PresupuestoA);
+}
+function drillRenderDia(){
+  const list=deldiaDrillScope();
+  const listTagged=conCanal(list);
+  const porCanal=deldiaDrillNav.canal!=null;
+  const tieneB = DELDIA_DRILL_DATA.some(v=>v.PresupuestoB!=null);
+  let cr;
+  if(porCanal){
+    const cn=nombreCanal(deldiaDrillNav.canal);
+    cr='<span class="crumb" onclick="deldiaDrillSetNivel(\'canal\',null,null,null)">Canales</span>'+
+       ' › <span class="crumb '+(deldiaDrillNav.sup?'':'cur')+'" onclick="deldiaDrillSetNivel(\'supervisor\',null,null,'+JSON.stringify(deldiaDrillNav.canal)+')">'+cn+'</span>';
+    if(deldiaDrillNav.sup){ const sn=(DELDIA_DRILL_DATA.find(v=>v.SupCod===deldiaDrillNav.sup)||{}).SupNombre||deldiaDrillNav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  } else {
+    cr='<span class="crumb '+(deldiaDrillNav.ced?'':'cur')+'" onclick="deldiaDrillSetNivel(\'centro\',null,null,null)">Compañía</span>';
+    if(deldiaDrillNav.ced){ const cn=(DELDIA_DRILL_DATA.find(v=>v.CedCodigo===deldiaDrillNav.ced)||{}).CentroNombre||deldiaDrillNav.ced;
+      cr+=' › <span class="crumb '+(deldiaDrillNav.sup?'':'cur')+'" onclick="deldiaDrillSetNivel(\'supervisor\',\''+deldiaDrillNav.ced+'\',null,null)">'+cn+'</span>'; }
+    if(deldiaDrillNav.sup){ const sn=(DELDIA_DRILL_DATA.find(v=>v.SupCod===deldiaDrillNav.sup)||{}).SupNombre||deldiaDrillNav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  }
+  $('#deldia-drill-crumbs').innerHTML=cr;
+  const nb=(id,t)=>'<button class="btn-modo'+(deldiaDrillNav.nivel===id?' on':'')+'" onclick="deldiaDrillSetNivel(\''+id+'\')">'+t+'</button>';
+  $('#deldia-drill-nivelbar').innerHTML=nb('centro','Por Centro')+nb('supervisor','Por Supervisor')+nb('vendedor','Por Vendedor')+nb('canal','Por Canal');
+
+  if(DELDIA_DIAS_ACTUALES.length>1 && deldiaModo==='comparacion'){ drillRenderDiaPivote(listTagged); return; }
+
+  let h='<table class="drill"><thead><tr><th class="l">#</th>';
+  if(deldiaDrillNav.nivel==='centro'){ h+='<th class="l">Centro</th>'; }
+  else if(deldiaDrillNav.nivel==='canal'){ h+='<th class="l">Canal</th>'; }
+  else if(deldiaDrillNav.nivel==='supervisor'){ h+='<th class="l">'+(porCanal?'Canal':'Centro')+'</th><th class="l">Supervisor</th>'; }
+  else { h+='<th class="l">'+(porCanal?'Canal':'Centro')+'</th><th class="l">Supervisor</th><th class="l">Vendedor</th>'; }
+  h+='<th>Meta ajustada</th>'+(tieneB?'<th>Meta lineal</th>':'')+'<th>Ejecutado</th><th>Alcance del día%</th>'+(tieneB?'<th>Alcance lineal%</th>':'')+'</tr></thead><tbody>';
+  let rows, esHoja=false;
+  if(deldiaDrillNav.nivel==='centro') rows=deldiaDrillAgg(listTagged,v=>v.CedCodigo,v=>v.CentroNombre);
+  else if(deldiaDrillNav.nivel==='canal') rows=deldiaDrillAgg(conCanal(DELDIA_DRILL_DATA),v=>v._canId,v=>nombreCanal(v._canId));
+  else if(deldiaDrillNav.nivel==='supervisor') rows=deldiaDrillAgg(listTagged,v=>v.SupCod,v=>v.SupNombre,porCanal?(v=>nombreCanal(v._canId)):(v=>v.CentroNombre));
+  else { rows=deldiaDrillAggHoja(listTagged); esHoja=true; }
+  const puedeDrill = !esHoja;
+  let tA=0,tB=0,tE=0;
+  rows.forEach((r,i)=>{
+    let cols;
+    if(esHoja) cols='<td class="l">'+(porCanal?nombreCanal(r._canId):r.CentroNombre)+'</td><td class="l">'+r.SupNombre+'</td><td class="l">'+r.RepNombre+' ('+r.RepCodigo+')</td>';
+    else if(deldiaDrillNav.nivel==='supervisor') cols='<td class="l">'+r.padre+'</td><td class="l">'+r.nombre+'</td>';
+    else cols='<td class="l">'+r.nombre+'</td>';
+    const pA=r.PresupuestoA||0, pB=(r.tieneB?r.PresupuestoB:null), ej=r.Ejecutado||0;
+    const alc=r.AlcancePct, alcLin=r.AlcanceLinealPct;
+    let onclickAttr='';
+    if(puedeDrill){
+      if(deldiaDrillNav.nivel==='centro') onclickAttr='deldiaDrillSetNivel(\'supervisor\',\''+r.k+'\',null,null)';
+      else if(deldiaDrillNav.nivel==='canal') onclickAttr='deldiaDrillSetNivel(\'supervisor\',null,null,'+JSON.stringify(r.k)+')';
+      else onclickAttr='deldiaDrillDrillSup('+JSON.stringify(r.k)+')';
+    }
+    h+='<tr onclick="'+onclickAttr+'" class="'+(puedeDrill?'clickable':'')+'"><td class="l">'+(i+1)+'</td>'+cols+
+      '<td>'+fmtNum(pA)+'</td>'+(tieneB?'<td>'+fmtNum(pB)+'</td>':'')+'<td>'+fmtNum(ej)+'</td><td>'+fmtPct(alc)+'</td>'+(tieneB?'<td>'+fmtPct(alcLin)+'</td>':'')+'</tr>';
+    tA+=pA||0; tB+=pB||0; tE+=ej||0;
+  });
+  const colspan=esHoja?4:(deldiaDrillNav.nivel==='supervisor'?3:2);
+  h+='<tr class="totals"><td class="l" colspan="'+colspan+'">TOTAL</td><td>'+fmtNum(tA)+'</td>'+(tieneB?'<td>'+fmtNum(tB)+'</td>':'')+'<td>'+fmtNum(tE)+'</td><td>'+fmtPct(tA?100*tE/tA:null)+'</td>'+(tieneB?'<td>'+fmtPct(tB?100*tE/tB:null)+'</td>':'')+'</tr>';
+  h+='</tbody></table>';
+  $('#deldia-drill-tabla').innerHTML=h;
+}
+// Modo "Comparación": pivote entidad × día (Ejecutado), con columna Total al final —
+// pedido explícito del usuario 2026-08-25 (default al elegir varios días/semanas).
+function drillRenderDiaPivote(list){
+  const dias=DELDIA_DIAS_ACTUALES.slice().sort((a,b)=>a-b);
+  const porCanal=deldiaDrillNav.canal!=null;
+  let rows, cols, esHoja=false;
+  if(deldiaDrillNav.nivel==='centro'){ rows=pivoteAgg(list,v=>v.CedCodigo,v=>v.CentroNombre); cols=['Centro']; }
+  else if(deldiaDrillNav.nivel==='canal'){ rows=pivoteAgg(conCanal(DELDIA_DRILL_DATA),v=>v._canId,v=>nombreCanal(v._canId)); cols=['Canal']; }
+  else if(deldiaDrillNav.nivel==='supervisor'){ rows=pivoteAgg(list,v=>v.SupCod,v=>v.SupNombre,porCanal?(v=>nombreCanal(v._canId)):(v=>v.CentroNombre)); cols=[porCanal?'Canal':'Centro','Supervisor']; }
+  else {
+    const g={};
+    list.forEach(v=>{
+      const k=v.RepCodigo;
+      if(!g[k]) g[k]={k,CentroNombre:v.CentroNombre,SupNombre:v.SupNombre,RepNombre:v.RepNombre,RepCodigo:v.RepCodigo,_canId:v._canId,porDia:{}};
+      g[k].porDia[v.Dia]=(g[k].porDia[v.Dia]||0)+(v.Ejecutado||0);
+    });
+    rows=Object.values(g).sort((a,b)=>{
+      const ta=Object.values(a.porDia).reduce((x,y)=>x+y,0), tb=Object.values(b.porDia).reduce((x,y)=>x+y,0);
+      return tb-ta;
+    });
+    cols=[porCanal?'Canal':'Centro','Supervisor','Vendedor']; esHoja=true;
+  }
+  let h='<table class="drill"><thead><tr><th class="l">#</th>'+cols.map(c=>'<th class="l">'+c+'</th>').join('')+
+    dias.map(d=>'<th>Día '+d+'</th>').join('')+'<th>Total</th></tr></thead><tbody>';
+  const totales=new Array(dias.length).fill(0); let totalGeneral=0;
+  rows.forEach((r,i)=>{
+    const etiquetas = esHoja ? [(porCanal?nombreCanal(r._canId):r.CentroNombre),r.SupNombre,r.RepNombre+' ('+r.RepCodigo+')'] : (cols.length===2?[r.padre,r.nombre]:[r.nombre]);
+    const tds=etiquetas.map(e=>'<td class="l">'+e+'</td>').join('');
+    const porDia=dias.map(d=>r.porDia[d]||0);
+    porDia.forEach((v,ix)=>totales[ix]+=v);
+    const tot=porDia.reduce((a,b)=>a+b,0); totalGeneral+=tot;
+    h+='<tr><td class="l">'+(i+1)+'</td>'+tds+porDia.map(v=>'<td>'+fmtNum(v)+'</td>').join('')+'<td><b>'+fmtNum(tot)+'</b></td></tr>';
+  });
+  h+='<tr class="totals"><td class="l" colspan="'+(1+cols.length)+'">TOTAL</td>'+totales.map(v=>'<td>'+fmtNum(v)+'</td>').join('')+'<td><b>'+fmtNum(totalGeneral)+'</b></td></tr>';
+  h+='</tbody></table>';
+  $('#deldia-drill-tabla').innerHTML=h;
+}
+window.deldiaDrillSetNivel=(nivel,ced,sup,canal)=>{
+  deldiaDrillNav={nivel:nivel,ced:(ced!==undefined?ced:deldiaDrillNav.ced),sup:(sup!==undefined?sup:deldiaDrillNav.sup),canal:(canal!==undefined?canal:deldiaDrillNav.canal)};
+  if(nivel==='centro'){deldiaDrillNav.ced=null;deldiaDrillNav.sup=null;deldiaDrillNav.canal=null;}
+  if(nivel==='canal'&&canal===undefined){deldiaDrillNav.canal=null;deldiaDrillNav.sup=null;deldiaDrillNav.ced=null;}
+  if(nivel==='supervisor'&&sup===undefined)deldiaDrillNav.sup=null;
+  drillRenderDia();
+};
+window.deldiaDrillDrillSup=(supCod)=>{
+  const v=DELDIA_DRILL_DATA.find(x=>x.SupCod===supCod);
+  if(deldiaDrillNav.canal!=null) deldiaDrillSetNivel('vendedor', null, supCod, deldiaDrillNav.canal);
+  else deldiaDrillSetNivel('vendedor', v?v.CedCodigo:deldiaDrillNav.ced, supCod, null);
+};
+const diaSemanaCorto={Monday:'Lun',Tuesday:'Mar',Wednesday:'Mié',Thursday:'Jue',Friday:'Vie',Saturday:'Sáb',Sunday:'Dom'};
+function renderDelDia(j){
+  const dias=j.dias||[];
+  const dosMetas = j.etiquetaB != null;
+  let h='<table class="drill"><thead><tr><th class="l">Día</th><th class="l">Día sem.</th>'+
+    '<th>'+j.etiquetaA+'</th>'+(dosMetas?'<th>'+j.etiquetaB+'</th>':'')+'<th>Ejecutado</th><th>Alcance del día%</th>'+(dosMetas?'<th>Alcance lineal%</th>':'')+'</tr></thead><tbody>';
+  let tA=0,tB=0,tE=0;
+  dias.forEach(d=>{
+    const dom = d.EsDomingo;
+    const alDia = d.PresupuestoA!=null && d.PresupuestoA>0 ? 100*d.Ejecutado/d.PresupuestoA : null;
+    const alDiaLineal = d.PresupuestoB!=null && d.PresupuestoB>0 ? 100*d.Ejecutado/d.PresupuestoB : null;
+    h+='<tr style="'+(dom?'opacity:.45':'')+'"><td class="l">'+d.Dia+'</td><td class="l">'+(diaSemanaCorto[d.DiaSemana]||d.DiaSemana)+'</td>'+
+      '<td>'+fmtNum(d.PresupuestoA)+'</td>'+(dosMetas?'<td>'+fmtNum(d.PresupuestoB)+'</td>':'')+
+      '<td>'+fmtNum(d.Ejecutado)+'</td><td>'+fmtPct(alDia)+'</td>'+(dosMetas?'<td>'+fmtPct(alDiaLineal)+'</td>':'')+'</tr>';
+    tA+=d.PresupuestoA||0; tB+=d.PresupuestoB||0; tE+=d.Ejecutado||0;
+  });
+  h+='<tr class="totals"><td class="l" colspan="2">TOTAL ('+dias.length+' días)</td><td>'+fmtNum(tA)+'</td>'+(dosMetas?'<td>'+fmtNum(tB)+'</td>':'')+
+     '<td>'+fmtNum(tE)+'</td><td>'+fmtPct(tA?100*tE/tA:null)+'</td>'+(dosMetas?'<td>'+fmtPct(tB?100*tE/tB:null)+'</td>':'')+'</tr>';
+  h+='</tbody></table>';
+  $('#deldia-tabla').innerHTML=h;
+}
+
+/* ── Drill-down: Organización (Centro→Supervisor→Vendedor) y Producto (Suplidor→Categoría→Producto) ──
+   "familia" ya no la elige el usuario (era "Tipo de Presupuesto") — se infiere de
+   Detalle+KPI (ver familiaParaOrg/familiaParaProd), pedido explícito 2026-08-29. */
+function cargarDrill(){
+  actualizarControlesDetalle();
+  if(detalleVista()==='producto') cargarDrillProducto(); else cargarDrillOrganizacion();
+}
+// ── "Ver Detalle" (pedido 2026-08-29): desde CUALQUIER nivel de "Por Organización"
+// (Centro, Supervisor, Vendedor o Canal — lo que sea que drillNav tenga en ese momento),
+// saltar en 1 clic a "Por Producto" ya filtrado a esa misma selección — sin backend
+// nuevo, drill/producto YA acepta esos mismos filtros de organización. Guarda el estado
+// anterior para poder volver exactamente a donde se estaba.
+let VOLVER_ORG_ESTADO=null;
+function actualizarControlesDetalle(){
+  const enProducto = detalleVista()==='producto';
+  $('#drill-porcanal-wrap').style.display = enProducto ? 'flex' : 'none';
+  const btn=$('#btn-ver-detalle-producto');
+  if(!enProducto){
+    btn.style.display='inline-block'; btn.textContent='📦 Ver Detalle'; btn.onclick=irADetalleProducto;
+  } else if(VOLVER_ORG_ESTADO){
+    btn.style.display='inline-block'; btn.textContent='‹ Volver a Organización'; btn.onclick=volverAOrganizacion;
+  } else {
+    btn.style.display='none';
+  }
+}
+function irADetalleProducto(){
+  VOLVER_ORG_ESTADO={
+    centro: MS.centro.values(), canal: MS.canal.values(), supervisor: MS.supervisor.values(), vendedor: MS.vendedor.values(),
+    suplidor: MS.suplidor.values(), categoria: MS.categoria.values(), producto: MS.producto.values(),
+  };
+  // Reproduce el "scope" actual de drillNav (Por Organización) como filtro — Canal
+  // gana sobre Centro si venimos por esa rama (drillNav.canal!=null marca "por Canal").
+  MS.centro.select(drillNav.canal!=null ? [] : (drillNav.ced ? [drillNav.ced] : []));
+  MS.canal.select(drillNav.canal!=null ? [String(drillNav.canal)] : []);
+  MS.supervisor.select(drillNav.sup ? [drillNav.sup] : []);
+  MS.vendedor.select([]);
+  MS.suplidor.select([]); MS.categoria.select([]); MS.producto.select([]);
+  $('#detalle-vista').value='producto';
+  cargarDrill();
+}
+function volverAOrganizacion(){
+  if(!VOLVER_ORG_ESTADO) return;
+  const e=VOLVER_ORG_ESTADO; VOLVER_ORG_ESTADO=null;
+  MS.centro.select(e.centro); MS.canal.select(e.canal); MS.supervisor.select(e.supervisor); MS.vendedor.select(e.vendedor);
+  MS.suplidor.select(e.suplidor); MS.categoria.select(e.categoria); MS.producto.select(e.producto);
+  $('#detalle-vista').value='organizacion';
+  cargarDrill();
+}
+
+let DRILL_ORG_DATA=[]; let drillNav={nivel:'centro',ced:null,sup:null,canal:null};
+function drillFmtPct(x){ return x==null?'—':x.toFixed(1)+'%'; }
+function cargarDrillOrganizacion(){
+  const kpi=detalleKpi(), fam=familiaParaOrg(kpi);
+  const p=qsFiltros(); p.set('familia',fam); p.set('kpi',kpi);
+  $('#drill-tabla').innerHTML='<div class="hint">Cargando…</div>'; $('#drill-nivelbar').innerHTML=''; $('#drill-crumbs').innerHTML='';
+  fetch(BASE+'/apipresupuestos/drill/organizacion?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ $('#drill-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    _drillSortCol=null; _drillSortDir=-1;
+    DRILL_ORG_DATA=j.filas||[]; drillNav={nivel:'centro',ced:null,sup:null,canal:null}; drillRenderOrg();
+  }).catch(err=>{ $('#drill-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+// canal se compara con String() -- _canId viene de REPS.CanID (probablemente numérico)
+// mientras que el valor que llega por el onclick genérico de drillRenderAgg siempre es
+// texto (plantilla compartida con Centro/Supervisor, que sí son códigos de texto).
+function drillScope(){
+  let d=DRILL_ORG_DATA;
+  if(drillNav.canal!=null) d=conCanal(d).filter(v=>String(v._canId)===String(drillNav.canal));
+  if(drillNav.ced) d=d.filter(v=>v.CedCodigo===drillNav.ced);
+  if(drillNav.sup) d=d.filter(v=>v.SupCod===drillNav.sup);
+  return d;
+}
+function drillAggOrg(list,keyFn,nameFn,parentFn){
+  const g={};
+  list.forEach(v=>{
+    const k=keyFn(v);
+    if(!g[k]) g[k]={k,nombre:nameFn(v),padre:parentFn?parentFn(v):'',Presupuesto:0,PresupuestoAlDia:0,Ejecutado:0,VentasProyectadas:0,VentasEstimadas:0,_tieneEst:false,DiasRestantes:v.DiasRestantes};
+    g[k].Presupuesto+=v.Presupuesto||0; g[k].PresupuestoAlDia+=v.PresupuestoAlDia||0; g[k].Ejecutado+=v.Ejecutado||0;
+    g[k].VentasProyectadas+=v.VentasProyectadas||0;
+    if(v.VentasEstimadas!=null){ g[k].VentasEstimadas+=v.VentasEstimadas; g[k]._tieneEst=true; }
+  });
+  return Object.values(g).map(o=>{
+    o.AlcancePct=o.Presupuesto?100*o.Ejecutado/o.Presupuesto:null;
+    o.ProyectadoPct=o.Presupuesto?100*o.VentasProyectadas/o.Presupuesto:null;
+    // Backend ahora siempre manda una curva (cae a la curva general de la compañía si no
+    // hay 1 solo Suplidor/Categoría/Producto elegido) — VentasEstimadas casi nunca es null,
+    // pero se deja el chequeo por si el backend algún día vuelve a mandar null explícito.
+    if(!o._tieneEst){ o.VentasEstimadas=null; o.EstimadoPct=null; }
+    else o.EstimadoPct=o.Presupuesto?100*o.VentasEstimadas/o.Presupuesto:null;
+    // Necesidad Diaria (pedido 2026-09-06): NO se puede sumar la de cada vendedor (el
+    // backend la manda por RepCodigo, grano de esta lista) porque hay que recalcularla
+    // sobre el Presupuesto/Ejecutado YA AGREGADOS de este nivel — DiasRestantes es el
+    // MISMO para todas las filas del mismo período (Año/Mes), así que basta con tomarlo
+    // de cualquiera de ellas (primera fila del grupo, capturada arriba).
+    o.NecesidadDiaria = o.DiasRestantes>0 ? (o.Presupuesto-o.Ejecutado)/o.DiasRestantes : null;
+    return o;
+  }).sort((a,b)=>b.Presupuesto-a.Presupuesto);
+}
+// Canal es ahora un árbol completo, paralelo al de Centro: Canal→Supervisor→Vendedor
+// (pedido explícito del usuario — antes "Por Canal" era una lista plana sin drill).
+// drillNav.canal!=null marca "venimos por la rama Canal" — en ese caso el nivel
+// Supervisor se agrupa/filtra por canal en vez de por Centro (ced se mantiene null).
+function drillRenderOrg(){
+  const list=drillScope();
+  const listTagged=conCanal(list);
+  const porCanal=drillNav.canal!=null;
+  let cr;
+  if(porCanal){
+    const cn=nombreCanal(drillNav.canal);
+    cr='<span class="crumb" onclick="drillSetNivelOrg(\'canal\',null,null,null)">Canales</span>'+
+       ' › <span class="crumb '+(drillNav.sup?'':'cur')+'" onclick="drillSetNivelOrg(\'supervisor\',null,null,'+JSON.stringify(drillNav.canal)+')">'+cn+'</span>';
+    if(drillNav.sup){ const sn=(DRILL_ORG_DATA.find(v=>v.SupCod===drillNav.sup)||{}).SupNombre||drillNav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  } else {
+    cr='<span class="crumb '+(drillNav.ced?'':'cur')+'" onclick="drillSetNivelOrg(\'centro\',null,null,null)">Compañía</span>';
+    if(drillNav.ced){ const cn=(DRILL_ORG_DATA.find(v=>v.CedCodigo===drillNav.ced)||{}).CentroNombre||drillNav.ced;
+      cr+=' › <span class="crumb '+(drillNav.sup?'':'cur')+'" onclick="drillSetNivelOrg(\'supervisor\',\''+drillNav.ced+'\',null,null)">'+cn+'</span>'; }
+    if(drillNav.sup){ const sn=(DRILL_ORG_DATA.find(v=>v.SupCod===drillNav.sup)||{}).SupNombre||drillNav.sup; cr+=' › <span class="crumb cur">'+sn+'</span>'; }
+  }
+  $('#drill-crumbs').innerHTML=cr;
+  const nb=(id,t)=>'<button class="btn-modo'+(drillNav.nivel===id?' on':'')+'" onclick="drillSetNivelOrg(\''+id+'\')">'+t+'</button>';
+  $('#drill-nivelbar').innerHTML=nb('centro','Por Centro')+nb('supervisor','Por Supervisor')+nb('vendedor','Por Vendedor')+nb('canal','Por Canal');
+  if(drillNav.nivel==='centro') drillRenderAgg(drillAggOrg(listTagged,v=>v.CedCodigo,v=>v.CentroNombre),'Centro',[],'Org');
+  else if(drillNav.nivel==='canal') drillRenderAgg(drillAggOrg(conCanal(DRILL_ORG_DATA),v=>v._canId,v=>nombreCanal(v._canId)),'Canal',[],'OrgCanal');
+  else if(drillNav.nivel==='supervisor'){
+    const parentFn=porCanal?(v=>nombreCanal(v._canId)):(v=>v.CentroNombre);
+    drillRenderAgg(drillAggOrg(listTagged,v=>v.SupCod,v=>v.SupNombre,parentFn),'Supervisor',[porCanal?'Canal':'Centro'],'Org');
+  }
+  else drillRenderHoja(listTagged.slice().sort((a,b)=>b.Presupuesto-a.Presupuesto),
+    porCanal?['Canal','Supervisor','Vendedor']:['Centro','Supervisor','Vendedor'],
+    porCanal?(v=>[nombreCanal(v._canId),v.SupNombre,v.RepNombre+' ('+v.RepCodigo+')']):(v=>[v.CentroNombre,v.SupNombre,v.RepNombre+' ('+v.RepCodigo+')']));
+}
+window.drillSetNivelOrg=(nivel,ced,sup,canal)=>{
+  drillNav={nivel:nivel,ced:(ced!==undefined?ced:drillNav.ced),sup:(sup!==undefined?sup:drillNav.sup),canal:(canal!==undefined?canal:drillNav.canal)};
+  if(nivel==='centro'){drillNav.ced=null;drillNav.sup=null;drillNav.canal=null;}
+  if(nivel==='canal'&&canal===undefined){drillNav.canal=null;drillNav.sup=null;drillNav.ced=null;}
+  if(nivel==='supervisor'&&sup===undefined)drillNav.sup=null;
+  drillRenderOrg();
+};
+window.__drillOrg=(k,tipo)=>{
+  if(tipo==='Centro') drillSetNivelOrg('supervisor',k,null,null);
+  else {
+    const v=DRILL_ORG_DATA.find(x=>x.SupCod===k);
+    if(drillNav.canal!=null) drillSetNivelOrg('vendedor',null,k,drillNav.canal);
+    else drillSetNivelOrg('vendedor',v?v.CedCodigo:drillNav.ced,k,null);
+  }
+};
+window.__drillOrgCanal=(k)=>{ drillSetNivelOrg('supervisor',null,null,k); };
+
+// modo=null/clickable=false -> fila hoja, sin drill (usado por "Por Canal", nivel plano
+// sin sub-niveles). Déficit al Momento = Presupuesto al día − Ejecutado (qué tan atrás
+// vas HOY); Déficit Estimado = Presupuesto − Estimado (proyección con curva de
+// estacionalidad) — reemplaza al viejo "Déficit Proyectado" (Presupuesto − lineal),
+// pedido del usuario 2026-08-28.
+/* ── Columnas Presupuesto..Déficit Estimado compartidas entre drillRenderAgg y
+   drillRenderHoja, con click-para-ordenar por cualquier columna (pedido del usuario
+   2026-08-28) — el header recuerda la última tabla renderizada (_drillLastRender) para
+   poder re-ordenar sin re-consultar al backend. */
+const DRILL_COLS = [
+  {key:'Presupuesto',       label:'Presupuesto',        fmt:'num', get:r=>r.Presupuesto||0},
+  // Pedido 2026-08-29: se agregó esta columna porque "Déficit al Momento" NO es
+  // Presupuesto-Ejecutado (confusión reportada por el usuario, verificada en vivo
+  // contra la BD — el cálculo estaba correcto, solo faltaba mostrar el dato intermedio
+  // que lo explica). PresupuestoAlDia = Presupuesto prorrateado según días hábiles
+  // transcurridos, con 1 día hábil de margen de rezago (DiasTranscurridosAjustado en
+  // PresupuestosCore.cs) para no penalizar por el último día, cuyos datos a veces aún
+  // no están completos al momento de consultar.
+  {key:'PresupuestoAlDia',  label:'Pres. al día',       fmt:'num', get:r=>r.PresupuestoAlDia||0},
+  {key:'Ejecutado',         label:'Ejecutado',          fmt:'num', get:r=>r.Ejecutado||0},
+  {key:'AlcancePct',        label:'Alcance%',           fmt:'pct', get:r=>r.AlcancePct},
+  {key:'DeficitMomento',    label:'Déficit al Momento', fmt:'num', get:r=>(r.PresupuestoAlDia||0)-(r.Ejecutado||0)},
+  {key:'VentasProyectadas', label:'Proyectado',         fmt:'num', get:r=>r.VentasProyectadas||0},
+  {key:'ProyectadoPct',     label:'Proy.%',             fmt:'pct', get:r=>r.ProyectadoPct},
+  {key:'VentasEstimadas',   label:'Estimado',           fmt:'num', get:r=>r.VentasEstimadas},
+  {key:'EstimadoPct',       label:'Est.%',              fmt:'pct', get:r=>r.EstimadoPct},
+  {key:'DeficitEstimado',   label:'Déficit Estimado',   fmt:'defEst', get:r=>r.VentasEstimadas==null?null:(r.Presupuesto||0)-r.VentasEstimadas},
+  // Necesidad Diaria = (Presupuesto−Ejecutado)/DiasRestantes (pedido explícito del
+  // usuario 2026-09-06) — cuánto hace falta vender por CADA día hábil restante del
+  // período para llegar exacto al presupuesto. DiasRestantes ya viene ajustado por el
+  // mismo rezago de 1 día hábil que usa Pres. al día (ver PresupuestosCore.Calcular) —
+  // es el MISMO para todas las filas del mismo período, así que sumar esta columna en
+  // el TOTAL (drillColsTotales) da el resultado correcto sin caso especial.
+  {key:'NecesidadDiaria',   label:'Necesidad Diaria',   fmt:'defEst', get:r=>r.NecesidadDiaria},
+];
+let _drillSortCol=null, _drillSortDir=-1, _drillLastRender=null;
+function drillFmtCol(c,v){ return c.fmt==='pct' ? drillFmtPct(v) : c.fmt==='defEst' ? (v==null?'—':fmtNum(v)) : fmtNum(v); }
+function drillColsTh(){
+  return DRILL_COLS.map(c=>{
+    const activo=_drillSortCol===c.key, fl=activo?(_drillSortDir===1?' ▲':' ▼'):'';
+    return '<th style="cursor:pointer;user-select:none" onclick="drillClickSort(\''+c.key+'\')" title="Ordenar por '+c.label+'">'+c.label+fl+'</th>';
+  }).join('');
+}
+function drillColsTd(r){ return DRILL_COLS.map(c=>'<td>'+drillFmtCol(c,c.get(r))+'</td>').join(''); }
+function drillColsTotales(rows){
+  let tot={}; DRILL_COLS.forEach(c=>tot[c.key]=0); let algunEst=false;
+  rows.forEach(r=>{ DRILL_COLS.forEach(c=>{ const v=c.get(r); if(v!=null) tot[c.key]+=v; }); if(r.VentasEstimadas!=null) algunEst=true; });
+  return DRILL_COLS.map(c=>{
+    if(c.key==='AlcancePct') return '<td>'+drillFmtPct(tot.Presupuesto?100*tot.Ejecutado/tot.Presupuesto:null)+'</td>';
+    if(c.key==='ProyectadoPct') return '<td>'+drillFmtPct(tot.Presupuesto?100*tot.VentasProyectadas/tot.Presupuesto:null)+'</td>';
+    if(c.key==='EstimadoPct') return '<td>'+drillFmtPct(algunEst&&tot.Presupuesto?100*tot.VentasEstimadas/tot.Presupuesto:null)+'</td>';
+    if(c.key==='VentasEstimadas') return '<td>'+fmtNum(algunEst?tot.VentasEstimadas:null)+'</td>';
+    if(c.key==='DeficitEstimado') return '<td>'+(algunEst?fmtNum(tot.Presupuesto-tot.VentasEstimadas):'—')+'</td>';
+    return '<td>'+fmtNum(tot[c.key])+'</td>';
+  }).join('');
+}
+window.drillClickSort=(key)=>{
+  _drillSortDir = (_drillSortCol===key) ? -_drillSortDir : -1; _drillSortCol=key;
+  if(!_drillLastRender) return;
+  const c=DRILL_COLS.find(x=>x.key===key);
+  const sorted=_drillLastRender.rows.slice().sort((a,b)=>_drillSortDir*((c.get(a)||0)-(c.get(b)||0)));
+  if(_drillLastRender.type==='agg') drillRenderAgg(sorted,_drillLastRender.tipo,_drillLastRender.parents,_drillLastRender.modo,_drillLastRender.clickable,true);
+  else drillRenderHoja(sorted,_drillLastRender.etiquetas,_drillLastRender.nameFn,true);
+};
+// r.padre acepta un string (1 columna "padre", uso original) O un array (2+ columnas —
+// pedido 2026-08-29: "Desglosar por Canal" en Detalle: Por Producto agrega Canal como
+// columna extra junto a Suplidor en el nivel Categoría, por ejemplo).
+function drillRenderAgg(rows,tipo,parents,modo,clickable,manteniendoOrden){
+  if(clickable===undefined) clickable=true;
+  if(!manteniendoOrden) _drillLastRender={type:'agg',rows,tipo,parents,modo,clickable};
+  const th=parents.map(p=>'<th class="l">'+p+'</th>').join('');
+  let h='<table class="drill"><thead><tr><th class="l">#</th>'+th+'<th class="l">'+tipo+'</th>'+drillColsTh()+'</tr></thead><tbody>';
+  rows.forEach((r,i)=>{
+    const padreArr=parents.length?(Array.isArray(r.padre)?r.padre:[r.padre]):[];
+    const pc=padreArr.map(v=>'<td class="l">'+v+'</td>').join('');
+    const attrs=clickable?(' class="clickable" onclick="__drill'+modo+'(\''+r.k+'\',\''+tipo+'\')"'):'';
+    h+='<tr'+attrs+'><td class="l">'+(i+1)+'</td>'+pc+'<td class="l">'+r.nombre+'</td>'+drillColsTd(r)+'</tr>';
+  });
+  h+='<tr class="totals"><td class="l" colspan="'+(2+parents.length)+'">TOTAL</td>'+drillColsTotales(rows)+'</tr>';
+  h+='</tbody></table>'; $('#drill-tabla').innerHTML=h;
+}
+function drillRenderHoja(rows,etiquetas,nameFn,manteniendoOrden){
+  if(!manteniendoOrden) _drillLastRender={type:'hoja',rows,etiquetas,nameFn};
+  const th=etiquetas.map(e=>'<th class="l">'+e+'</th>').join('');
+  let h='<table class="drill"><thead><tr><th class="l">#</th>'+th+drillColsTh()+'</tr></thead><tbody>';
+  rows.forEach((v,i)=>{
+    const tds0=nameFn(v).map(n=>'<td class="l">'+n+'</td>').join('');
+    h+='<tr><td class="l">'+(i+1)+'</td>'+tds0+drillColsTd(v)+'</tr>';
+  });
+  h+='<tr class="totals"><td class="l" colspan="'+(1+etiquetas.length)+'">TOTAL ('+rows.length+')</td>'+drillColsTotales(rows)+'</tr>';
+  h+='</tbody></table>'; $('#drill-tabla').innerHTML=h;
+}
+
+/* ── Drill Producto: profundidad variable por familia (ver /apipresupuestos/drill/producto) ──
+   "Desglosar por Canal" (checkbox #drill-porcanal, pedido 2026-08-29): la MISMA fila de
+   Suplidor/Categoría/Producto aparece 1 vez por cada Canal donde tuvo actividad, cada
+   una con su propia porción de Presupuesto/Ejecutado — nunca se combinan. drillNavProd
+   guarda "canal" aparte de "sup"/"cat" (no se mete en la misma clave) precisamente para
+   que ese comportamiento sea explícito y para no romper las comparaciones String(...)
+   de sup/cat ya corregidas arriba. */
+let DRILL_PROD_DATA=[]; let drillNavProd={nivel:'suplidor',sup:null,cat:null,canal:null};
+function cargarDrillProducto(){
+  const kpi=detalleKpi(), fam=familiaParaProd(kpi);
+  const p=qsFiltros(); p.set('familia',fam); p.set('kpi',kpi);
+  if($('#drill-porcanal').checked) p.set('porCanal','true');
+  $('#drill-tabla').innerHTML='<div class="hint">Cargando…</div>'; $('#drill-nivelbar').innerHTML=''; $('#drill-crumbs').innerHTML='';
+  fetch(BASE+'/apipresupuestos/drill/producto?'+p.toString()).then(r=>r.json()).then(j=>{
+    if(!j||!j.ok){ $('#drill-tabla').innerHTML='<div class="hint">'+(j&&j.error||'Error')+'</div>'; return; }
+    _drillSortCol=null; _drillSortDir=-1;
+    DRILL_PROD_DATA=j.filas||[]; window.DRILL_NIVELES=j.niveles||1; drillNavProd={nivel: (j.niveles===3?'suplidor':'unico'), sup:null, cat:null, canal:null};
+    drillRenderProd();
+  }).catch(err=>{ $('#drill-tabla').innerHTML='<div class="hint">Error: '+err+'</div>'; });
+}
+// String(...) en ambos lados — Cat3ID/Cat1ID/CanID llegan como NÚMERO desde el backend
+// (JSON), pero drillNavProd.sup/cat siempre llegan como TEXTO (se arman incrustando la
+// clave en el atributo onclick de drillRenderAgg, ver window.__drillProd) — comparar
+// 105===\"105\" da false y deja la lista vacía tras cada clic. Bug reportado 2026-08-29:
+// "hace el drill pero no trae datos" — mismo patrón ya resuelto para Canal en
+// drillScope() (Organización, ver arriba).
+function drillScopeProd(){
+  let d=DRILL_PROD_DATA;
+  if(drillNavProd.sup) d=d.filter(v=>String(v.Cat3ID)===String(drillNavProd.sup));
+  if(drillNavProd.cat) d=d.filter(v=>String(v.Cat1ID)===String(drillNavProd.cat));
+  if(drillNavProd.canal!=null) d=d.filter(v=>String(v.CanID)===String(drillNavProd.canal));
+  return d;
+}
+function drillRenderProd(){
+  const niveles=window.DRILL_NIVELES||1;
+  const list=drillScopeProd();
+  const porCanal=$('#drill-porcanal').checked;
+  if(niveles===1){
+    $('#drill-nivelbar').innerHTML=''; $('#drill-crumbs').innerHTML='<span class="crumb cur">Total</span>';
+    const etq=porCanal?['Nombre','Canal']:['Nombre'];
+    const nfn=porCanal?(v=>[v.Nombre,nombreCanal(v.CanID)]):(v=>[v.Nombre]);
+    drillRenderHoja(list.slice().sort((a,b)=>b.Ejecutado-a.Ejecutado),etq,nfn);
+    return;
+  }
+  let cr='<span class="crumb '+(drillNavProd.sup?'':'cur')+'" onclick="drillSetNivelProd(\'suplidor\',null,null,null)">Todos los suplidores</span>';
+  if(drillNavProd.sup){ const sn=(DRILL_PROD_DATA.find(v=>String(v.Cat3ID)===String(drillNavProd.sup))||{}).Cat3Nombre||drillNavProd.sup;
+    cr+=' › <span class="crumb '+(drillNavProd.cat?'':'cur')+'" onclick="drillSetNivelProd(\'categoria\',\''+drillNavProd.sup+'\',null,'+JSON.stringify(drillNavProd.canal)+')">'+sn+'</span>'; }
+  if(drillNavProd.cat){ const cn=(DRILL_PROD_DATA.find(v=>String(v.Cat1ID)===String(drillNavProd.cat))||{}).Cat1Nombre||drillNavProd.cat; cr+=' › <span class="crumb cur">'+cn+'</span>'; }
+  if(drillNavProd.canal!=null) cr+=' <span class="sub">· Canal: '+nombreCanal(drillNavProd.canal)+'</span>';
+  $('#drill-crumbs').innerHTML=cr;
+  const nb=(id,t)=>'<button class="btn-modo'+(drillNavProd.nivel===id?' on':'')+'" onclick="drillSetNivelProd(\''+id+'\')">'+t+'</button>';
+  $('#drill-nivelbar').innerHTML=nb('suplidor','Por Suplidor')+nb('categoria','Por Categoría')+nb('producto','Por Producto');
+  if(drillNavProd.nivel==='suplidor'){
+    if(porCanal) drillRenderAgg(drillAggProd(list,v=>v.Cat3ID+'|'+v.CanID,v=>v.Cat3Nombre,v=>nombreCanal(v.CanID)),'Suplidor',['Canal'],'Prod');
+    else drillRenderAgg(drillAggProd(list,v=>v.Cat3ID,v=>v.Cat3Nombre),'Suplidor',[],'Prod');
+  } else if(drillNavProd.nivel==='categoria'){
+    if(porCanal) drillRenderAgg(drillAggProd(list,v=>v.Cat1ID+'|'+v.CanID,v=>v.Cat1Nombre,v=>[v.Cat3Nombre,nombreCanal(v.CanID)]),'Categoría',['Suplidor','Canal'],'Prod');
+    else drillRenderAgg(drillAggProd(list,v=>v.Cat1ID,v=>v.Cat1Nombre,v=>v.Cat3Nombre),'Categoría',['Suplidor'],'Prod');
+  } else {
+    const etq=porCanal?['Suplidor','Categoría','Producto','Canal']:['Suplidor','Categoría','Producto'];
+    const nfn=porCanal?(v=>[v.Cat3Nombre,v.Cat1Nombre,v.Nombre,nombreCanal(v.CanID)]):(v=>[v.Cat3Nombre,v.Cat1Nombre,v.Nombre]);
+    drillRenderHoja(list.slice().sort((a,b)=>b.Ejecutado-a.Ejecutado),etq,nfn);
+  }
+}
+function drillAggProd(list,keyFn,nameFn,parentFn){
+  const g={};
+  list.forEach(v=>{
+    const k=keyFn(v);
+    if(!g[k]) g[k]={k,nombre:nameFn(v),padre:parentFn?parentFn(v):'',Presupuesto:0,PresupuestoAlDia:0,Ejecutado:0,VentasProyectadas:0,VentasEstimadas:0,_tieneEst:false,DiasRestantes:v.DiasRestantes};
+    g[k].Presupuesto+=v.Presupuesto||0; g[k].PresupuestoAlDia+=v.PresupuestoAlDia||0; g[k].Ejecutado+=v.Ejecutado||0;
+    g[k].VentasProyectadas+=v.VentasProyectadas||0;
+    if(v.VentasEstimadas!=null){ g[k].VentasEstimadas+=v.VentasEstimadas; g[k]._tieneEst=true; }
+  });
+  return Object.values(g).map(o=>{
+    o.AlcancePct=o.Presupuesto?100*o.Ejecutado/o.Presupuesto:null;
+    o.ProyectadoPct=o.Presupuesto?100*o.VentasProyectadas/o.Presupuesto:null;
+    if(!o._tieneEst){ o.VentasEstimadas=null; o.EstimadoPct=null; }
+    else o.EstimadoPct=o.Presupuesto?100*o.VentasEstimadas/o.Presupuesto:null;
+    // Necesidad Diaria (pedido 2026-09-06) — mismo motivo que drillAggOrg: se recalcula
+    // sobre el Presupuesto/Ejecutado ya agregados de este nivel, no se suma la de cada fila.
+    o.NecesidadDiaria = o.DiasRestantes>0 ? (o.Presupuesto-o.Ejecutado)/o.DiasRestantes : null;
+    return o;
+  }).sort((a,b)=>b.Ejecutado-a.Ejecutado);
+}
+window.drillSetNivelProd=(nivel,sup,cat,canal)=>{
+  drillNavProd={nivel:nivel,sup:(sup!==undefined?sup:drillNavProd.sup),cat:(cat!==undefined?cat:drillNavProd.cat),canal:(canal!==undefined?canal:drillNavProd.canal)};
+  if(nivel==='suplidor'){drillNavProd.sup=null;drillNavProd.cat=null;drillNavProd.canal=null;} if(nivel==='categoria'&&cat===undefined)drillNavProd.cat=null;
+  drillRenderProd();
+};
+// Con "Desglosar por Canal" activo, la clave de cada fila (r.k) viene compuesta
+// "Cat3ID|CanID" o "Cat1ID|CanID" (ver drillRenderProd) — se separa aquí antes de
+// navegar, para que drillNavProd.sup/cat sigan siendo el ID simple de siempre (el canal
+// se guarda aparte en drillNavProd.canal) y las comparaciones String(...) de
+// drillScopeProd no se rompan.
+window.__drillProd=(k,tipo)=>{
+  const porCanal=$('#drill-porcanal').checked;
+  let idPart=k, canalPart=null;
+  if(porCanal){ const partes=String(k).split('|'); idPart=partes[0]; canalPart=partes[1]; }
+  if(tipo==='Suplidor') drillSetNivelProd('categoria',idPart,null,canalPart);
+  else { const v=DRILL_PROD_DATA.find(x=>String(x.Cat1ID)===String(idPart)); drillSetNivelProd('producto',v?v.Cat3ID:drillNavProd.sup,idPart,canalPart); }
+};
+
+/* ── Excel: mismo patrón que el resto de la app (SheetJS, 100% client-side) ── */
+function ensureXLSX(cb){
+  if(typeof XLSX!=='undefined'){ cb(); return; }
+  const s=document.createElement('script'); s.src=BASE+'/lib/xlsx.full.min.js';
+  s.onload=()=>cb(); s.onerror=()=>alert('No se pudo cargar el generador de Excel.');
+  document.head.appendChild(s);
+}
+function exportarKpisAoA(entorno){
+  const rows=[['Familia','KPI','Presupuesto','Presupuesto al día','Ejecutado','Alcance%','Déficit al Momento','Proyectado','Proyectado%','Estimado','Estimado%','Déficit Estimado']];
+  Object.keys(entorno||{}).forEach(fam=>{
+    Object.keys(entorno[fam]||{}).forEach(k=>{
+      const r=entorno[fam][k]; if(!r) return;
+      rows.push([familiaTexto2[fam]||fam, kpiTexto[k]||k, r.Presupuesto, r.PresupuestoAlDia, r.Ejecutado, r.AlcancePct,
+        (r.PresupuestoAlDia||0)-(r.Ejecutado||0), r.VentasProyectadas, r.ProyectadoPct, r.VentasEstimadas, r.EstimadoPct,
+        r.VentasEstimadas==null?null:(r.Presupuesto||0)-r.VentasEstimadas]);
+    });
+  });
+  return rows;
+}
+$('#btn-excel').addEventListener('click', ()=>{
+  const tab=document.querySelector('#tabs button.on').dataset.tab;
+  ensureXLSX(()=>{
+    const wb=XLSX.utils.book_new();
+    const anio=anioEfectivo(), mes=mesEfectivo();
+    if(tab==='mes'||tab==='anio'){
+      if(!LAST_RESUMEN){ alert('Presiona Consultar primero.'); return; }
+      // "Del Mes" — 1 sheet con una columna "Período" al frente (una fila de LAST_RESUMEN
+      // por cada Año×Mes elegido; con 1 sola combinación se ve igual que antes).
+      const rowsMes=[['Período','Familia','KPI','Presupuesto','Presupuesto al día','Ejecutado','Alcance%','Déficit al Momento','Proyectado','Proyectado%','Estimado','Estimado%','Déficit Estimado']];
+      LAST_RESUMEN.forEach(r=>{
+        const periodoTxt=MESES_NOMBRE[r.periodo.mes]+' '+r.periodo.anio;
+        exportarKpisAoA(r.j.entornos.mes).slice(1).forEach(fila=>rowsMes.push([periodoTxt,...fila]));
+      });
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rowsMes),'Del Mes');
+      const drillActual = detalleVista()==='producto' ? DRILL_PROD_DATA : DRILL_ORG_DATA;
+      if(drillActual.length){
+        const rowsDrill=[Object.keys(drillActual[0])].concat(drillActual.map(r=>Object.values(r)));
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rowsDrill),'Detalle');
+      }
+      // "Del Año" — tabla mes a mes (Año, Mes, Familia, KPI, mismas columnas que Del Mes),
+      // 1 fila de LAST_DELANIO por cada Año elegido en el filtro.
+      if(LAST_DELANIO && LAST_DELANIO.length){
+        const rowsAnio=[['Año','Mes','Familia','KPI','Presupuesto','Presupuesto al día','Ejecutado','Alcance%','Déficit al Momento','Proyectado','Proyectado%','Estimado','Estimado%','Déficit Estimado']];
+        LAST_DELANIO.forEach(({anio:anioFila,j})=>{
+          const detalle=j.entornos.detalle||{};
+          Object.keys(detalle).forEach(fam=>Object.keys(detalle[fam]||{}).forEach(k=>{
+            (detalle[fam][k]||[]).forEach(r=>rowsAnio.push([anioFila, MESES_CORTO[r.Mes], familiaTexto2[fam]||fam, kpiTexto[k]||k,
+              r.Presupuesto, r.PresupuestoAlDia, r.Ejecutado, r.AlcancePct, (r.PresupuestoAlDia||0)-(r.Ejecutado||0),
+              r.VentasProyectadas, r.ProyectadoPct, r.VentasEstimadas, r.EstimadoPct,
+              r.VentasEstimadas==null?null:(r.Presupuesto||0)-r.VentasEstimadas]));
+          }));
+        });
+        XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rowsAnio),'Del Año');
+      }
+    } else if(tab==='historico'){
+      if(!LAST_HISTORICO){ alert('Presiona Consultar primero.'); return; }
+      const porAnio={};
+      (LAST_HISTORICO.serie||[]).forEach(s=>{ (porAnio[s.Anio]=porAnio[s.Anio]||{})[s.Mes]=s.Ejecutado; });
+      const rows=[['Año'].concat(MESES_CORTO.slice(1)).concat(['Total'])];
+      Object.keys(porAnio).sort().forEach(a=>{
+        const fila=[a]; let tot=0;
+        for(let m=1;m<=12;m++){ const v=porAnio[a][m]||0; tot+=v; fila.push(v); }
+        fila.push(tot); rows.push(fila);
+      });
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Historico');
+    } else if(tab==='extras'){
+      if(!LAST_EXTRAS){ alert('Presiona Consultar primero.'); return; }
+      const rows=[['Métrica','Valor'],
+        ['Devoluciones (presupuesto)',LAST_EXTRAS.devolucionesPresupuesto],['Devoluciones (ejecutado)',LAST_EXTRAS.devolucionesEjecutado],
+        ['Meta Gerencial',LAST_EXTRAS.metaGerencial],
+        ['Efectividad de Visitas — meta',LAST_EXTRAS.efectividadPresupuesto],['Efectividad de Visitas — logro',LAST_EXTRAS.efectividadEjecutado],
+        ['Retención 2 meses (clientes)',LAST_EXTRAS.retencion2Meses]];
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Extras');
+    } else { alert('La pestaña Del Día se exporta desde su propia tabla — usa Ctrl+C o pídeme que lo agregue si lo necesitas.'); return; }
+    XLSX.writeFile(wb,'presupuestos_'+anio+'-'+String(mes).padStart(2,'0')+'.xlsx');
+  });
+});
+
+const TABS_CARGADOS=new Set();
+document.querySelectorAll('#tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('on'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById('view-'+btn.dataset.tab).classList.add('on');
+    // Autocarga la primera vez que se visita una pestaña (Del Mes/Del Día esperan a
+    // "Consultar" — pedido 2026-08-29: nada se carga sin que el usuario filtre).
+    const tab=btn.dataset.tab;
+    if(!TABS_CARGADOS.has(tab)){
+      TABS_CARGADOS.add(tab);
+      if(tab==='anio') cargarDelAnio();
+      else if(tab==='historico') cargarHistorico();
+      else if(tab==='extras') cargarExtras();
+    }
+  });
+});
+fetch(BASE+'/api/me').then(r=>r.json()).then(j=>{
+  if(j&&j.ok) document.getElementById('user-nombre').textContent=j.nombre||j.login;
+}).catch(()=>{});
+fetch(BASE+'/api/empresa').then(r=>r.json()).then(j=>{
+  if(j&&j.ok&&j.nombre){
+    document.getElementById('emp-nombre').textContent = j.nombre;
+    document.title = 'Presupuestos — ' + j.nombre;
+  }
+}).catch(()=>{});
+
+/* ── Columnas ordenables + pie con filtros activos, en TODAS las tablas de la
+   página (encabezados congelados ya resuelto solo con CSS arriba, position:sticky).
+   Pedido del usuario 2026-08-25. Se engancha con un MutationObserver en vez de
+   tocar cada función de render (son ~10 distintas) — así ninguna tabla se queda
+   sin la mejora, incluidas las que se agreguen más adelante. ── */
+function textoFiltrosActivos(vistaId){
+  const partes=[];
+  // Año/Mes ahora son multiselección — se listan todos los elegidos (pedido 2026-08-28:
+  // "si se seleccionan varios meses, que se muestren varios meses"). "Día" solo tiene
+  // sentido real en la vista "Del Día" (en Del Mes/Del Año/Histórico/Extras no filtra
+  // nada — "realmente es por mes", pedido explícito) así que se omite fuera de ahí.
+  const anios=(MS.anio?MS.anio.values():[]).map(Number).sort((a,b)=>a-b);
+  const meses=(MS.mes?MS.mes.values():[]).map(Number).sort((a,b)=>a-b);
+  const anioTxt = anios.length? 'Año '+anios.join(', ') : '';
+  const mesTxt = meses.length? 'Mes '+meses.map(m=>MESES_NOMBRE[m]).join(', ') : '';
+  if(anioTxt||mesTxt) partes.push([anioTxt,mesTxt].filter(Boolean).join(' · '));
+  const add=(label,vals)=>{ if(vals&&vals.length) partes.push(label+': '+vals.join(', ')); };
+  if(MS.centro) add('Centro', MS.centro.values());
+  if(MS.canal) add('Canal', MS.canal.values().map(v=>(CANALES_NOMBRE&&CANALES_NOMBRE.get(v))||v));
+  if(MS.division) add('División', MS.division.values());
+  if(MS.supervisor) add('Supervisor', MS.supervisor.values());
+  if(MS.vendedor) add('Vendedor', MS.vendedor.values());
+  if(MS.suplidor) add('Suplidor', MS.suplidor.values().map(v=>(SUPLIDORES_NOMBRE&&SUPLIDORES_NOMBRE.get(v))||v));
+  if(MS.categoria) add('Categoría', MS.categoria.values().map(v=>(CATEGORIAS_NOMBRE&&CATEGORIAS_NOMBRE.get(v))||v));
+  if(MS.producto) add('Producto', MS.producto.values().map(v=>(PRODUCTOS_NOMBRE&&PRODUCTOS_NOMBRE.get(v))||v));
+  if($('#detalle-vista')) partes.push('Detalle: '+(detalleVista()==='producto'?'Producto (Suplidor, Categoría, Producto)':'Organización (Centro, Supervisor, Vendedor)'));
+  if($('#detalle-kpi')) partes.push('KPI: '+(kpiTexto[detalleKpi()]||detalleKpi()));
+  if(MS.semana) add('Semana', MS.semana.values());
+  if(MS.dia && vistaId==='view-dia') add('Día', MS.dia.values());
+  return partes.join(' · ');
+}
+function activarTablasInteractivas(){
+  document.querySelectorAll('table.drill, table.kpis').forEach(table=>{
+    const thead=table.querySelector('thead');
+    if(thead) [...thead.querySelectorAll('th')].forEach((th,idx)=>{
+      if(th._ordenListo) return; th._ordenListo=true;
+      th.addEventListener('click', ()=>{
+        const tbody=table.querySelector('tbody'); if(!tbody) return;
+        const totalRow=tbody.querySelector('tr.totals');
+        const filas=[...tbody.querySelectorAll('tr')].filter(tr=>tr!==totalRow);
+        const asc = th.dataset.sortDir!=='asc';
+        [...thead.querySelectorAll('th')].forEach(o=>{o.classList.remove('sorted-asc','sorted-desc'); if(o!==th) delete o.dataset.sortDir;});
+        th.dataset.sortDir = asc?'asc':'desc';
+        th.classList.add(asc?'sorted-asc':'sorted-desc');
+        const val=(tr)=>{
+          const td=tr.children[idx]; const txt=((td&&td.textContent)||'').trim();
+          const num=parseFloat(txt.replace(/[^\d.\-]/g,''));
+          return (txt==='' || isNaN(num)) ? {n:false,v:txt.toLowerCase()} : {n:true,v:num};
+        };
+        filas.sort((a,b)=>{
+          const va=val(a), vb=val(b);
+          if(va.n && vb.n) return asc? va.v-vb.v : vb.v-va.v;
+          if(va.n !== vb.n) return va.n ? 1 : -1; // numeros primero en orden asc, consistente
+          return asc? String(va.v).localeCompare(String(vb.v)) : String(vb.v).localeCompare(String(va.v));
+        });
+        filas.forEach(f=>tbody.insertBefore(f, totalRow||null));
+      });
+    });
+    // Pie con los filtros activos — 1 por tabla, se re-crea si la tabla se re-renderiza.
+    if(!(table.nextElementSibling && table.nextElementSibling.classList && table.nextElementSibling.classList.contains('pie-filtros'))){
+      const vista=table.closest('.view'); const vistaId=vista?vista.id:null;
+      const pie=document.createElement('div'); pie.className='pie-filtros'; pie.textContent='Filtros: '+textoFiltrosActivos(vistaId);
+      table.insertAdjacentElement('afterend', pie);
+    }
+  });
+}
+new MutationObserver(()=>activarTablasInteractivas()).observe(document.body,{childList:true,subtree:true});
+
+/* ── Exportar a PDF: "foto" de la pantalla actual (vía html2canvas + jsPDF, cargados
+   perezosamente igual que Excel/Chart.js) — pedido del usuario 2026-08-25. ── */
+function ensureHtml2Canvas(cb){
+  if(typeof html2canvas!=='undefined'){ cb(); return; }
+  const s=document.createElement('script'); s.src=BASE+'/lib/html2canvas.min.js';
+  s.onload=()=>cb(); s.onerror=()=>alert('No se pudo cargar el generador de PDF.');
+  document.head.appendChild(s);
+}
+function ensureJsPDF(cb){
+  if(window.jspdf&&window.jspdf.jsPDF){ cb(); return; }
+  const s=document.createElement('script'); s.src=BASE+'/lib/jspdf.umd.min.js';
+  s.onload=()=>cb(); s.onerror=()=>alert('No se pudo cargar el generador de PDF.');
+  document.head.appendChild(s);
+}
+$('#btn-pdf').addEventListener('click', ()=>{
+  const btn=$('#btn-pdf'); const txtOriginal=btn.textContent;
+  btn.textContent='Generando…'; btn.disabled=true;
+  ensureHtml2Canvas(()=>ensureJsPDF(()=>{
+    html2canvas($('.wrap'), {scale:2, backgroundColor:'#F7F9F7', useCORS:true}).then(canvas=>{
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({orientation:'p', unit:'mm', format:'a4'});
+      const pageW=pdf.internal.pageSize.getWidth(), pageH=pdf.internal.pageSize.getHeight();
+      // Margen lateral de 1/2 pulgada (12.7 mm) a cada lado — pedido 2026-10-09 (se perdían datos en los bordes).
+      const mX=12.7, imgW=pageW-2*mX, imgH=canvas.height*imgW/canvas.width;
+      const imgData=canvas.toDataURL('image/jpeg',0.85);   // JPEG comprimido (2026-10-10): el PDF en PNG pesaba mucho
+      let heightLeft=imgH, position=0;
+      pdf.addImage(imgData,'JPEG',mX,position,imgW,imgH);
+      heightLeft-=pageH;
+      while(heightLeft>0){
+        position=heightLeft-imgH;
+        pdf.addPage();
+        pdf.addImage(imgData,'JPEG',mX,position,imgW,imgH);
+        heightLeft-=pageH;
+      }
+      const tab=document.querySelector('#tabs button.on')?document.querySelector('#tabs button.on').dataset.tab:'presupuestos';
+      pdf.save('presupuestos_'+tab+'_'+anioEfectivo()+'-'+String(mesEfectivo()).padStart(2,'0')+'.pdf');
+    }).catch(err=>alert('Error generando PDF: '+err)).finally(()=>{ btn.textContent=txtOriginal; btn.disabled=false; });
+  }));
+});
+</script>
+</body>
+</html>

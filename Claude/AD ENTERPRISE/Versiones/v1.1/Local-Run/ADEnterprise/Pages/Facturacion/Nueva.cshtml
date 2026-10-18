@@ -1,0 +1,109 @@
+@page
+@model ADEnterprise.Pages.Facturacion.NuevaModel
+@{ ViewData["Title"] = "Nueva Factura"; }
+
+<div class="page-title"><i class="bi bi-plus-circle"></i> Nueva Factura</div>
+<div class="page-subtitle">Complete los datos para registrar una nueva factura</div>
+
+<div class="row justify-content-center">
+<div class="col-md-8">
+<div class="card shadow-sm">
+<div class="card-header" style="background:var(--azul-marino);color:white;font-weight:600;">
+    Datos de la Factura
+</div>
+<div class="card-body">
+<form method="post">
+    <div class="row g-3">
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">N° Transacción</label>
+            <input type="text" class="form-control bg-light" value="(Auto-generado)" readonly/>
+            <small class="text-muted">Se asigna automáticamente</small>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">N° Ticket <span class="text-danger">*</span></label>
+            <input asp-for="Input.NumTicket" class="form-control" type="number"/>
+            <span asp-validation-for="Input.NumTicket" class="text-danger small"></span>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold">Fecha de Factura <span class="text-danger">*</span></label>
+            <input asp-for="Input.FechaFactura" type="date" class="form-control"/>
+            <span asp-validation-for="Input.FechaFactura" class="text-danger small"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Compañía <span class="text-danger">*</span></label>
+            <select asp-for="Input.IdCompania" class="form-select" id="selCompania">
+                <option value="">-- Seleccione una compañía --</option>
+                @foreach (var c in Model.Companias)
+                {
+                    <option value="@c.Id" data-nombre="@c.Nombre">@c.Nombre</option>
+                }
+            </select>
+            <span asp-validation-for="Input.IdCompania" class="text-danger small"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Cliente <span class="text-danger">*</span></label>
+            <select asp-for="Input.IdCliente" class="form-select" id="selCliente">
+                <option value="">-- Seleccione un cliente --</option>
+                @foreach (var c in Model.Clientes)
+                {
+                    <option value="@c.Id" data-nombre="@c.NombreCompleto">@c.NombreCompleto</option>
+                }
+            </select>
+            <span asp-validation-for="Input.IdCliente" class="text-danger small"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Monto (RD$) <span class="text-danger">*</span></label>
+            <div class="input-group">
+                <span class="input-group-text">RD$</span>
+                <input asp-for="Input.Monto" type="number" step="0.01" class="form-control" placeholder="0.00"/>
+            </div>
+            <span asp-validation-for="Input.Monto" class="text-danger small"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">Estado</label>
+            <input type="text" class="form-control bg-light" value="PENDIENTE" readonly/>
+            <small class="text-muted">Se asigna automáticamente al crear</small>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-semibold">Notas</label>
+            <textarea asp-for="Input.Notas" class="form-control" rows="2" placeholder="Observaciones opcionales..."></textarea>
+        </div>
+
+        <!-- Campos bloqueados informativos -->
+        <div class="col-md-4">
+            <label class="form-label fw-semibold text-muted">Fecha de Pago</label>
+            <input type="text" class="form-control bg-light text-muted" value="(Se llena al pagar)" readonly/>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold text-muted">Forma de Pago</label>
+            <input type="text" class="form-control bg-light text-muted" value="(Se llena al pagar)" readonly/>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label fw-semibold text-muted">N° Cheque / Ref.</label>
+            <input type="text" class="form-control bg-light text-muted" value="(Se llena al pagar)" readonly/>
+        </div>
+
+    </div>
+
+    <hr class="my-4"/>
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="/Facturacion/Consulta" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary-app">
+            <i class="bi bi-save"></i> Guardar Factura
+        </button>
+    </div>
+</form>
+</div>
+</div>
+</div>
+</div>

@@ -1,0 +1,226 @@
+@page
+@model ADEnterprise.Pages.Finanzas.CajaGeneralModel
+@{ ViewData["Title"] = "Caja General"; }
+
+@* ── Encabezado ──────────────────────────────────────────────────────────────── *@
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-bank2"></i> Caja General</div>
+        <div class="page-subtitle">Balance en tiempo real y estado de cuenta por cuadre</div>
+    </div>
+    <div class="text-end">
+        <div class="text-muted small">Balance general del sistema</div>
+        <div class="fw-bold fs-3" style="color:@(Model.BalanceActual >= 0 ? "var(--verde)" : "#dc3545")">
+            RD$ @Model.BalanceActual.ToString("N2")
+        </div>
+        @if (Model.CajaAbierta != null)
+        {
+            <span class="badge bg-success"><i class="bi bi-unlock"></i> @Model.CajaAbierta.SeqCuadre</span>
+        }
+        else
+        {
+            <span class="badge bg-danger"><i class="bi bi-lock"></i> Caja cerrada</span>
+        }
+    </div>
+</div>
+
+@* ── Alerta día anterior ───────────────────────────────────────────────────── *@
+@if (Model.CajaDeOtrosDias && Model.CajaAbierta != null)
+{
+    <div class="alert alert-danger d-flex align-items-center gap-2 mb-3">
+        <i class="bi bi-exclamation-triangle-fill fs-4"></i>
+        <span>
+            Hay una caja del <strong>@Model.CajaAbierta.FechaApertura.ToString("dd/MM/yyyy")</strong> sin cerrar.
+            <a href="/Finanzas/Caja" class="alert-link">Ir a Caja para cerrarla →</a>
+        </span>
+    </div>
+}
+
+@* ── Tarjetas de resumen rápido ─────────────────────────────────────────────── *@
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-arrow-down-circle text-success fs-2"></i>
+                <div class="fs-5 fw-bold text-success mt-1">RD$ @Model.TotalCreditos.ToString("N2")</div>
+                <div class="text-muted small">Total Ingresos (cuadre)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-arrow-up-circle text-danger fs-2"></i>
+                <div class="fs-5 fw-bold text-danger mt-1">RD$ @Model.TotalDebitos.ToString("N2")</div>
+                <div class="text-muted small">Total Egresos (cuadre)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-calculator text-primary fs-2"></i>
+                @{ var netoCuadre = Model.TotalCreditos - Model.TotalDebitos; }
+                <div class="fs-5 fw-bold @(netoCuadre >= 0 ? "text-success" : "text-danger") mt-1">
+                    RD$ @netoCuadre.ToString("N2")
+                </div>
+                <div class="text-muted small">Neto del cuadre</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center py-3">
+                <i class="bi bi-list-ol text-secondary fs-2"></i>
+                <div class="fs-5 fw-bold text-secondary mt-1">@Model.Movimientos.Count</div>
+                <div class="text-muted small">Movimientos del cuadre</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* ── Selector de cuadre ──────────────────────────────────────────────────────── *@
+<div class="card shadow-sm mb-3">
+    <div class="card-body py-2">
+        <form method="get" class="d-flex align-items-center gap-3">
+            <label class="fw-bold mb-0 text-nowrap">Ver cuadre:</label>
+            <select name="SeqCuadreVer" class="form-select" style="max-width:340px" onchange="this.form.submit()">
+                @foreach (var c in Model.HistorialCuadres)
+                {
+                    <option value="@c.SeqCuadre" selected="@(Model.SeqCuadreVer == c.SeqCuadre)">
+                        @c.SeqCuadre — @c.FechaApertura.ToString("dd/MM/yyyy")
+                        @(c.Estado == "ABIERTA" ? "🟢 ABIERTA" : "⚫ CERRADA")
+                    </option>
+                }
+            </select>
+        </form>
+    </div>
+</div>
+
+@* ── Estado de cuenta (cronológico) ─────────────────────────────────────────── *@
+<div class="card shadow-sm">
+    <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+        <i class="bi bi-receipt"></i> Estado de Cuenta — @Model.SeqCuadreVer
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.MovimientosConSaldo.Any())
+        {
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox fs-1"></i><br>
+                No hay movimientos en este cuadre.
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-app table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width:160px">Secuencia Mov.</th>
+                            <th style="width:145px">Fecha / Hora</th>
+                            <th>Categoría</th>
+                            <th>Concepto</th>
+                            <th>Empresa / Cliente</th>
+                            <th class="text-end" style="width:130px">Ingreso</th>
+                            <th class="text-end" style="width:130px">Egreso</th>
+                            <th class="text-end" style="width:140px">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @* Fila de apertura: balance inicial del cuadre *@
+                    @if (Model.CuadreSeleccionado != null)
+                    {
+                        <tr class="table-secondary">
+                            <td colspan="2" class="text-muted small">
+                                <i class="bi bi-lock-fill me-1"></i>@Model.CuadreSeleccionado.FechaApertura.ToString("dd/MM/yy HH:mm")
+                            </td>
+                            <td colspan="3" class="fw-semibold text-secondary">
+                                <span class="badge bg-secondary">APERTURA</span>
+                                Balance inicial al abrir el cuadre
+                            </td>
+                            <td class="text-end"></td>
+                            <td class="text-end"></td>
+                            <td class="text-end fw-bold @(Model.CuadreSeleccionado.BalanceInicial >= 0 ? "text-dark" : "text-danger")">
+                                RD$ @Model.CuadreSeleccionado.BalanceInicial.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var item in Model.MovimientosConSaldo)
+                    {
+                        var m = item.Mov;
+                        var esCredito = m.TipoMov == "CREDITO";
+                        <tr>
+                            <td><code class="small">@m.SeqMovCaja</code></td>
+                            <td class="small text-muted">@m.FechaMovimiento.ToString("dd/MM/yy HH:mm")</td>
+                            <td>
+                                <span class="badge @CategoriaBadge(m.Categoria)">@LabelCategoria(m.Categoria)</span>
+                            </td>
+                            <td class="small">
+                                @m.Concepto
+                                @if (!string.IsNullOrEmpty(m.RefDocumento))
+                                {
+                                    <br><span class="text-muted">Ref: <code>@m.RefDocumento</code></span>
+                                }
+                            </td>
+                            <td class="small">
+                                @m.EmpresaNombre
+                                @if (!string.IsNullOrEmpty(m.ClienteNombre))
+                                {
+                                    <br><span class="text-muted">@m.ClienteNombre</span>
+                                }
+                            </td>
+                            <td class="text-end text-success fw-bold">
+                                @(esCredito ? $"RD$ {m.Monto:N2}" : "")
+                            </td>
+                            <td class="text-end text-danger fw-bold">
+                                @(!esCredito ? $"RD$ {m.Monto:N2}" : "")
+                            </td>
+                            <td class="text-end fw-bold @(item.SaldoAcumulado >= 0 ? "text-dark" : "text-danger")">
+                                RD$ @item.SaldoAcumulado.ToString("N2")
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="5" class="text-end">TOTALES</td>
+                            <td class="text-end text-success">RD$ @Model.TotalCreditos.ToString("N2")</td>
+                            <td class="text-end text-danger">RD$ @Model.TotalDebitos.ToString("N2")</td>
+                            <td class="text-end @(netoCuadre >= 0 ? "text-success" : "text-danger")">
+                                RD$ @netoCuadre.ToString("N2")
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@functions {
+    string CategoriaBadge(string cat) => cat switch {
+        "PAGO_FACTORING"    => "bg-danger",          // DÉBITO — sale dinero
+        "COMISION_FACTORING"=> "bg-success",          // CRÉDITO — entra comisión
+        "COBRO_CXC"         => "bg-primary",
+        "INGRESO_CAPITAL"   => "bg-info text-dark",
+        "EGRESO_NOMINA"     => "bg-secondary",
+        "EGRESO_SERVICIO"   => "bg-secondary",
+        "EGRESO_OTRO"       => "bg-secondary",
+        // compatibilidad con datos anteriores
+        "FACTURA_CXC"       => "bg-danger",
+        _                   => "bg-light text-dark"
+    };
+
+    string LabelCategoria(string cat) => cat switch {
+        "PAGO_FACTORING"    => "Pago Factoring",
+        "COMISION_FACTORING"=> "Comisión",
+        "COBRO_CXC"         => "Cobro CxC",
+        "INGRESO_CAPITAL"   => "Capital",
+        "EGRESO_NOMINA"     => "Nómina",
+        "EGRESO_SERVICIO"   => "Servicio",
+        "EGRESO_OTRO"       => "Otro",
+        // compatibilidad con datos anteriores
+        "FACTURA_CXC"       => "Pago Factoring",
+        _                   => cat
+    };
+}

@@ -1,0 +1,2 @@
+ID de este servidor (huella): BC69-420F-2E60-216D-692E
+Entregue este ID al administrador del sistema si su licencia debe quedar atada a este servidor.

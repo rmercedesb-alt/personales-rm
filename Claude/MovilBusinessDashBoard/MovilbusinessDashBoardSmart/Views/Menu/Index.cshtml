@@ -1,0 +1,194 @@
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Menu Principal &mdash; AM COMERCIAL</title>
+<style>
+:root{
+  --bg:#F7F9F7;--panel:#FFFFFF;--panel2:#F0F4F0;--border:#D9E2D9;--line:#E6ECE6;
+  --text:#1F2A22;--muted:#5C6B5F;--accent:#283078;--accent2:#3357C4;
+  --good:#2E9E4A;--warn:#D29922;--bad:#C0392B;--purple:#6C3FC4;
+  --good-bg:#EAF7EE;--warn-bg:#FBF3DA;--bad-bg:#FBEAEA;--purple-bg:#F1EAFB;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;min-height:100vh;display:flex;flex-direction:column}
+header{display:flex;justify-content:space-between;align-items:center;padding:16px 28px;border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:14px}
+.brand-name{font-size:20px;font-weight:800}
+.brand-sub{font-size:12px;color:var(--accent2);margin-top:2px}
+.hdr-right{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--muted)}
+.btn-out{background:var(--panel2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 12px;font-size:12px;text-decoration:none;transition:all .15s}
+.btn-out:hover{border-color:var(--bad);color:var(--bad)}
+main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+h1{font-size:16px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:36px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;width:100%;max-width:900px}
+.dash-card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:32px 24px;display:flex;flex-direction:column;align-items:center;gap:14px;cursor:pointer;text-decoration:none;color:inherit;transition:all .2s;position:relative;overflow:hidden}
+.dash-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:14px 14px 0 0;transition:all .2s}
+.dash-card:hover{border-color:var(--accent2);background:var(--panel2);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.dc-1::before{background:linear-gradient(90deg,var(--accent2),var(--accent))}
+.dc-2::before{background:linear-gradient(90deg,var(--good),var(--good))}
+.dc-3::before{background:linear-gradient(90deg,var(--warn),var(--warn))}
+.dc-6::before{background:linear-gradient(90deg,var(--bad),var(--bad))}
+.dc-4::before{background:linear-gradient(90deg,var(--warn),var(--warn))}
+.dc-5::before{background:linear-gradient(90deg,var(--purple),var(--purple))}
+.dc-7::before{background:linear-gradient(90deg,#2dd4bf,#0891b2)}
+.dc-8::before{background:linear-gradient(90deg,var(--good),var(--accent2))}
+.dc-9::before{background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.dash-icon{font-size:38px;line-height:1}
+.dash-title{font-size:15px;font-weight:700;text-align:center}
+.dash-desc{font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
+.badge-soon{background:var(--panel2);color:var(--muted);font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600;letter-spacing:.5px}
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.status-dot.online{background:var(--good)}.status-dot.offline{background:var(--bad)}
+.card-status{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted);margin-top:-4px}
+footer{text-align:center;padding:16px;font-size:11px;color:var(--muted);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="@(Context.Request.PathBase)/api/logo" alt="Logo" style="height:44px;width:auto;border-radius:6px;object-fit:contain"
+         onerror="this.style.display='none'">
+    <div>
+      <div class="brand-name" id="brand-name">AM COMERCIAL</div>
+      <div class="brand-sub">Centro de Dashboards</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <span id="user-nombre"></span>
+    <a href="@(Context.Request.PathBase)/account/logout" class="btn-out">&#x2192; Salir</a>
+  </div>
+</header>
+
+<main>
+  <h1>Selecciona un Dashboard</h1>
+  <div class="grid">
+
+    <a id="card-torre" href="#" class="dash-card dc-6">
+      <div class="dash-icon">&#128737;</div>
+      <div class="dash-title">Torre de Control</div>
+      <div class="dash-desc">Vigilancia operativa diaria: alarmas en vivo, bitacora de contactos</div>
+      <div class="card-status"><span class="status-dot online" id="dot-torre"></span><span id="txt-torre">En linea</span></div>
+    </a>
+
+    <a id="card-vis" href="#" class="dash-card dc-1">
+      <div class="dash-icon">&#128205;</div>
+      <div class="dash-title">Visitas</div>
+      <div class="dash-desc">Monitoreo en vivo de visitas y pedidos de representantes</div>
+      <div class="card-status"><span class="status-dot online" id="dot-vis"></span><span id="txt-vis">En linea</span></div>
+    </a>
+
+    <a id="card-geo" href="#" class="dash-card dc-5">
+      <div class="dash-icon">&#127758;</div>
+      <div class="dash-title">Geolocalizaciones</div>
+      <div class="dash-desc">Mapa en vivo: ubicacion, ventas, oportunidades y rutas</div>
+      <div class="card-status"><span class="status-dot online" id="dot-geo"></span><span id="txt-geo">En linea</span></div>
+    </a>
+
+    <a id="card-seg" href="#" class="dash-card dc-3">
+      <div class="dash-icon">&#128203;</div>
+      <div class="dash-title">Seguimientos Semanales</div>
+      <div class="dash-desc">Torre de Control: IEGT, informe y conclusiones por supervisor</div>
+      <div class="card-status"><span class="status-dot online" id="dot-seg"></span><span id="txt-seg">En linea</span></div>
+    </a>
+
+    <a id="card-prod" href="#" class="dash-card dc-2">
+      <div class="dash-icon">&#128200;</div>
+      <div class="dash-title">Productividad</div>
+      <div class="dash-desc">Cumplimiento, efectividad y pedidos por representante</div>
+      <div class="card-status"><span class="status-dot online" id="dot-prod"></span><span id="txt-prod">En linea</span></div>
+    </a>
+
+    <a id="card-hist" href="#" class="dash-card dc-4">
+      <div class="dash-icon">&#128202;</div>
+      <div class="dash-title">Historicos</div>
+      <div class="dash-desc">Reportes de ventas: vendedor, suplidor, activaciones, comparativos</div>
+      <div class="card-status"><span class="status-dot online" id="dot-hist"></span><span id="txt-hist">En linea</span></div>
+    </a>
+
+    <a id="card-superv" href="#" class="dash-card dc-7">
+      <div class="dash-icon">&#129517;</div>
+      <div class="dash-title">Supervision Dinamica</div>
+      <div class="dash-desc">Acompanamiento y auditoria en calle, supervision virtual y expediente</div>
+      <div class="card-status"><span class="status-dot online" id="dot-superv"></span><span id="txt-superv">En linea</span></div>
+    </a>
+
+    <a id="card-presu" href="#" class="dash-card dc-8">
+      <div class="dash-icon">&#128176;</div>
+      <div class="dash-title">Presupuestos</div>
+      <div class="dash-desc">Dinero, unidades, facturas y activaciones: del dia, del mes y del ano, con proyeccion y estimado</div>
+      <div class="card-status"><span class="status-dot online" id="dot-presu"></span><span id="txt-presu">En linea</span></div>
+    </a>
+
+    <a id="card-presu-gestion" href="#" class="dash-card dc-9" style="display:none">
+      <div class="dash-icon">&#128221;</div>
+      <div class="dash-title">Presupuestos &mdash; Gestion</div>
+      <div class="dash-desc">Crear, editar y publicar presupuestos (solo Gerencia)</div>
+      <div class="card-status"><span class="status-dot online"></span><span>En linea</span></div>
+    </a>
+
+  </div>
+</main>
+
+<footer><span id="footer-txt">AM COMERCIAL &mdash; Sistema de Dashboards Ejecutivos</span> &nbsp;&middot;&nbsp; <span id="app-ver" title="Version desplegada" style="color:var(--muted);font-variant-numeric:tabular-nums">v&mdash;</span></footer>
+
+<script>
+const BASE = '@Context.Request.PathBase.Value';
+// Apodo del IEGT (marca por empresa): reemplaza "IEGT" en las tarjetas si hay apodo configurado
+fetch(BASE+'/apisuperv/branding').then(r=>r.json()).then(j=>{ if(j&&j.ok&&j.iegtApodo){ document.querySelectorAll('.dash-desc').forEach(e=>{ if(e.textContent.indexOf('IEGT')>=0) e.textContent=e.textContent.replace(/\bIEGT\b/g,j.iegtApodo); }); } }).catch(()=>{});
+document.getElementById('card-vis').href  = BASE+'/';
+document.getElementById('card-prod').href = BASE+'/productividad';
+document.getElementById('card-geo').href  = BASE+'/geo';
+document.getElementById('card-seg').href  = BASE+'/seguimientos';
+document.getElementById('card-torre').href = BASE+'/torre';
+document.getElementById('card-hist').href = BASE+'/historicos';
+document.getElementById('card-superv').href = BASE+'/supervision';
+document.getElementById('card-presu').href = BASE+'/presupuestos';
+document.getElementById('card-presu-gestion').href = BASE+'/presupuestos/gestion';
+// Tarjeta de Gestion de Presupuestos: solo visible para Rol='Gerencia' (SupervisionUsuarioMapa_RM)
+fetch(BASE+'/apipresupuestogestion/identidad').then(r=>r.json()).then(j=>{
+  if (j && j.ok && j.esGerencia) document.getElementById('card-presu-gestion').style.display = '';
+}).catch(()=>{});
+// Licencia: oculta la tarjeta de cualquier módulo apagado (pedido explícito 2026-09-30).
+// Esto es solo cosmético — el bloqueo real está en el servidor (cada controller valida
+// su propio módulo vía [RequiereModulo], ver Services/LicenseService.cs); si alguien
+// entra por la URL directa de un módulo apagado, el servidor lo rechaza igual.
+const MODULO_POR_TARJETA = {
+  'card-torre':'torre', 'card-vis':'visitas', 'card-geo':'geo', 'card-seg':'seguimientos',
+  'card-prod':'productividad', 'card-hist':'historicos', 'card-superv':'supervision',
+  'card-presu':'presupuestos', 'card-presu-gestion':'presupuestosGestion'
+};
+fetch(BASE+'/api/licencia').then(r=>r.json()).then(j=>{
+  if (!j || !j.ok || !j.modulos) return;
+  Object.entries(MODULO_POR_TARJETA).forEach(([cardId, modulo]) => {
+    if (!j.modulos[modulo]) {
+      const el = document.getElementById(cardId);
+      if (el) el.style.display = 'none';
+    }
+  });
+}).catch(()=>{});
+fetch(BASE+'/api/me').then(r=>r.json()).then(j=>{
+  if(j&&j.ok) document.getElementById('user-nombre').textContent=j.nombre||j.login;
+}).catch(()=>{});
+fetch(BASE+'/api/empresa').then(r=>r.json()).then(j=>{
+  if(j&&j.ok&&j.nombre){
+    document.getElementById('brand-name').textContent = j.nombre;
+    document.getElementById('footer-txt').textContent = j.nombre + ' — Sistema de Dashboards Ejecutivos';
+    document.title = 'Menu Principal — ' + j.nombre;
+  }
+}).catch(()=>{});
+// Version desplegada (para confirmar el release en pantalla)
+fetch(BASE+'/version').then(r=>r.json()).then(j=>{
+  if(j&&j.version) document.getElementById('app-ver').textContent = 'v'+j.version;
+}).catch(()=>{});
+// Ambos disponibles (mismo proceso)
+document.getElementById('dot-vis').className = 'status-dot online';
+document.getElementById('txt-vis').textContent = 'En linea';
+document.getElementById('dot-prod').className = 'status-dot online';
+document.getElementById('txt-prod').textContent = 'En linea';
+</script>
+</body>
+</html>

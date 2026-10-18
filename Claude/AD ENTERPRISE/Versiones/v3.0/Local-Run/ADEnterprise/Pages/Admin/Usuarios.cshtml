@@ -1,0 +1,198 @@
+@page
+@model ADEnterprise.Pages.Admin.UsuariosModel
+@{ ViewData["Title"] = "Gestión de Usuarios"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-shield-person"></i> Gestión de Usuarios</div>
+        <div class="page-subtitle">Solo el Administrador puede gestionar usuarios del sistema</div>
+    </div>
+    <button class="btn btn-primary-app" data-bs-toggle="modal" data-bs-target="#modalNuevoUsuario">
+        <i class="bi bi-person-plus"></i> Nuevo Usuario
+    </button>
+</div>
+
+<!-- Tabla de usuarios -->
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-app table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Nombre Completo</th>
+                    <th>Usuario</th>
+                    <th>Correo</th>
+                    <th>Perfil</th>
+                    <th>Estado</th>
+                    <th>Creado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Usuarios)
+                {
+                <tr>
+                    <td><i class="bi bi-person-circle text-primary me-1"></i> @u.NombreCompleto</td>
+                    <td><code>@u.NombreUsuario</code></td>
+                    <td>@u.Correo</td>
+                    <td>
+                        <span class="badge @(u.Perfil == ADEnterprise.Models.PerfilUsuario.Administrador ? "bg-danger" :
+                                             u.Perfil == ADEnterprise.Models.PerfilUsuario.Operativo ? "bg-primary" : "bg-secondary")">
+                            @u.Perfil
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge @(u.Estado == ADEnterprise.Models.EstadoUsuario.Activo ? "bg-success" : "bg-secondary")">
+                            @u.Estado
+                        </span>
+                    </td>
+                    <td><small>@u.FechaCreacion.ToString("dd/MM/yyyy")</small></td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary"
+                                onclick="editarUsuario('@u.Id','@u.NombreCompleto','@u.NombreUsuario','@u.Correo','@u.Perfil','@u.Estado')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        @if (u.NombreUsuario != "admin")
+                        {
+                        <form method="post" asp-page-handler="ToggleEstado" class="d-inline">
+                            <input type="hidden" name="id" value="@u.Id"/>
+                            <button type="submit" class="btn btn-sm @(u.Estado == ADEnterprise.Models.EstadoUsuario.Activo ? "btn-outline-warning" : "btn-outline-success")"
+                                    onclick="return confirmarAccion('¿Cambiar estado del usuario @u.NombreCompleto?')">
+                                <i class="bi @(u.Estado == ADEnterprise.Models.EstadoUsuario.Activo ? "bi-person-slash" : "bi-person-check")"></i>
+                            </button>
+                        </form>
+                        <form method="post" asp-page-handler="Eliminar" class="d-inline"
+                              onsubmit="return confirm('⚠️ ¿Eliminar PERMANENTEMENTE a @u.NombreCompleto?\n\nEsta acción no se puede deshacer.')">
+                            <input type="hidden" name="id" value="@u.Id"/>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar usuario permanentemente">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </form>
+                        }
+                    </td>
+                </tr>
+                }
+                @if (!Model.Usuarios.Any())
+                {
+                <tr><td colspan="7" class="text-center text-muted py-4">No hay usuarios registrados</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="modalNuevoUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nuevo Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Crear">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nombre Completo *</label>
+                        <input name="NombreCompleto" class="form-control" required placeholder="Nombre completo del usuario"/>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Usuario *</label>
+                            <input name="NombreUsuario" class="form-control" required placeholder="nombre.usuario"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input name="Correo" type="email" class="form-control" placeholder="correo@empresa.com"/>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contraseña *</label>
+                            <input name="Password" type="password" class="form-control" required minlength="6"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Perfil *</label>
+                            <select name="Perfil" class="form-select" required>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Operativo" selected>Operativo</option>
+                                <option value="Consultas">Consultas</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="alert alert-info" style="font-size:0.82rem;">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Permisos:</strong><br/>
+                        🔴 <strong>Administrador:</strong> Acceso total<br/>
+                        🔵 <strong>Operativo:</strong> Insertar, consultar (editar/borrar requiere permiso)<br/>
+                        ⚫ <strong>Consultas:</strong> Solo ver datos
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Crear Usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="modalEditarUsuario" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background:var(--azul-marino);color:white;">
+                <h5 class="modal-title"><i class="bi bi-pencil"></i> Editar Usuario</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" asp-page-handler="Editar">
+                <div class="modal-body">
+                    <input type="hidden" id="edit-Id" name="Id"/>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nombre Completo *</label>
+                        <input id="edit-NombreCompleto" name="NombreCompleto" class="form-control" required/>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Usuario</label>
+                            <input id="edit-NombreUsuario" name="NombreUsuario" class="form-control" readonly class="bg-light"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Correo</label>
+                            <input id="edit-Correo" name="Correo" type="email" class="form-control"/>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nueva Contraseña</label>
+                            <input name="NuevoPassword" type="password" class="form-control" placeholder="Dejar vacío para no cambiar"/>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Perfil *</label>
+                            <select id="edit-Perfil" name="Perfil" class="form-select" required>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Operativo">Operativo</option>
+                                <option value="Consultas">Consultas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary-app"><i class="bi bi-save"></i> Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function editarUsuario(id, nombre, usuario, correo, perfil, estado) {
+    document.getElementById('edit-Id').value = id;
+    document.getElementById('edit-NombreCompleto').value = nombre;
+    document.getElementById('edit-NombreUsuario').value = usuario;
+    document.getElementById('edit-Correo').value = correo;
+    document.getElementById('edit-Perfil').value = perfil;
+    new bootstrap.Modal(document.getElementById('modalEditarUsuario')).show();
+}
+</script>
+}

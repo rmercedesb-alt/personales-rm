@@ -1,0 +1,108 @@
+@model List<PorfiAcademy.Controllers.SlideViewModel>
+@using PorfiAcademy.Data
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+@if (Context.Request.Query["ya"] == "1" && User.Identity?.IsAuthenticated == true)
+{
+    <div class="notice">Ya tienes la sesión iniciada como <strong>@User.Identity!.Name</strong>. Para entrar con otra cuenta o crear una nueva, pulsa primero «Salir».</div>
+}
+
+<section class="carousel" aria-roledescription="carrusel" aria-label="Promociones" data-interval="10000">
+    <div class="slides">
+        @for (var i = 0; i < Model.Count; i++)
+        {
+            var s = Model[i];
+            <article class="slide v@(s.Variant) @(i == 0 ? "active" : "")" data-id="@s.Id" aria-hidden="@(i == 0 ? "false" : "true")">
+                @if (s.Kind == SlideKind.Video && s.PlaybackId is not null)
+                {
+                    <img class="slide-bg" src="https://image.mux.com/@s.PlaybackId/thumbnail.jpg?time=1" alt="" loading="@(i == 0 ? "eager" : "lazy")" />
+                    <mux-player class="slide-bg slide-video" data-pid="@s.PlaybackId" muted loop playsinline nohotkeys
+                                stream-type="on-demand" style="--controls: none; --media-object-fit: cover;"></mux-player>
+                }
+                else if (s.ImageUrl is not null)
+                {
+                    <img class="slide-bg" src="@s.ImageUrl" alt="" loading="@(i == 0 ? "eager" : "lazy")" />
+                }
+                <div class="slide-shade"></div>
+                <div class="slide-body">
+                    <h2>@s.Title</h2>
+                    @if (!string.IsNullOrWhiteSpace(s.Subtitle))
+                    {
+                        <p>@s.Subtitle</p>
+                    }
+                    <a class="btn" href="@s.Href">@s.CtaText</a>
+                </div>
+            </article>
+        }
+    </div>
+    @if (Model.Count > 1)
+    {
+        <button type="button" class="car-arrow prev" aria-label="Anterior">‹</button>
+        <button type="button" class="car-arrow next" aria-label="Siguiente">›</button>
+        <div class="car-dots">
+            @for (var i = 0; i < Model.Count; i++)
+            {
+                <button type="button" class="dot @(i == 0 ? "on" : "")" aria-label="Ir a la diapositiva @(i + 1)"></button>
+            }
+        </div>
+        <div class="car-progress" aria-hidden="true"><i></i></div>
+    }
+</section>
+
+<section class="tiles">
+    <a class="tile" asp-controller="Members" asp-action="Index">
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M10 9l5 3-5 3z"/></svg>
+        <span>Curso</span>
+    </a>
+    <a class="tile" href="/Subscribe">
+        <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/></svg>
+        <span>Planes</span>
+    </a>
+    <a class="tile" href="/Subscribe?tipo=evaluacion">
+        <svg viewBox="0 0 24 24"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/></svg>
+        <span>Evaluación gratis</span>
+    </a>
+    <a class="tile" asp-controller="Members" asp-action="Index">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M10 8.5l5 3.5-5 3.5z"/></svg>
+        <span>Videos gratis</span>
+    </a>
+</section>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <section class="cta-band">
+        @if (User.IsInRole("Admin"))
+        {
+            <h2>Panel de administración</h2>
+            <p>Estás dentro como administrador. Así ve la portada un visitante cuando no ha iniciado sesión: usa «Salir» o una ventana privada.</p>
+            <a class="btn" asp-controller="Manage" asp-action="Index">Ir a Administración</a>
+            <a class="btn ghost" asp-controller="Members" asp-action="Index">Ver mis cursos</a>
+        }
+        else
+        {
+            <h2>Bienvenido de nuevo</h2>
+            <p>Continúa con tus videos o revisa y renueva tu suscripción.</p>
+            <a class="btn" asp-controller="Members" asp-action="Index">Ir a mis cursos</a>
+            <a class="btn ghost" href="/Subscribe">Mi suscripción</a>
+        }
+    </section>
+}
+else
+{
+    <section class="cta-band">
+        <h2>Empieza hoy</h2>
+        <p>Crea tu cuenta para ver los videos gratuitos y activa tu suscripción para desbloquear todos los niveles.</p>
+        <a class="btn" asp-area="Identity" asp-page="/Account/Register">Crear mi cuenta</a>
+        <a class="btn ghost" href="/Subscribe">Ver planes</a>
+    </section>
+}
+
+@section Scripts {
+    @if (Model.Any(s => s.Kind == SlideKind.Video))
+    {
+        <script src="https://cdn.jsdelivr.net/npm/@@mux/mux-player@@3.14.0"></script>
+    }
+    <script src="~/js/carousel.js" asp-append-version="true"></script>
+}

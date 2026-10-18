@@ -1,0 +1,67 @@
+================================================================
+   INSTALACION DE LA VERSION 6 (V6) EN EL CLIENTE
+   Instalacion LADO A LADO: la v5 queda intacta.
+================================================================
+
+Este paquete trae:
+   - web-app-v6\      (el sistema nuevo, sin node_modules)
+   - INSTALADOR\      (los .bat y el esquema de base de datos)
+   - MEJORAS_V6.txt   (lista de novedades de la V6)
+
+REQUISITOS (ya presentes por la v5):
+   - .NET 8 SDK
+   - Node.js
+   - PostgreSQL con la base "inmuebles_rd"
+
+----------------------------------------------------------------
+ PASO A PASO
+----------------------------------------------------------------
+
+1) DESCOMPRIMIR
+   Descomprime este ZIP DENTRO de la carpeta del sistema del
+   cliente (la que ya contiene "web-app-v5"), de modo que quede:
+       ...\Sistema de Condominios\web-app-v5
+       ...\Sistema de Condominios\web-app-v6     <-- nuevo
+       ...\Sistema de Condominios\INSTALADOR
+   Si te pregunta reemplazar archivos del INSTALADOR, acepta
+   (son las versiones nuevas de los .bat y del esquema).
+
+2) ACTUALIZAR (una sola vez)
+   Entra a la carpeta INSTALADOR y, con CLIC DERECHO ->
+   "Ejecutar como administrador", corre:
+       ACTUALIZAR_V6.bat
+   Esto aplica el esquema de base de datos (sin borrar datos),
+   instala dependencias y publica el API v6 en C:\InmueblesV6-API.
+   NO toca la v5.
+
+3) CREAR EL ICONO
+   En la misma carpeta INSTALADOR, doble clic en:
+       CREAR_ACCESO_V6.bat
+   Crea el acceso directo "Sistema Inmuebles V6" en el Escritorio.
+
+4) ABRIR EL SISTEMA
+   Usa el icono nuevo "Sistema Inmuebles V6".
+   (La v5 sigue con su icono de siempre por si acaso.)
+
+----------------------------------------------------------------
+ OPCIONALES (recomendados)
+----------------------------------------------------------------
+
+* MANTENER LA PC ENCENDIDA (para acceso remoto sin cortes):
+    Clic derecho -> Ejecutar como administrador:
+        MANTENER_ENCENDIDA.bat
+
+* RESPALDO A GOOGLE DRIVE:
+    Ver instrucciones en RESPALDO_DRIVE_RCLONE.txt
+    (el respaldo local + Excel ya funciona sin configurar nada).
+
+----------------------------------------------------------------
+ NOTAS
+----------------------------------------------------------------
+ - La base de datos "inmuebles_rd" es COMPARTIDA con la v5; los
+   cambios de esquema son solo aditivos (no afectan a la v5).
+ - La primera compilacion (paso 2) necesita INTERNET para
+   descargar los paquetes (NuGet / npm). Luego ya no.
+ - Si aparece un error de "columna no existe", corre
+   APLICAR_ESQUEMA_V6.bat y reintenta.
+================================================================

@@ -1,0 +1,184 @@
+@page
+@model ADEnterprise.Pages.Finanzas.EgresosModel
+@{ ViewData["Title"] = "Registro de Egresos"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <div class="page-title"><i class="bi bi-arrow-up-circle"></i> Registro de Egresos</div>
+        <div class="page-subtitle">Gastos, servicios y nómina — genera automáticamente un débito a caja</div>
+    </div>
+    @if (Model.CajaAbierta != null)
+    {
+        <span class="badge bg-success fs-6"><i class="bi bi-unlock"></i> Caja: @Model.CajaAbierta.SeqCuadre</span>
+    }
+</div>
+
+<div class="row g-3">
+
+    @* ── Formulario ────────────────────────────────────────────────────────── *@
+    <div class="col-md-4">
+        <div class="card shadow-sm" style="border-left:4px solid #dc3545">
+            <div class="card-header fw-bold" style="background:#dc3545;color:white">
+                <i class="bi bi-plus-circle"></i> Nuevo Egreso
+            </div>
+            <div class="card-body">
+                <form method="post" asp-page-handler="Registrar" id="frmEgreso">
+                    <input type="hidden" name="FormToken" value="@Model.FormToken" />
+                    <input type="hidden" name="ConfirmDuplicate" id="hConfirmDuplicate" value="false" />
+
+                    @* Alerta de posible duplicado *@
+                    @if (Model.DuplicateWarning != null)
+                    {
+                        <div class="alert alert-warning py-2 mb-3" id="alertaDuplicado">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                            @Html.Raw(Model.DuplicateWarning)
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn btn-warning btn-sm fw-bold"
+                                        onclick="confirmarDuplicado()">
+                                    <i class="bi bi-check-circle"></i> Sí, registrar de todas formas
+                                </button>
+                                <a href="/Finanzas/Egresos" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-x-circle"></i> Cancelar
+                                </a>
+                            </div>
+                        </div>
+                    }
+
+                    @* Tipo de egreso — drill down *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tipo de Egreso <span class="text-danger">*</span></label>
+                        <select asp-for="Nuevo.TipoEgreso" class="form-select" required>
+                            <option value="">— Seleccionar —</option>
+                            @foreach (var t in Model.TiposEgreso)
+                            {
+                                <option value="@t">@ADEnterprise.Services.EgresosService.LabelTipo(t)</option>
+                            }
+                        </select>
+                    </div>
+
+                    @* A nombre de *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">A Nombre De <span class="text-danger">*</span></label>
+                        <input type="text" asp-for="Nuevo.ANombreDe" class="form-control"
+                               placeholder="Empleado, proveedor, entidad..." required maxlength="200"/>
+                    </div>
+
+                    @* Fecha *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" asp-for="Nuevo.Fecha" class="form-control" required/>
+                    </div>
+
+                    @* Monto *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Monto (RD$) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text">RD$</span>
+                            <input type="number" step="0.01" min="0.01" asp-for="Nuevo.Monto"
+                                   class="form-control" required/>
+                        </div>
+                    </div>
+
+                    @* Nota — campo espacioso *@
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Nota / Descripción</label>
+                        <textarea asp-for="Nuevo.Nota" class="form-control" rows="4"
+                                  placeholder="Descripción detallada del egreso..."></textarea>
+                    </div>
+
+                    @* Usuario — solo lectura *@
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Usuario (automático)</label>
+                        <input type="text" class="form-control bg-light" value="@ViewData["UsuarioNombre"]" disabled/>
+                    </div>
+
+                    <hr>
+                    <div class="alert alert-warning py-2 small">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Al guardar, se genera automáticamente un <strong>DÉBITO</strong> en caja.
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 btn-lg" id="btnEgreso">
+                        <i class="bi bi-save"></i> Registrar Egreso
+                    </button>
+                </form>
+                <script>
+                function confirmarDuplicado() {
+                    document.getElementById('hConfirmDuplicate').value = 'true';
+                    document.getElementById('frmEgreso').submit();
+                }
+                </script>
+            </div>
+        </div>
+    </div>
+
+    @* ── Lista ─────────────────────────────────────────────────────────────── *@
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center"
+                 style="background:var(--azul-marino);color:white">
+                <span class="fw-bold"><i class="bi bi-list-ul"></i> Egresos Registrados</span>
+                <form method="get" class="d-flex gap-2">
+                    <select name="FiltroTipo" class="form-select form-select-sm" style="width:160px">
+                        <option value="">Todos los tipos</option>
+                        @foreach (var t in Model.TiposEgreso)
+                        {
+                            <option value="@t" selected="@(Model.FiltroTipo == t)">
+                                @ADEnterprise.Services.EgresosService.LabelTipo(t)
+                            </option>
+                        }
+                    </select>
+                    <input type="date" name="Desde" value="@Model.Desde?.ToString("yyyy-MM-dd")" class="form-control form-control-sm"/>
+                    <input type="date" name="Hasta" value="@Model.Hasta?.ToString("yyyy-MM-dd")" class="form-control form-control-sm"/>
+                    <button type="submit" class="btn btn-light btn-sm">Filtrar</button>
+                </form>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.Lista.Any())
+                {
+                    <p class="text-center text-muted py-4">No hay egresos registrados.</p>
+                }
+                else
+                {
+                    <table class="table table-app table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Secuencia</th>
+                                <th>Tipo</th>
+                                <th>A Nombre De</th>
+                                <th>Fecha</th>
+                                <th class="text-end">Monto</th>
+                                <th>Nota</th>
+                                <th>Usuario</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var e in Model.Lista)
+                        {
+                            <tr>
+                                <td><code>@e.SeqEgreso</code></td>
+                                <td>
+                                    <span class="badge @(e.TipoEgreso == "Nomina" ? "bg-primary" : e.TipoEgreso == "Servicios" ? "bg-info text-dark" : "bg-secondary")">
+                                        @ADEnterprise.Services.EgresosService.LabelTipo(e.TipoEgreso)
+                                    </span>
+                                </td>
+                                <td>@e.ANombreDe</td>
+                                <td>@e.Fecha.ToString("dd/MM/yyyy")</td>
+                                <td class="text-end fw-bold text-danger">RD$ @e.Monto.ToString("N2")</td>
+                                <td class="text-muted small">@e.Nota</td>
+                                <td>@e.UsuarioRegistro</td>
+                            </tr>
+                        }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-danger fw-bold">
+                                <td colspan="4">Total Egresos</td>
+                                <td class="text-end">RD$ @Model.Lista.Sum(e => e.Monto).ToString("N2")</td>
+                                <td colspan="2"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ALL DIGITAL LICENSE</title>
+<style>
+:root{--bg:#F4F6F4;--panel:#fff;--panel2:#EEF2EE;--border:#D9E2D9;--text:#1F2A22;--muted:#5C6B5F;--accent:#283078;--accent2:#3357C4;--good:#2E9E4A;--warn:#C98A0B;--bad:#C0392B;--good-bg:#EAF7EE;--warn-bg:#FBF3DA;--bad-bg:#FBEAEA}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',Tahoma,sans-serif;font-size:14px}
+header{background:var(--accent);color:#fff;padding:14px 28px;display:flex;align-items:center;justify-content:space-between}
+.brand{font-size:20px;font-weight:800;letter-spacing:.3px}.brand small{font-weight:400;opacity:.75;margin-left:10px;font-size:12px}
+main{max-width:1100px;margin:24px auto;padding:0 20px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:22px}
+.center{max-width:440px;margin:60px auto}
+h2{margin:0 0 14px;font-size:17px}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 4px}
+input[type=text],input[type=password],input[type=date],textarea{width:100%;padding:9px 11px;border:1px solid var(--border);border-radius:8px;font:inherit;background:#fff}
+textarea{resize:vertical;min-height:54px}
+input:focus,textarea:focus{outline:2px solid var(--accent2);border-color:transparent}
+button{font:inherit;cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:8px 14px;border-radius:8px;font-weight:600}
+button:hover{border-color:var(--accent2)}
+button.pri{background:var(--accent);color:#fff;border-color:var(--accent)}button.pri:hover{background:var(--accent2)}
+button.bad{color:var(--bad)}button.sm{padding:4px 9px;font-size:12px}
+header button.pri{background:#fff;color:var(--accent);border-color:#fff}header button.pri:hover{background:#E6ECFF}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sp{flex:1}
+.err{background:var(--bad-bg);color:var(--bad);padding:9px 12px;border-radius:8px;margin-top:12px;display:none}
+.ok{background:var(--good-bg);color:#1c6b32;padding:12px 14px;border-radius:8px;margin-top:12px}
+.hint{color:var(--muted);font-size:12px;margin-top:6px;line-height:1.5}
+table{width:100%;border-collapse:collapse;margin-top:14px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border)}
+th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+tr:hover td{background:#FAFCFA}
+.badge{padding:2px 9px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap}
+.b-Activa{background:var(--good-bg);color:#1c6b32}.b-Por{background:var(--warn-bg);color:#8a5d00}.b-Vencida{background:var(--bad-bg);color:var(--bad)}.b-Sin{background:var(--panel2);color:var(--muted)}
+.mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:6px}
+.mods label{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--text);font-weight:500;background:var(--panel2);padding:8px 10px;border-radius:8px;cursor:pointer}
+.mods input{width:16px;height:16px}
+.overlay{position:fixed;inset:0;background:rgba(20,28,22,.55);display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:30px 16px;z-index:10}
+.modal{background:#fff;border-radius:12px;max-width:720px;width:100%;padding:24px}
+.mini{font-size:12px;color:var(--muted)}
+code,.mono{font-family:Consolas,monospace;font-size:12px;background:var(--panel2);padding:2px 6px;border-radius:5px;word-break:break-all}
+.hide{display:none!important}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">ALL DIGITAL LICENSE<small>Generador de licencias · Dashboard Smart</small></div>
+  <div class="row" id="topbtns"></div>
+</header>
+<main id="app"></main>
+
+<div class="overlay" id="ov"><div class="modal" id="modal"></div></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let MODS=[], CLIENTES=[];
+
+async function api(method,url,body){
+  const r=await fetch(url,{method,headers:{'Content-Type':'application/json','X-MfSoft':'1'},body:body?JSON.stringify(body):undefined});
+  let j={}; try{ j=await r.json(); }catch(e){}
+  if(!r.ok||j.ok===false){ const e=new Error(j.error||('Error '+r.status)); e.status=r.status; throw e; }
+  return j;
+}
+function showErr(id,msg){ const e=$('#'+id); if(!e) return; e.textContent=msg; e.style.display=msg?'block':'none'; }
+function hoyISO(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function sumar(iso,meses,dias){ const d=new Date(iso+'T00:00:00'); if(meses) d.setMonth(d.getMonth()+meses); if(dias) d.setDate(d.getDate()+dias);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function fmt(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; }
+
+async function init(){
+  const e=await api('GET','/api/estado'); MODS=e.modulos;
+  if(!e.configurado) return vistaSetup();
+  if(!e.autenticado) return vistaLogin();
+  return vistaPrincipal();
+}
+
+/* ---------- Primera vez ---------- */
+function vistaSetup(){
+  $('#topbtns').innerHTML='';
+  $('#app').innerHTML=`<div class="card center"><h2>Configuración inicial</h2>
+  <div class="hint">Elige la clave que protegerá este programa y la llave de firma. <b>Si la olvidas no hay forma de recuperarla</b> (tendrías que volver a importar la llave original).</div>
+  <label>Clave de acceso (mínimo 8 caracteres)</label><input type="password" id="c1" autocomplete="new-password">
+  <label>Repetir clave</label><input type="password" id="c2" autocomplete="new-password">
+  <label>Llave de firma</label>
+  <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--text);margin:4px 0"><input type="radio" name="modo" value="importar" checked> Importar la llave que ya uso (recomendado)</label>
+  <input type="text" id="ruta" placeholder="C:\\Personales RM\\dashsmart_private.xml" value="C:\\Personales RM\\dashsmart_private.xml">
+  <label style="display:flex;gap:8px;align-items:center;font-weight:500;color:var(--text);margin:10px 0 4px"><input type="radio" name="modo" value="nueva"> Generar una llave nueva</label>
+  <div class="hint">Una llave nueva <b>invalida todas las licencias ya emitidas</b> y obliga a actualizar el sistema. Úsalo solo si empiezas de cero.</div>
+  <div class="err" id="err"></div>
+  <div class="row" style="margin-top:16px"><button class="pri" onclick="setup()">Guardar y entrar</button></div></div>`;
+}
+async function setup(){
+  showErr('err','');
+  try{
+    const modo=document.querySelector('input[name=modo]:checked').value;
+    const r=await api('POST','/api/configurar',{clave:$('#c1').value,confirmar:$('#c2').value,modo,ruta:$('#ruta').value});
+    if(modo==='nueva'){
+      $('#app').innerHTML=`<div class="card center"><h2>Llave nueva creada</h2><div class="ok">Huella: <b>${esc(r.huella)}</b></div>
+      <div class="hint">Debes pegar esta llave pública en <code>Services/LicenseService.cs</code> (constante <code>PublicKeyXml</code>) del sistema y volver a instalarlo:</div>
+      <textarea readonly style="min-height:120px" class="mono">${esc(r.publica)}</textarea>
+      <div class="row" style="margin-top:14px"><button class="pri" onclick="init()">Continuar</button></div></div>`;
+    } else {
+      $('#app').innerHTML=`<div class="card center"><h2>Llave importada</h2><div class="ok">La llave quedó guardada <b>cifrada</b> en la carpeta <code>datos</code>.<br>Huella de la llave: <b>${esc(r.huella)}</b></div>
+      <div class="hint">Cuando compruebes que todo funciona, puedes borrar el archivo original en texto plano (o guardarlo en un lugar seguro aparte): ya no se necesita para trabajar y no debe viajar por correo.</div>
+      <div class="row" style="margin-top:14px"><button class="pri" onclick="init()">Continuar</button></div></div>`;
+    }
+  }catch(e){ showErr('err',e.message); }
+}
+
+/* ---------- Login ---------- */
+function vistaLogin(){
+  $('#topbtns').innerHTML='';
+  $('#app').innerHTML=`<div class="card center"><h2>Acceso</h2>
+  <label>Clave</label><input type="password" id="clave" autofocus onkeydown="if(event.key==='Enter')login()">
+  <div class="err" id="err"></div>
+  <div class="row" style="margin-top:16px"><button class="pri" onclick="login()">Entrar</button></div></div>`;
+  setTimeout(()=>$('#clave')&&$('#clave').focus(),50);
+}
+async function login(){
+  showErr('err','');
+  try{ await api('POST','/api/login',{clave:$('#clave').value}); init(); }
+  catch(e){ showErr('err',e.message); $('#clave').select(); }
+}
+async function salir(){ try{ await api('POST','/api/logout'); }catch(e){} init(); }
+
+/* ---------- Principal ---------- */
+async function vistaPrincipal(){
+  $('#topbtns').innerHTML=`<button class="pri" onclick="abrirForm()">+ Nuevo cliente</button>
+  <button onclick="location.href='/api/exportar-excel'">Exportar Excel</button>
+  <button onclick="verConfig()">Configuración</button><button onclick="salir()">Salir</button>`;
+  $('#app').innerHTML=`<div class="card"><div class="row"><h2 style="margin:0">Clientes</h2><span class="sp"></span>
+  <input type="text" id="buscar" placeholder="Buscar cliente…" style="max-width:240px" oninput="pintarLista()"></div>
+  <div id="resumen" class="mini" style="margin-top:8px"></div><div id="lista"></div></div>`;
+  await cargar();
+}
+async function cargar(){
+  try{ CLIENTES=(await api('GET','/api/clientes')).clientes; pintarLista(); }
+  catch(e){ if(e.status===401) init(); else alert(e.message); }
+}
+function pintarLista(){
+  const q=($('#buscar')?.value||'').toLowerCase();
+  const l=CLIENTES.filter(c=>c.nombre.toLowerCase().includes(q));
+  const cnt=k=>CLIENTES.filter(c=>c.estado===k).length;
+  $('#resumen').textContent=CLIENTES.length+' cliente(s) · '+cnt('Activa')+' activa(s) · '+cnt('Por vencer')+' por vencer · '+cnt('Vencida')+' vencida(s)';
+  if(!l.length){ $('#lista').innerHTML='<div class="hint" style="padding:20px 0">'+(CLIENTES.length?'Sin resultados.':'Aún no hay clientes. Presiona “+ Nuevo cliente” para emitir la primera licencia.')+'</div>'; return; }
+  $('#lista').innerHTML='<table><thead><tr><th>Cliente</th><th>Vence</th><th>Estado</th><th>Módulos</th><th></th></tr></thead><tbody>'+
+  l.map(c=>{ const k=c.estado.split(' ')[0];
+    const d=c.diasRestantes==null?'':(c.diasRestantes<0?' ('+Math.abs(c.diasRestantes)+' d vencida)':' ('+c.diasRestantes+' d)');
+    return `<tr><td><b>${esc(c.nombre)}</b>${c.huella?` <span title="Atada al servidor ${esc(c.huella)}">&#128274;</span>`:''}<div class="mini">${esc(c.contacto)}${c.huella?' · atada a servidor':''}</div></td><td>${fmt(c.expira)}<span class="mini">${d}</span></td>
+    <td><span class="badge b-${k}">${esc(c.estado)}</span></td><td>${c.modulos.length} de ${MODS.length}</td>
+    <td style="text-align:right"><button class="sm" onclick="abrirForm('${c.id}')">Renovar / Editar</button>
+    <button class="sm pri" title="Instalador del sistema (ZIP) con la licencia de este cliente ya incluida" onclick="instalador('${c.id}')">&#11015; Instalador completo</button>
+    <button class="sm" title="ZIP pequeño solo con la licencia: el cliente hace doble clic y se instala sola (renovaciones)" onclick="location.href='/api/clientes/${c.id}/paquete'">Solo licencia</button>
+    <button class="sm" title="Solo el archivo license.lic" onclick="location.href='/api/clientes/${c.id}/licencia'">license.lic</button>
+    <button class="sm" onclick="historial('${c.id}')">Historial</button>
+    <button class="sm bad" onclick="borrar('${c.id}')">Eliminar</button></td></tr>`; }).join('')+'</tbody></table>';
+}
+
+/* ---------- Formulario emitir ---------- */
+function abrirForm(id){
+  const c=id?CLIENTES.find(x=>x.id===id):null;
+  const sel=new Set(c?c.modulos:MODS.map(m=>m.clave));
+  const base=c&&c.expira&&c.expira>hoyISO()?c.expira:hoyISO();
+  const exp=c?sumar(base,0,0):sumar(hoyISO(),12,0);
+  $('#modal').innerHTML=`<h2>${c?'Renovar / editar: '+esc(c.nombre):'Nuevo cliente'}</h2>
+  <label>Cliente (nombre que aparecerá en la licencia)</label><input type="text" id="f_nombre" value="${esc(c?.nombre||'')}">
+  <div class="row"><div class="sp"><label>Contacto (opcional)</label><input type="text" id="f_contacto" value="${esc(c?.contacto||'')}"></div></div>
+  <label>Notas (opcional)</label><textarea id="f_notas">${esc(c?.notas||'')}</textarea>
+  <label>Fecha de vencimiento</label>
+  <div class="row"><input type="date" id="f_exp" value="${exp}" style="max-width:190px">
+    <button class="sm" onclick="rapido(1)">+1 mes</button><button class="sm" onclick="rapido(6)">+6 meses</button><button class="sm" onclick="rapido(12)">+1 año</button>
+    <span class="mini">(se suma a la fecha actual de vencimiento o a hoy, la mayor)</span></div>
+  <label>Huella del servidor (opcional)</label>
+  <input type="text" id="f_huella" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX" value="${esc(c?.huella||'')}" style="max-width:300px;font-family:Consolas,monospace">
+  <div class="hint">Con huella, la licencia <b>solo funciona en ese servidor</b> (si copian el programa a otra máquina, no arranca). Déjala <b>vacía</b> para que pueda usarse en cualquier servidor. La huella la muestra el sistema del cliente (en pantalla y al instalar).</div>
+  <label>Módulos activos</label>
+  <div class="row" style="margin-bottom:6px"><button class="sm" onclick="marcar(true)">Marcar todos</button><button class="sm" onclick="marcar(false)">Quitar todos</button></div>
+  <div class="mods">${MODS.map(m=>`<label><input type="checkbox" class="fm" value="${m.clave}" ${sel.has(m.clave)?'checked':''}> ${esc(m.nombre)}</label>`).join('')}</div>
+  <div class="err" id="ferr"></div>
+  <div class="row" style="margin-top:20px"><button class="pri" onclick="emitir('${id||''}')">Generar licencia</button><button onclick="cerrar()">Cancelar</button></div>`;
+  $('#modal').dataset.base=base; $('#ov').style.display='flex';
+}
+function rapido(m){ $('#f_exp').value=sumar($('#modal').dataset.base,m,0); }
+function marcar(v){ document.querySelectorAll('.fm').forEach(x=>x.checked=v); }
+function cerrar(){ $('#ov').style.display='none'; }
+async function emitir(id){
+  showErr('ferr','');
+  const mods=[...document.querySelectorAll('.fm:checked')].map(x=>x.value);
+  const exp=$('#f_exp').value;
+  if(exp&&exp<hoyISO()&&!confirm('La fecha de vencimiento ya pasó: esta licencia nacerá VENCIDA. ¿Continuar?')) return;
+  try{
+    const r=await api('POST','/api/emitir',{id:id||null,nombre:$('#f_nombre').value,contacto:$('#f_contacto').value,notas:$('#f_notas').value,expira:exp,modulos:mods,huella:$('#f_huella').value});
+    const c=r.cliente;
+    $('#modal').innerHTML=`<h2>Licencia generada</h2><div class="ok"><b>${esc(c.nombre)}</b> · vence <b>${fmt(c.expira)}</b> · ${c.modulos.length} de ${MODS.length} módulos<br>${c.huella?'&#128274; Atada al servidor <span class="mono">'+esc(c.huella)+'</span> (no funcionará en otra máquina)':'Sin atar: funciona en cualquier servidor'}</div>
+    <p class="hint">Se guardó automáticamente en:<br><code>${esc(r.carpeta)}\\license.lic</code></p>
+    <p class="hint"><b>Instalación o actualización del sistema:</b> descarga el <b>Instalador completo</b> (el ZIP del sistema con esta licencia ya dentro) y envíaselo al cliente: descomprime y ejecuta <code>INSTALAR_IIS.ps1</code> o <code>ACTUALIZAR_IIS.ps1</code>; la licencia se instala sola.</p>
+    <p class="hint"><b>Solo renovar la licencia</b> (sistema ya instalado): descarga <b>Solo licencia</b> (ZIP pequeño): el cliente hace doble clic en <code>INSTALAR_LICENCIA.bat</code> y listo.</p>
+    <div class="row" style="margin-top:16px"><button class="pri" onclick="instalador('${c.id}')">&#11015; Instalador completo</button><button onclick="location.href='/api/clientes/${c.id}/paquete'">Solo licencia</button><button onclick="location.href='/api/clientes/${c.id}/licencia'">license.lic</button><button onclick="cerrar();cargar()">Cerrar</button></div>`;
+    cargar();
+  }catch(e){ if(e.status===401){ cerrar(); init(); } else showErr('ferr',e.message); }
+}
+
+/* ---------- Instalador completo (ZIP del sistema + licencia del cliente) ---------- */
+async function instalador(id){
+  const c=CLIENTES.find(x=>x.id===id)||{nombre:''};
+  let r; try{ r=await api('GET','/api/instaladores'); }catch(e){ alert(e.message); return; }
+  const url=z=>'/api/clientes/'+id+'/instalador?zip='+encodeURIComponent(z);
+  if(!r.instaladores.length){
+    $('#modal').innerHTML=`<h2>Instalador completo</h2><div class="hint">No hay ningún instalador del sistema en la carpeta de instaladores. Copia ahí el ZIP del sistema (por ejemplo <code>DashSmart_STANDALONE_v1.12.1_....zip</code>) y vuelve a intentarlo:</div><p><code>${esc(r.carpeta)}</code></p><div class="row" style="margin-top:14px"><button onclick="cerrar()">Cerrar</button></div>`;
+    $('#ov').style.display='flex'; return;
+  }
+  if(r.instaladores.length===1){ location.href=url(r.instaladores[0].nombre); return; }
+  $('#modal').innerHTML=`<h2>Instalador completo — ${esc(c.nombre)}</h2><div class="hint">Elige la versión del sistema. Se descarga con la licencia de este cliente ya incluida (puede tardar unos segundos en armarse).</div>
+  <table><thead><tr><th>Instalador</th><th>Tamaño</th><th>Fecha</th><th></th></tr></thead><tbody>`+
+  r.instaladores.map((z,i)=>`<tr><td class="mini" style="word-break:break-all">${esc(z.nombre)}${i===0?' <b>(más reciente)</b>':''}</td><td>${z.mb} MB</td><td class="mini">${esc(z.fecha)}</td><td><button class="sm pri" onclick="location.href='${url(z.nombre).replace(/'/g,'%27')}'">Descargar</button></td></tr>`).join('')+
+  `</tbody></table><div class="row" style="margin-top:14px"><button onclick="cerrar()">Cerrar</button></div>`;
+  $('#ov').style.display='flex';
+}
+
+/* ---------- Historial / eliminar / configuración ---------- */
+function historial(id){
+  const c=CLIENTES.find(x=>x.id===id); const nom=k=>(MODS.find(m=>m.clave===k)||{nombre:k}).nombre;
+  $('#modal').innerHTML=`<h2>Historial: ${esc(c.nombre)}</h2><table><thead><tr><th>Emitida</th><th>Vence</th><th>Módulos</th><th></th></tr></thead><tbody>`+
+  c.emisiones.map(e=>`<tr><td>${esc(e.fecha)}</td><td>${fmt(e.expira)}</td><td class="mini">${e.modulos.map(nom).map(esc).join(', ')}</td>
+  <td><button class="sm" onclick="location.href='/api/clientes/${c.id}/licencia?n=${e.n}'">Descargar</button></td></tr>`).join('')+
+  `</tbody></table><div class="row" style="margin-top:16px"><button onclick="cerrar()">Cerrar</button></div>`;
+  $('#ov').style.display='flex';
+}
+async function borrar(id){
+  const c=CLIENTES.find(x=>x.id===id);
+  if(!confirm('¿Eliminar a "'+c.nombre+'" de la base de clientes?\n\nLos archivos .lic ya generados se conservan en la carpeta datos\\licencias, y la licencia que el cliente ya tiene instalada seguirá funcionando hasta su fecha.')) return;
+  try{ await api('DELETE','/api/clientes/'+id); cargar(); }catch(e){ alert(e.message); }
+}
+async function verConfig(){
+  let k={}; try{ k=await api('GET','/api/clave-publica'); }catch(e){}
+  $('#modal').innerHTML=`<h2>Configuración</h2>
+  <div class="hint">Huella de la llave de firma: <b>${esc(k.huella||'')}</b><br>Debe ser la misma de la llave pública que tiene el sistema instalado en los clientes (<code>PublicKeyXml</code> en <code>LicenseService.cs</code>).</div>
+  <label>Llave pública (para pegar en el sistema, si alguna vez cambias de llave)</label><textarea readonly class="mono" style="min-height:90px">${esc(k.publica||'')}</textarea>
+  <h2 style="margin-top:22px">Cambiar clave de acceso</h2>
+  <label>Clave actual</label><input type="password" id="k0" autocomplete="off"><label>Clave nueva (mínimo 8)</label><input type="password" id="k1" autocomplete="new-password"><label>Repetir clave nueva</label><input type="password" id="k2" autocomplete="new-password">
+  <div class="err" id="kerr"></div><div id="kok"></div>
+  <div class="row" style="margin-top:16px"><button class="pri" onclick="cambiarClave()">Cambiar clave</button><button onclick="cerrar()">Cerrar</button></div>`;
+  $('#ov').style.display='flex';
+}
+async function cambiarClave(){
+  showErr('kerr','');
+  try{ await api('POST','/api/cambiar-clave',{actual:$('#k0').value,nueva:$('#k1').value,confirmar:$('#k2').value}); $('#kok').innerHTML='<div class="ok">Clave cambiada.</div>'; ['k0','k1','k2'].forEach(i=>$('#'+i).value=''); }
+  catch(e){ showErr('kerr',e.message); }
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') cerrar(); });
+init();
+</script>
+</body>
+</html>

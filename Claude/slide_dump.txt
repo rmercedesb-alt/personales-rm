@@ -1,0 +1,89 @@
+slide 0 layout= AM_BASE
+   AUTO_SHAPE (1) Shape 0 
+   PICTURE (13) Image 0 
+   AUTO_SHAPE (1) Text 1 TÍTULO DE LA PRESENTACIÓN
+   AUTO_SHAPE (1) Text 2 Subtítulo o mensaje clave en una línea
+   AUTO_SHAPE (1) Text 3 Presentado por:  [Nombre] | Área / Canal:  [Ventas] | 
+slide 1 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 Agenda
+   AUTO_SHAPE (1) Shape 1 
+   AUTO_SHAPE (1) Text 2 1
+   AUTO_SHAPE (1) Text 3 Contexto y objetivo
+   AUTO_SHAPE (1) Shape 4 
+   AUTO_SHAPE (1) Text 5 2
+   AUTO_SHAPE (1) Text 6 Resultados del período
+   AUTO_SHAPE (1) Shape 7 
+   AUTO_SHAPE (1) Text 8 3
+   AUTO_SHAPE (1) Text 9 Análisis por canal
+   AUTO_SHAPE (1) Shape 10 
+   AUTO_SHAPE (1) Text 11 4
+   AUTO_SHAPE (1) Text 12 Riesgos y oportunidades
+   AUTO_SHAPE (1) Shape 13 
+   AUTO_SHAPE (1) Text 14 5
+   AUTO_SHAPE (1) Text 15 Acciones y próximos pasos
+   AUTO_SHAPE (1) Text 16 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 17 2
+slide 2 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 01
+   AUTO_SHAPE (1) Text 1 Nombre de la sección
+   AUTO_SHAPE (1) Text 2 Una línea que resume de qué trata esta sección.
+   PICTURE (13) Image 0 
+slide 3 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 Título del contenido con el mensaje
+   AUTO_SHAPE (1) Text 1 Sumario: en 1–2 frases diga qué se va a ver aquí y
+   AUTO_SHAPE (1) Text 2 Punto clave uno con el dato que lo respalda. | Punto
+   AUTO_SHAPE (1) Shape 3 
+   AUTO_SHAPE (1) Text 4 [ Imagen, gráfico o tabla ]
+   AUTO_SHAPE (1) Text 5 Lectura.  Conclusión de una línea con el dato clav
+   AUTO_SHAPE (1) Text 6 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 7 4
+slide 4 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 Comparación en dos columnas
+   AUTO_SHAPE (1) Shape 1 
+   AUTO_SHAPE (1) Shape 2 
+   AUTO_SHAPE (1) Text 3 Columna A
+   AUTO_SHAPE (1) Text 4 Idea o dato uno. | Idea o dato dos. | Idea o dato tres
+   AUTO_SHAPE (1) Shape 5 
+   AUTO_SHAPE (1) Shape 6 
+   AUTO_SHAPE (1) Text 7 Columna B
+   AUTO_SHAPE (1) Text 8 Idea o dato uno. | Idea o dato dos. | Idea o dato tres
+   AUTO_SHAPE (1) Text 9 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 10 5
+slide 5 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 Resultados del período
+   AUTO_SHAPE (1) Shape 1 
+   AUTO_SHAPE (1) Text 2 RD$ 0.0M
+   AUTO_SHAPE (1) Text 3 Venta del mes
+   AUTO_SHAPE (1) Shape 4 
+   AUTO_SHAPE (1) Text 5 98.4%
+   AUTO_SHAPE (1) Text 6 Cumplimiento vs presupuesto
+   AUTO_SHAPE (1) Shape 7 
+   AUTO_SHAPE (1) Text 8 0
+   AUTO_SHAPE (1) Text 9 Clientes atendidos
+   AUTO_SHAPE (1) Shape 10 
+   AUTO_SHAPE (1) Text 11 +0.0%
+   AUTO_SHAPE (1) Text 12 vs mes anterior
+   TABLE (19) Table 0 
+   AUTO_SHAPE (1) Text 13 Lectura.  Institucional bajo la meta; el total cie
+   AUTO_SHAPE (1) Text 14 Semáforo:  ● ≥100%   ·   ● 85–99%   ·   ● <85%
+   AUTO_SHAPE (1) Text 15 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 16 6
+slide 6 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 El crecimiento viene del canal nuevo; la base cae
+   CHART (3) Chart 0 
+   AUTO_SHAPE (1) Text 1 Lectura.  Escriba aquí la conclusión de la gráfica
+   AUTO_SHAPE (1) Text 2 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 3 7
+slide 7 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 “
+   AUTO_SHAPE (1) Text 1 Aquí va el mensaje clave de la presentación en una
+   AUTO_SHAPE (1) Text 2 — Fuente o autor del mensaje
+   PICTURE (13) Image 0 
+slide 8 layout= AM_BASE
+   AUTO_SHAPE (1) Text 0 Cierre y próximos pasos
+   TABLE (19) Table 0 
+   AUTO_SHAPE (1) Shape 1 
+   PICTURE (13) Image 0 
+   AUTO_SHAPE (1) Text 2 Contacto | [Nombre] · [correo] · [teléfono]
+   AUTO_SHAPE (1) Text 3 AM Comercial — Confidencial
+   AUTO_SHAPE (1) Text 4 9

@@ -1,0 +1,212 @@
+@page
+@model ADEnterprise.Pages.Pagos.DetallePagoModel
+@{
+    ViewData["Title"] = "Detalle de Pago";
+    var p = Model.Pago!;
+    var f = Model.Factura;
+}
+
+<!-- ── ENCABEZADO ─────────────────────────────────────────────────────── -->
+<div class="d-flex align-items-center gap-3 mb-3">
+    <a href="/Pagos/Consulta" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+    </a>
+    <div>
+        <div class="page-title mb-0">
+            <i class="bi bi-cash-coin"></i> Pago — Ticket #@p.NumTicket
+        </div>
+        <div class="page-subtitle mb-0 font-monospace" style="font-size:.75rem">@p.NumTransaccionPago</div>
+    </div>
+    @if (!Model.EsAdmin)
+    {
+    <span class="badge bg-secondary ms-auto">Solo lectura</span>
+    }
+</div>
+
+<div class="row g-3">
+
+<!-- ── COLUMNA IZQUIERDA ─────────────────────────────────────────────── -->
+<div class="col-md-7">
+
+    @if (Model.EsAdmin)
+    {
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+            <i class="bi bi-pencil-square"></i> Editar Pago
+            <small class="float-end fw-normal opacity-75">
+                Los cambios recalculan el balance de la factura automáticamente
+            </small>
+        </div>
+        <div class="card-body">
+            <form method="post" asp-page-handler="Guardar">
+                <input type="hidden" asp-for="Input.NumTransaccionPago" />
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Fecha de Pago</label>
+                        <input asp-for="Input.FechaPago" type="date" class="form-control form-control-sm" />
+                        <span asp-validation-for="Input.FechaPago" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Monto Pagado (RD$)</label>
+                        <input asp-for="Input.MontoPagado" type="number" step="0.01" min="0.01"
+                               class="form-control form-control-sm" />
+                        <span asp-validation-for="Input.MontoPagado" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">Forma de Pago</label>
+                        <select asp-for="Input.FormaPago" class="form-select form-select-sm"
+                                asp-items="Html.GetEnumSelectList<ADEnterprise.Models.FormaPago>()">
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold small">N° Cheque / Referencia</label>
+                        <input asp-for="Input.NumChequeReferencia" class="form-control form-control-sm"
+                               placeholder="Opcional" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold small">Notas</label>
+                        <textarea asp-for="Input.Notas" class="form-control form-control-sm"
+                                  rows="2" placeholder="Notas opcionales..."></textarea>
+                    </div>
+                </div>
+
+                @if (f != null)
+                {
+                <div class="alert alert-info mt-3 mb-0 py-2 small">
+                    <i class="bi bi-info-circle"></i>
+                    Al guardar, el sistema recalculará automáticamente el balance de la factura
+                    <strong>#@f.NumTicket</strong> sumando todos sus pagos.
+                </div>
+                }
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary-app btn-sm">
+                        <i class="bi bi-floppy"></i> Guardar Cambios
+                    </button>
+                    <a href="/Pagos/Detalle?id=@p.NumTransaccionPago"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                    @if (f != null)
+                    {
+                    <a href="/Facturacion/Detalle?id=@f.NumTransaccion"
+                       class="btn btn-outline-secondary btn-sm ms-auto">
+                        <i class="bi bi-receipt"></i> Ver Factura
+                    </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+            <i class="bi bi-cash-coin"></i> Datos del Pago
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-4 text-muted small">N° Pago</dt>
+                <dd class="col-sm-8 font-monospace small">@p.NumTransaccionPago</dd>
+                <dt class="col-sm-4 text-muted small">Fecha</dt>
+                <dd class="col-sm-8">@p.FechaPago.ToString("dd/MM/yyyy")</dd>
+                <dt class="col-sm-4 text-muted small">Monto</dt>
+                <dd class="col-sm-8 fw-bold text-success">RD$ @p.MontoPagado.ToString("N2")</dd>
+                <dt class="col-sm-4 text-muted small">Forma</dt>
+                <dd class="col-sm-8">@p.FormaPago</dd>
+                <dt class="col-sm-4 text-muted small">Referencia</dt>
+                <dd class="col-sm-8">@(p.NumChequeReferencia == "" ? "—" : p.NumChequeReferencia)</dd>
+                <dt class="col-sm-4 text-muted small">Notas</dt>
+                <dd class="col-sm-8">@(p.Notas == "" ? "—" : p.Notas)</dd>
+                <dt class="col-sm-4 text-muted small">Registrado por</dt>
+                <dd class="col-sm-8">@p.UsuarioRegistro <span class="text-muted small">— @p.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</span></dd>
+            </dl>
+        </div>
+    </div>
+    }
+
+    <!-- Auditoría modificación -->
+    @if (p.FechaModificacion.HasValue)
+    {
+    <div class="card shadow-sm mt-3">
+        <div class="card-body py-2 small">
+            <i class="bi bi-clock-history text-warning"></i>
+            <strong>Última modificación:</strong>
+            @p.FechaModificacion.Value.ToString("dd/MM/yyyy HH:mm")
+            por <strong>@p.UsuarioModificacion</strong>
+        </div>
+    </div>
+    }
+
+</div>
+
+<!-- ── COLUMNA DERECHA — Datos de la factura relacionada ─────────────── -->
+<div class="col-md-5">
+    @if (f != null)
+    {
+        var badgeColor = f.Estado switch {
+            ADEnterprise.Models.EstadoFactura.Pendiente     => "bg-secondary",
+            ADEnterprise.Models.EstadoFactura.PagadoParcial => "bg-warning text-dark",
+            ADEnterprise.Models.EstadoFactura.Pagada        => "bg-success",
+            _                                               => "bg-danger"
+        };
+    <div class="card shadow-sm">
+        <div class="card-header fw-bold" style="background:var(--azul-marino);color:white">
+            <i class="bi bi-receipt"></i> Factura Asociada
+            <a href="/Facturacion/Detalle?id=@f.NumTransaccion"
+               class="btn btn-sm btn-light py-0 float-end" style="font-size:.75rem">
+                Ver detalle
+            </a>
+        </div>
+        <div class="card-body">
+            <dl class="row mb-0 small">
+                <dt class="col-sm-4 text-muted">Ticket</dt>
+                <dd class="col-sm-8 fw-bold">#@f.NumTicket <span class="badge @badgeColor ms-1">@f.Estado</span></dd>
+                <dt class="col-sm-4 text-muted">Empresa</dt>
+                <dd class="col-sm-8">@f.EmpresaNombre</dd>
+                <dt class="col-sm-4 text-muted">Cliente</dt>
+                <dd class="col-sm-8">@f.ClienteNombre</dd>
+                <dt class="col-sm-4 text-muted">Fecha</dt>
+                <dd class="col-sm-8">@f.FechaFactura.ToString("dd/MM/yyyy")</dd>
+            </dl>
+            <hr class="my-2"/>
+            <div class="row text-center g-2">
+                <div class="col-4">
+                    <div class="text-muted" style="font-size:.7rem">MONTO</div>
+                    <div class="fw-bold" style="color:var(--azul-marino);font-size:.9rem">@f.Monto.ToString("N0")</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-muted" style="font-size:.7rem">PAGADO</div>
+                    <div class="fw-bold text-success" style="font-size:.9rem">@f.PagadoALaFecha.ToString("N0")</div>
+                </div>
+                <div class="col-4">
+                    <div class="text-muted" style="font-size:.7rem">SALDO</div>
+                    <div class="fw-bold @(f.SaldoPendiente > 0 ? "text-danger" : "text-success")" style="font-size:.9rem">
+                        @f.SaldoPendiente.ToString("N0")
+                    </div>
+                </div>
+            </div>
+            <div class="progress mt-2" style="height:6px">
+                @{ var pctF = f.Monto > 0 ? (double)f.PagadoALaFecha/(double)f.Monto*100 : 0; }
+                <div class="progress-bar @(pctF>=100?"bg-success":pctF>=50?"bg-warning":"bg-danger")"
+                     style="width:@pctF%"></div>
+            </div>
+        </div>
+    </div>
+    }
+    else
+    {
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        No se encontró la factura asociada a este pago.
+    </div>
+    }
+</div>
+
+</div>
+
+@section Scripts {
+<partial name="_ValidationScriptsPartial" />
+}
