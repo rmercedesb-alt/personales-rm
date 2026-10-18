@@ -1,11 +1,11 @@
 # RutaVisitasSmart — Instrucciones del proyecto
 
 Este proyecto es independiente de `MovilBusinessDashBoard*` (carpeta hermana, mismo
-repo/OneDrive). Tiene su **propia bitácora**, separada de la de los dashboards .NET.
+repo; desde el 2026-10-18 en `C:\Personales RM\Claude`, ya no en OneDrive). Tiene su **propia bitácora**, separada de la de los dashboards .NET.
 
 ## Bitácora compartida entre 2 cuentas (PROGRESS.md)
 El usuario trabaja con **2 cuentas distintas** de Claude sobre este proyecto (carpeta
-en OneDrive, se sincroniza entre máquinas/cuentas). Para no perder el hilo:
+en `C:\Personales RM\Claude\MovilBusinessDashBoard\RutaVisitasSmart`; ambas cuentas deben abrir esa misma carpeta). Para no perder el hilo:
 
 1. **Al INICIAR cualquier sesión/chat en `RutaVisitasSmart/`:** lee
    **`RutaVisitasSmart/PROGRESS.md`** ANTES de empezar, para ponerte al día de qué se
@@ -13,7 +13,7 @@ en OneDrive, se sincroniza entre máquinas/cuentas). Para no perder el hilo:
 2. **Al CERRAR o hacer una PAUSA de la conversación:** actualiza ese `PROGRESS.md` con
    qué se hizo, decisiones clave, pendientes (incl. acciones de TI), dónde se retoma,
    y la fecha de última actualización.
-3. Este `CLAUDE.md` y `PROGRESS.md` viven en OneDrive → ambas cuentas los leen/escriben.
+3. Este `CLAUDE.md` y `PROGRESS.md` están en esa carpeta local (ya no en OneDrive) → ambas cuentas los leen/escriben.
    La memoria interna de Claude (`~/.claude`) NO se sincroniza entre cuentas/máquinas;
    por eso el canal compartido son estos archivos del proyecto.
 

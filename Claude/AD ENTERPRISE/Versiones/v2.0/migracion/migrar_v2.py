@@ -16,7 +16,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 # ── Config ────────────────────────────────────────────────────────────────────
-CRED_FILE       = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\AD ENTERPRISE\Versiones\v1.1\Local-Run\ADEnterprise\credentials.json"
+CRED_FILE       = r"C:\Personales RM\Claude\AD ENTERPRISE\Versiones\v1.1\Local-Run\ADEnterprise\credentials.json"
 OLD_SHEET_ID    = "16A-Xgwjd8-yYgWCtFz8dcAUJLdwkvs_yYlwJlzbTphM"
 NEW_SHEET_NAME  = "AD Enterprise.Fanny Mercedes & Asoc. V2.0"
 HOY             = datetime.date.today().strftime("%Y%m%d")
@@ -371,7 +371,7 @@ resultado = {
     }
 }
 
-out_file = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\AD ENTERPRISE\Versiones\v2.0\migracion\resultado_migracion.json"
+out_file = r"C:\Personales RM\Claude\AD ENTERPRISE\Versiones\v2.0\migracion\resultado_migracion.json"
 os.makedirs(os.path.dirname(out_file), exist_ok=True)
 with open(out_file, "w") as f:
     json.dump(resultado, f, indent=2)

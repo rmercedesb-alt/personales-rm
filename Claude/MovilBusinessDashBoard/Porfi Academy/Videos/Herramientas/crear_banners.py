@@ -1,7 +1,7 @@
 import cv2, numpy as np, os, sys
 from PIL import Image
 src = r"C:\Users\Rudy\Downloads\1er paso para tirar duro.mp4"
-root = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\MovilBusinessDashBoard\Porfi Academy\Videos"
+root = r"C:\Personales RM\Claude\MovilBusinessDashBoard\Porfi Academy\Videos"
 W, H = 1600, 800
 NAVY = np.array([32, 16, 9], np.float32)         # #091020 (BGR)
 NAVY2 = np.array([80, 39, 26], np.float32)       # #1A2750

@@ -12,7 +12,7 @@ import openpyxl, datetime, warnings, random, calendar
 warnings.filterwarnings('ignore')
 
 src = openpyxl.load_workbook(
-    r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\Reporte de Inquilinos BackUp.xlsx',
+    r'C:\Personales RM\Claude\Sistema de Condominios\web-app\Reporte de Inquilinos BackUp.xlsx',
     data_only=True)
 
 HOY = datetime.date(2026, 6, 14)
@@ -414,7 +414,7 @@ for i, (a_val, b_val) in enumerate(filas_res, 2):
     if is_hdr:
         a.fill = hf(AZUL_CORP); a.font = fn(bold=True, color='FFFFFF', size=10)
 
-out = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\CARGA_REAL_PRUEBAS.xlsx'
+out = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\CARGA_REAL_PRUEBAS.xlsx'
 wb.save(out)
 print(f'Archivo: {out}')
 print(f'  Propietarios   : {len(propietarios)}')

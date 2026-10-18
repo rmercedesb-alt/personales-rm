@@ -1,6 +1,6 @@
 @echo off
 title Dashboard Productividad - Local
-cd /d "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash Productividad NET"
+cd /d "C:\Personales RM\Claude\Dash Productividad NET"
 echo.
 echo ============================================
 echo   Dashboard Productividad - Modo Local

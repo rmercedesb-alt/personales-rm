@@ -3,7 +3,7 @@
 Proyecto **independiente** del dashboard MovilBusiness (aunque la carpeta esté dentro de `MovilBusinessDashBoard`). Ignora las reglas y el stack del dashboard (PROGRESS.md de la raíz, bats, IIS, etc.) salvo que el usuario lo pida.
 
 ## Ubicación
-Todo lo de este proyecto (código, documentos, notas, planes) se guarda en esta carpeta: `C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\MovilBusinessDashBoard\Porfi Academy`. No crear archivos de Porfi Academy fuera de ella.
+Todo lo de este proyecto (código, documentos, notas, planes) se guarda en esta carpeta: `C:\Personales RM\Claude\MovilBusinessDashBoard\Porfi Academy`. No crear archivos de Porfi Academy fuera de ella.
 
 ## Bitácora (PROGRESS.md)
 1. Al iniciar una sesión sobre este proyecto, lee `PROGRESS.md` (en esta carpeta) antes de empezar.

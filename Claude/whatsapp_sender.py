@@ -14,7 +14,7 @@ import urllib.parse
 from datetime import datetime
 
 # ─── CONFIGURACION ────────────────────────────────────────────────
-RUTA_BASE      = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude"
+RUTA_BASE      = r"C:\Personales RM\Claude"
 RUTA_CONTACTOS = os.path.join(RUTA_BASE, "contactos.json")
 ESPERA_APP     = 5
 

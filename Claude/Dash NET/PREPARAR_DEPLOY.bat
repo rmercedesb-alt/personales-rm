@@ -2,7 +2,7 @@
 chcp 65001 >nul
 title Preparar Paquete de Actualizacion - DashVisitas
 
-cd /d "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash NET"
+cd /d "C:\Personales RM\Claude\Dash NET"
 
 echo.
 echo ============================================
@@ -101,6 +101,6 @@ echo ============================================
 echo.
 
 REM --- Abrir carpeta en el explorador ---
-explorer "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash NET"
+explorer "C:\Personales RM\Claude\Dash NET"
 
 pause

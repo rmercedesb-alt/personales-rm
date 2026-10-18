@@ -26,7 +26,7 @@ ROJO         = colors.HexColor('#dc3545')
 NARANJA      = colors.HexColor('#fd7e14')
 MORADO       = colors.HexColor('#6610f2')
 
-OUTPUT = (r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude"
+OUTPUT = (r"C:\Personales RM\Claude"
           r"\AD ENTERPRISE\Manual\Manual_Usuario_AD_Enterprise.pdf")
 
 w_page, h_page = A4   # 595 x 842 pts

@@ -11,7 +11,7 @@ from pptx.enum.shapes import MSO_SHAPE
 
 SC = Path(__file__).parent
 IMG = SC / "img"
-BASE = Path(r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude")
+BASE = Path(r"C:\Personales RM\Claude")
 DEST = BASE / "Reunion_Cristiano_Perez_Mayorista_Sep2026.pptx"
 LOGO = SC / "logo_a.png"
 

@@ -4,7 +4,7 @@ import pandas as pd, numpy as np
 from pathlib import Path
 
 SC = Path(__file__).parent
-DEST = Path(r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude") / "Reunion_Cristiano_Perez_Datos_Sep2026.xlsx"
+DEST = Path(r"C:\Personales RM\Claude") / "Reunion_Cristiano_Perez_Datos_Sep2026.xlsx"
 P = lambda n: pd.read_pickle(SC / (n + '.pkl'))
 cartera, ventas, visitas, inv = P('cartera'), P('ventas'), P('visitas'), P('inv')
 MESES = ['2026-03', '2026-04', '2026-05', '2026-06', '2026-07', '2026-08']

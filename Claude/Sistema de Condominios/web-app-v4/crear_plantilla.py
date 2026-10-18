@@ -4,7 +4,7 @@ from openpyxl.styles import (Font, PatternFill, Alignment, Border, Side,
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-OUT = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\Plantilla_Carga_Maestras_InmueblesRD.xlsx'
+OUT = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\Plantilla_Carga_Maestras_InmueblesRD.xlsx'
 
 # ── Paleta ──────────────────────────────────────────────────────────────────
 AZUL       = '1B4F8C'

@@ -22,11 +22,11 @@ timeout /T 1 /NOBREAK >nul
 
 REM Iniciar Dashboard Visitas en ventana separada
 echo [2/2] Iniciando proyectos...
-start "Dashboard Visitas (5001)" cmd /k "chcp 65001 >nul & cd /d "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash NET" & echo [Visitas] Iniciando en http://localhost:5001 & dotnet run"
+start "Dashboard Visitas (5001)" cmd /k "chcp 65001 >nul & cd /d "C:\Personales RM\Claude\Dash NET" & echo [Visitas] Iniciando en http://localhost:5001 & dotnet run"
 
 REM Esperar 2 segundos y luego iniciar Productividad
 timeout /T 2 /NOBREAK >nul
-start "Dashboard Productividad (5002)" cmd /k "chcp 65001 >nul & cd /d "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash Productividad NET" & echo [Productividad] Iniciando en http://localhost:5002 & dotnet run"
+start "Dashboard Productividad (5002)" cmd /k "chcp 65001 >nul & cd /d "C:\Personales RM\Claude\Dash Productividad NET" & echo [Productividad] Iniciando en http://localhost:5002 & dotnet run"
 
 echo.
 echo  Ambos proyectos iniciando en ventanas separadas.

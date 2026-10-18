@@ -12,7 +12,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SPREADSHEET_ID   = '1Ir6aKzaL8HRSi0v8lUMa_1KYTQc0r4gtTVwHiHiYbAU'
-CREDENTIALS_PATH = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
+CREDENTIALS_PATH = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
 TAB = '🏢 INMUEBLES'
 TAB_PROP = '👤 PROPIETARIOS'
 PAUSA = 0.8

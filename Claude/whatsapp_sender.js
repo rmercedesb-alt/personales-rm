@@ -11,7 +11,7 @@ const path = require('path');
 const readline = require('readline');
 
 // ─── CONFIGURACION ────────────────────────────────────────────────
-const RUTA_BASE      = 'C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude';
+const RUTA_BASE      = 'C:\\Personales RM\\Claude';
 const RUTA_CONTACTOS = path.join(RUTA_BASE, 'contactos.json');
 
 // ─── CARGAR CONTACTOS ─────────────────────────────────────────────

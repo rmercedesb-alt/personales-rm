@@ -1,4 +1,4 @@
 @echo off
-cd "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude"
+cd "C:\Personales RM\Claude"
 py proyecciones_comerciales.py
 pause

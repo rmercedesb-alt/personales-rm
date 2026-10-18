@@ -17,7 +17,7 @@ from google.oauth2.service_account import Credentials
 from googleapiclient.discovery import build
 
 # ── Config ─────────────────────────────────────────────────────────────────────
-CRED_FILE = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\AD ENTERPRISE\Versiones\v1.1\Local-Run\ADEnterprise\credentials.json"
+CRED_FILE = r"C:\Personales RM\Claude\AD ENTERPRISE\Versiones\v1.1\Local-Run\ADEnterprise\credentials.json"
 NEW_ID    = "1CWJL4E1OWY0NTF-G9qjax1FZoBvUOH9DVuxHLSHgN6o"
 HOY       = datetime.date.today().strftime("%Y%m%d")
 HOY_ISO   = datetime.date.today().isoformat()

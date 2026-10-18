@@ -9,7 +9,7 @@ echo  ================================================
 echo.
 
 set PYTHON=C:\Python314\python.exe
-set APPDIR=C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Optimizador de Ruta
+set APPDIR=C:\Personales RM\Claude\Optimizador de Ruta
 set APP=%APPDIR%\optimizador_rutas.py
 set PORT=8766
 

@@ -14,7 +14,7 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
 SPREADSHEET_ID   = '1Ir6aKzaL8HRSi0v8lUMa_1KYTQc0r4gtTVwHiHiYbAU'
-CREDENTIALS_PATH = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
+CREDENTIALS_PATH = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
 
 HOY    = datetime.date(2026, 6, 14)
 MESES  = list(range(1, 7))          # Ene-Jun 2026

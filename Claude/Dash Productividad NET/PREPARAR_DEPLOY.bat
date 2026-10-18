@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 title Preparar Deploy - Dashboard Productividad
-cd /d "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash Productividad NET"
+cd /d "C:\Personales RM\Claude\Dash Productividad NET"
 
 echo.
 echo ============================================
@@ -48,5 +48,5 @@ echo ============================================
 echo   LISTO! Archivos en DEPLOY_Productividad\
 echo   ZIP:  DEPLOY_Productividad.zip
 echo ============================================
-explorer "C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Dash Productividad NET"
+explorer "C:\Personales RM\Claude\Dash Productividad NET"
 pause

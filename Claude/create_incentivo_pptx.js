@@ -31,7 +31,7 @@ const C = {
   darkText:   "374151",
 };
 
-const LOGO_PATH = "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\logo_am_comercial.png";
+const LOGO_PATH = "C:\\Personales RM\\Claude\\logo_am_comercial.png";
 const makeShadow = () => ({ type: "outer", color: "000000", blur: 8, offset: 2, angle: 135, opacity: 0.15 });
 
 // ===========================================================
@@ -552,7 +552,7 @@ const makeShadow = () => ({ type: "outer", color: "000000", blur: 8, offset: 2, 
 // WRITE FILE
 // ===========================================================
 pres.writeFile({
-  fileName: "C:\\Users\\Rudy\\OneDrive - AM COMERCIAL\\Rudy\\Claude\\Joceando mis cuartos - Incentivo Lluvias Mayo 2026.pptx",
+  fileName: "C:\\Personales RM\\Claude\\Joceando mis cuartos - Incentivo Lluvias Mayo 2026.pptx",
 })
 .then(() => console.log("✅ Presentación creada: Joceando mis cuartos - Incentivo Lluvias Mayo 2026.pptx"))
 .catch(err => { console.error("❌ Error:", err); process.exit(1); });

@@ -745,6 +745,6 @@ for i, (paso, estado, nota) in enumerate(pasos, 3):
 
 
 # ─── Guardar ────────────────────────────────────────────────────────────────
-output = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\CARGA_DATOS_INMUEBLES_RD.xlsx"
+output = r"C:\Personales RM\Claude\Sistema de Condominios\web-app\CARGA_DATOS_INMUEBLES_RD.xlsx"
 wb.save(output)
 print(f"✅ Archivo creado: {output}")

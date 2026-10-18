@@ -12,8 +12,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 
 # ── Configuración ────────────────────────────────────────────────────────────
 SPREADSHEET_ID  = '1Ir6aKzaL8HRSi0v8lUMa_1KYTQc0r4gtTVwHiHiYbAU'
-CREDENTIALS_PATH = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
-EXCEL_PATH       = r'C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Sistema de Condominios\web-app\CARGA_REAL_PRUEBAS.xlsx'
+CREDENTIALS_PATH = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\InmueblesAPI\credentials.json'
+EXCEL_PATH       = r'C:\Personales RM\Claude\Sistema de Condominios\web-app\CARGA_REAL_PRUEBAS.xlsx'
 
 # Mapeo: pestaña Excel → pestaña Google Sheets
 MAPEO = {

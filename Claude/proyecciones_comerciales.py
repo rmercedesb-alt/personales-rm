@@ -14,7 +14,7 @@ from datetime import date
 import os, sys
 
 # ─── CONFIGURACION ────────────────────────────────────────────────
-RUTA_EXCEL = r"C:\Users\Rudy\OneDrive - AM COMERCIAL\Rudy\Claude\Tabla de Presupuestos Claude Mes.xlsx"
+RUTA_EXCEL = r"C:\Personales RM\Claude\Tabla de Presupuestos Claude Mes.xlsx"
 HOJA       = "DATA MES"
 CORREOS    = ["r.mercedesb@gmail.com", "rmercedes@amcomercial.com"]
 REMITENTE  = "rmercedes@amcomercial.com"
